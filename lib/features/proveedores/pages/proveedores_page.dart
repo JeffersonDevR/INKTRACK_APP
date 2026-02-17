@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../proveedores_viewmodel.dart';
-import '../proveedor.dart';
+import '../viewmodels/proveedores_viewmodel.dart';
+import '../models/proveedor.dart';
 import '../../../core/theme/app_theme.dart';
 import 'proveedor_form_page.dart';
 

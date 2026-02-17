@@ -1,5 +1,5 @@
-import '../../core/base_crud_viewmodel.dart';
-import 'proveedor.dart';
+import '../../../core/base_crud_viewmodel.dart';
+import '../models/proveedor.dart';
 
 class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
   List<Proveedor> get proveedores => items;

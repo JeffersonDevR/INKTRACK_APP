@@ -1,4 +1,4 @@
-import '../../core/base_crud_viewmodel.dart';
+import '../../../core/base_crud_viewmodel.dart';
 
 class Producto implements HasId {
   @override

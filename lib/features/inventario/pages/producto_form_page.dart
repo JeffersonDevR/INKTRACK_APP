@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../inventario_viewmodel.dart';
-import '../producto.dart';
-import '../../proveedores/proveedores_viewmodel.dart';
+import '../viewmodels/inventario_viewmodel.dart';
+import '../models/producto.dart';
+import '../../proveedores/viewmodels/proveedores_viewmodel.dart';
+import 'actualizar_stock_page.dart';
 
 const String _kCustomProveedorValue = '__custom__';
 
@@ -45,6 +46,31 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
       }
     } else if (widget.initialCodigoBarras != null) {
       _codigoBarrasController.text = widget.initialCodigoBarras!;
+    }
+
+    _codigoBarrasController.addListener(_checkBarcodeExistence);
+  }
+
+  void _checkBarcodeExistence() {
+    if (widget.producto != null) return; // Only for new products
+    final code = _codigoBarrasController.text.trim();
+    if (code.isEmpty) return;
+
+    final viewModel = context.read<InventarioViewModel>();
+    final existing = viewModel.findProductoByCodigo(code);
+
+    if (existing != null) {
+      // If found, redirect to update stock
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Only if still mounted and we haven't already popped
+        if (mounted) {
+           Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => ActualizarStockPage(producto: existing),
+            ),
+          );
+        }
+      });
     }
   }
 
@@ -241,28 +267,21 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
     final viewModel = context.read<InventarioViewModel>();
     final precio = double.parse(_precioController.text.replaceAll(',', '.'));
 
-    if (widget.producto == null) {
-      viewModel.agregar(
-        nombre: _nombreController.text.trim(),
-        cantidad: int.parse(_cantidadController.text),
-        precio: precio,
-        categoria: _categoriaController.text.trim(),
-        proveedorId: proveedorId.isEmpty ? '' : proveedorId,
-        codigoBarras: codigoBarras,
-        proveedorNombre: proveedorNombre,
-      );
-    } else {
-      viewModel.editar(
-        id: widget.producto!.id,
-        nombre: _nombreController.text.trim(),
-        cantidad: int.parse(_cantidadController.text),
-        precio: precio,
-        categoria: _categoriaController.text.trim(),
-        proveedorId: proveedorId.isEmpty ? '' : proveedorId,
-        codigoBarras: codigoBarras,
-        proveedorNombre: proveedorNombre,
-      );
+    final producto = Producto(
+      id: widget.producto?.id ?? '', // Empty ID means new (or barcode will take precedence in VM)
+      nombre: _nombreController.text.trim(),
+      cantidad: int.parse(_cantidadController.text),
+      precio: precio,
+      categoria: _categoriaController.text.trim(),
+      proveedorId: proveedorId.isEmpty ? '' : proveedorId,
+      codigoBarras: codigoBarras,
+      proveedorNombre: proveedorNombre,
+    );
+
+    viewModel.guardar(producto);
+    
+    if (mounted) {
+      Navigator.pop(context);
     }
-    Navigator.pop(context);
   }
 }

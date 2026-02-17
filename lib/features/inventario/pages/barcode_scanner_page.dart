@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:provider/provider.dart';
 import 'producto_form_page.dart';
+import 'actualizar_stock_page.dart';
+import '../viewmodels/inventario_viewmodel.dart';
 
 class BarcodeScannerPage extends StatefulWidget {
   const BarcodeScannerPage({super.key});
@@ -30,12 +33,25 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
     final String? code = barcodes.first.rawValue;
     if (code == null || code.isEmpty) return;
     _hasScanned = true;
-    Navigator.of(context).pop(context);
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ProductoFormPage(initialCodigoBarras: code),
-      ),
-    );
+
+    final viewModel = context.read<InventarioViewModel>();
+    final productoExistente = viewModel.findProductoByCodigo(code);
+
+    Navigator.of(context).pop(); // Close scanner
+    
+    if (productoExistente != null) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => ActualizarStockPage(producto: productoExistente),
+        ),
+      );
+    } else {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => ProductoFormPage(initialCodigoBarras: code),
+        ),
+      );
+    }
   }
 
   @override

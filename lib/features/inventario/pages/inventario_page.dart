@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../inventario_viewmodel.dart';
-import '../producto.dart';
+import '../viewmodels/inventario_viewmodel.dart';
+import '../models/producto.dart';
 import '../../../core/theme/app_theme.dart';
 import 'producto_form_page.dart';
 

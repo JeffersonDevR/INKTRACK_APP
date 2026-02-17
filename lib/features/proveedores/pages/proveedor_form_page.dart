@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../proveedores_viewmodel.dart';
-import '../proveedor.dart';
+import '../viewmodels/proveedores_viewmodel.dart';
+import '../models/proveedor.dart';
 
 class ProveedorFormPage extends StatefulWidget {
   final Proveedor? proveedor;

@@ -1,5 +1,5 @@
-import '../../core/base_crud_viewmodel.dart';
-import 'cliente.dart';
+import '../../../core/base_crud_viewmodel.dart';
+import '../models/cliente.dart';
 
 class ClientesViewModel extends BaseCrudViewModel<Cliente> {
   List<Cliente> get clientes => items;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../clientes_viewmodel.dart';
-import '../cliente.dart';
+import '../viewmodels/clientes_viewmodel.dart';
+import '../models/cliente.dart';
 
 class ClienteFormPage extends StatefulWidget {
   final Cliente? cliente;

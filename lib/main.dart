@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
-import 'features/ventas/ventas_viewmodel.dart';
-import 'features/clientes/clientes_viewmodel.dart';
-import 'features/proveedores/proveedores_viewmodel.dart';
-import 'features/inventario/inventario_viewmodel.dart';
+import 'features/ventas/viewmodels/ventas_viewmodel.dart';
+import 'features/clientes/viewmodels/clientes_viewmodel.dart';
+import 'features/proveedores/viewmodels/proveedores_viewmodel.dart';
+import 'features/inventario/viewmodels/inventario_viewmodel.dart';
 
 import 'features/home/presentation/pages/main_layout_page.dart';
 
@@ -28,6 +28,8 @@ class InkTrackApp extends StatelessWidget {
         title: 'InkTrack Proto',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.light,
         home: const MainLayoutPage(),
       ),
     );

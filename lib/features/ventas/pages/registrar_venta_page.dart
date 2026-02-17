@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../ventas_viewmodel.dart';
-import '../../clientes/clientes_viewmodel.dart';
+import '../viewmodels/ventas_viewmodel.dart';
+import '../models/venta.dart';
+import '../../clientes/viewmodels/clientes_viewmodel.dart';
 import '../../../core/theme/app_theme.dart';
 
 class RegistrarVentaPage extends StatefulWidget {
@@ -15,6 +16,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
   final _formKey = GlobalKey<FormState>();
   final _montoController = TextEditingController();
   final _clienteNombreController = TextEditingController();
+  final _conceptoController = TextEditingController();
   String? _clienteId;
   static const String _kWriteNameValue = '__write_name__';
 
@@ -22,6 +24,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
   void dispose() {
     _montoController.dispose();
     _clienteNombreController.dispose();
+    _conceptoController.dispose();
     super.dispose();
   }
 
@@ -38,11 +41,16 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
       }
     }
 
-    context.read<VentasViewModel>().registrar(
+    final venta = Venta(
+      id: '', // New sale
       monto: monto,
+      fecha: DateTime.now(),
       clienteId: _clienteId == _kWriteNameValue ? null : _clienteId,
       clienteNombre: clienteNombre,
+      concepto: _conceptoController.text.trim(),
     );
+
+    context.read<VentasViewModel>().guardar(venta);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -66,8 +74,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
               Text('Concepto', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 12),
               TextFormField(
-                //TODO: Implementar concepto
-                controller: null,
+                controller: _conceptoController,
                 decoration: const InputDecoration(
                   labelText: 'Concepto',
                   hintText: 'Ej. Tatuaje',
