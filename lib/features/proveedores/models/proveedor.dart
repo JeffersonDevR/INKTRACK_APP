@@ -6,13 +6,13 @@ class Proveedor implements HasId {
   final String nombre;
   final String telefono;
   final int diasParaLlegar;
-  final String diaDeLlegada;
+  final List<String> diasVisita;
 
   Proveedor({
     required this.id,
     required this.nombre,
     required this.telefono,
     required this.diasParaLlegar,
-    required this.diaDeLlegada,
+    required this.diasVisita,
   });
 }

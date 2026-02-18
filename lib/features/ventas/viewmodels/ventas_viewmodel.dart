@@ -19,9 +19,9 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
   void guardar(Venta venta) {
     if (venta.monto <= 0) return;
     
-    // Auto-generate ID if needed, similar to Products (though sales usually don't have barcodes as IDs)
-    final id = venta.id.isEmpty 
-        ? DateTime.now().millisecondsSinceEpoch.toString() 
+    final bool isNew = venta.id.isEmpty;
+    final id = isNew 
+        ? DateTime.now().microsecondsSinceEpoch.toString() 
         : venta.id;
 
     final ventaAGuardar = Venta(
@@ -33,11 +33,15 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
         concepto: venta.concepto,
     );
 
-    final existingIndex = items.indexWhere((v) => v.id == id);
-    if (existingIndex != -1) {
-      update(id, ventaAGuardar);
-    } else {
+    if (isNew) {
       add(ventaAGuardar);
+    } else {
+      final existingIndex = items.indexWhere((v) => v.id == id);
+      if (existingIndex != -1) {
+        update(id, ventaAGuardar);
+      } else {
+        add(ventaAGuardar);
+      }
     }
   }
 

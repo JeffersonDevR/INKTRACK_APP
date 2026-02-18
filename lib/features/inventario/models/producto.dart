@@ -8,12 +8,17 @@ class Producto implements HasId {
   final double precio;
   final String categoria;
   final String proveedorId;
+  final int stockMinimo;
 
   /// Optional barcode/QR code.
   final String? codigoBarras;
 
   /// When no provider is selected, optional name.
   final String? proveedorNombre;
+
+  bool get stockBajo {
+    return cantidad <= stockMinimo;
+  }
 
   Producto({
     required this.id,
@@ -22,6 +27,7 @@ class Producto implements HasId {
     required this.precio,
     required this.categoria,
     required this.proveedorId,
+    this.stockMinimo = 5,
     this.codigoBarras,
     this.proveedorNombre,
   });

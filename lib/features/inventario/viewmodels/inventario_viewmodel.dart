@@ -4,6 +4,16 @@ import '../models/producto.dart';
 class InventarioViewModel extends BaseCrudViewModel<Producto> {
   List<Producto> get productos => items;
 
+  final List<String> _categorias = ['Tintas', 'Agujas', 'Papel', 'Cuidado', 'Otros'];
+  List<String> get categorias => List.unmodifiable(_categorias);
+
+  void agregarCategoria(String nombre) {
+    if (nombre.trim().isNotEmpty && !_categorias.contains(nombre.trim())) {
+      _categorias.add(nombre.trim());
+      notifyListeners();
+    }
+  }
+
   void guardar(Producto producto) {
     // If the product has a barcode, we use it as the ID.
     // This allows us to update the existing product if we scan it again,
@@ -29,6 +39,7 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
       precio: producto.precio,
       categoria: producto.categoria,
       proveedorId: producto.proveedorId,
+      stockMinimo: producto.stockMinimo,
       codigoBarras: producto.codigoBarras,
       proveedorNombre: producto.proveedorNombre,
     );
@@ -61,6 +72,11 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
 
   List<Producto> getProductosPorProveedor(String proveedorId) =>
       items.where((producto) => producto.proveedorId == proveedorId).toList();
+
+  List<Producto> get productosConStockBajo =>
+      items.where((p) => p.stockBajo).toList();
+
+  bool get hayStockBajo => items.any((p) => p.stockBajo);
 
   Producto? findProductoByCodigo(String codigo) {
     try {

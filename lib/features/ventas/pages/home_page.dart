@@ -55,32 +55,44 @@ class HomePage extends StatelessWidget {
                   itemCount: viewModel.ventas.length,
                   itemBuilder: (context, index) {
                     final venta = viewModel.ventas[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: AppTheme.primaryColor.withValues(
-                            alpha: 0.1,
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: AppTheme.primaryColor.withValues(
+                              alpha: 0.1,
+                            ),
+                            child: Icon(
+                              Icons.receipt,
+                              color: AppTheme.primaryColor,
+                            ),
                           ),
-                          child: Icon(
-                            Icons.receipt,
-                            color: AppTheme.primaryColor,
+                          title: Text(
+                            venta.concepto ?? 'Venta general',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Text(
+                            venta.clienteNombre != null
+                                ? 'Cliente: ${venta.clienteNombre}'
+                                : 'Cliente: Anónimo',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          trailing: Container(
+                            constraints: const BoxConstraints(maxWidth: 120),
+                            child: Text(
+                              NumberFormat.currency(
+                                symbol: '\$',
+                              ).format(venta.monto),
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.end,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ),
-                        title: Text(venta.concepto ?? 'Venta general'),
-                        subtitle: Text(
-                          venta.clienteNombre != null
-                              ? 'Cliente: ${venta.clienteNombre}'
-                              : 'Cliente: Anónimo',
-                        ),
-                        trailing: Text(
-                          NumberFormat.currency(
-                            symbol: '\$',
-                          ).format(venta.monto),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    );
+                      );
                   },
                 );
               },

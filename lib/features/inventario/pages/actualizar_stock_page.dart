@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/producto.dart';
 import '../viewmodels/inventario_viewmodel.dart';
+import '../../../core/input_formatters.dart';
 import '../../../core/theme/app_theme.dart';
 
 class ActualizarStockPage extends StatefulWidget {
@@ -46,6 +47,7 @@ class _ActualizarStockPageState extends State<ActualizarStockPage> {
       precio: widget.producto.precio,
       categoria: widget.producto.categoria,
       proveedorId: widget.producto.proveedorId,
+      stockMinimo: widget.producto.stockMinimo,
       codigoBarras: widget.producto.codigoBarras,
       proveedorNombre: widget.producto.proveedorNombre,
     );
@@ -119,6 +121,7 @@ class _ActualizarStockPageState extends State<ActualizarStockPage> {
                   child: TextField(
                     controller: _controller,
                     keyboardType: TextInputType.number,
+                    inputFormatters: [InputFormatters.digitsOnly],
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 48,

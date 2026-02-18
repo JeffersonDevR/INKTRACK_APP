@@ -40,6 +40,15 @@ class InventarioPage extends StatelessWidget {
                         icon: Icons.attach_money,
                       ),
                     ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _StatCard(
+                        value: '${vm.productosConStockBajo.length}',
+                        label: 'Stock bajo',
+                        icon: Icons.warning_amber_rounded,
+                        color: AppTheme.errorColor,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -138,28 +147,34 @@ class _StatCard extends StatelessWidget {
   final String value;
   final String label;
   final IconData icon;
+  final Color? color;
 
   const _StatCard({
     required this.value,
     required this.label,
     required this.icon,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
+    final themeColor = color ?? AppTheme.primaryColor;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: AppTheme.primaryColor, size: 28),
+            Icon(icon, color: themeColor, size: 28),
             const SizedBox(height: 8),
             Text(
               value,
               style: Theme.of(
                 context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
             Text(label, style: Theme.of(context).textTheme.bodySmall),
           ],
@@ -187,15 +202,28 @@ class _ProductoCard extends StatelessWidget {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
-          backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.12),
-          child: Icon(Icons.inventory_2, color: AppTheme.primaryColor),
+          backgroundColor: producto.stockBajo
+              ? AppTheme.errorColor.withValues(alpha: 0.12)
+              : AppTheme.primaryColor.withValues(alpha: 0.12),
+          child: Icon(
+            producto.stockBajo ? Icons.warning_amber_rounded : Icons.inventory_2,
+            color: producto.stockBajo ? AppTheme.errorColor : AppTheme.primaryColor,
+          ),
         ),
         title: Text(
           producto.nombre,
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: producto.stockBajo ? AppTheme.errorColor : null,
+          ),
         ),
         subtitle: Text(
           '${producto.cantidad} ud. • \$${producto.precio.toStringAsFixed(2)} • ${producto.categoria}${provLabel.isNotEmpty ? ' • $provLabel' : ''}',
+          style: TextStyle(
+            color: producto.stockBajo
+                ? AppTheme.errorColor.withValues(alpha: 0.7)
+                : null,
+          ),
         ),
         trailing: PopupMenuButton<String>(
           onSelected: (value) {

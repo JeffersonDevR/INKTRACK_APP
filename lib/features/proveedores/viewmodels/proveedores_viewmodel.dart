@@ -8,7 +8,7 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
     required String nombre,
     required String telefono,
     required int diasParaLlegar,
-    required String diaDeLlegada,
+    required List<String> diasVisita,
   }) {
     add(
       Proveedor(
@@ -16,7 +16,7 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
         nombre: nombre,
         telefono: telefono,
         diasParaLlegar: diasParaLlegar,
-        diaDeLlegada: diaDeLlegada,
+        diasVisita: diasVisita,
       ),
     );
   }
@@ -26,7 +26,7 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
     required String nombre,
     required String telefono,
     required int diasParaLlegar,
-    required String diaDeLlegada,
+    required List<String> diasVisita,
   }) {
     update(
       id,
@@ -35,7 +35,7 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
         nombre: nombre,
         telefono: telefono,
         diasParaLlegar: diasParaLlegar,
-        diaDeLlegada: diaDeLlegada,
+        diasVisita: diasVisita,
       ),
     );
   }

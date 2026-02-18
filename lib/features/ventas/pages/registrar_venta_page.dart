@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/ventas_viewmodel.dart';
 import '../models/venta.dart';
 import '../../clientes/viewmodels/clientes_viewmodel.dart';
+import '../../../core/input_formatters.dart';
 import '../../../core/theme/app_theme.dart';
 
 class RegistrarVentaPage extends StatefulWidget {
@@ -103,6 +104,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
+                inputFormatters: [InputFormatters.decimal],
                 textInputAction: TextInputAction.next,
                 validator: (value) {
                   if (value == null || value.isEmpty) {

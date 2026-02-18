@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 import '../viewmodels/inventario_viewmodel.dart';
 import '../models/producto.dart';
 import '../../proveedores/viewmodels/proveedores_viewmodel.dart';
+import '../../../core/input_formatters.dart';
 import 'actualizar_stock_page.dart';
 
 const String _kCustomProveedorValue = '__custom__';
+const String _kNewCategoryValue = '__new_category__';
 
 class ProductoFormPage extends StatefulWidget {
   final Producto? producto;
@@ -23,9 +25,11 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
   final _cantidadController = TextEditingController();
   final _precioController = TextEditingController();
   final _categoriaController = TextEditingController();
+  final _stockMinimoController = TextEditingController(text: '5');
   final _codigoBarrasController = TextEditingController();
   final _proveedorNombreController = TextEditingController();
   String? _proveedorId;
+  String? _categoria;
 
   @override
   void initState() {
@@ -34,7 +38,8 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
       _nombreController.text = widget.producto!.nombre;
       _cantidadController.text = widget.producto!.cantidad.toString();
       _precioController.text = widget.producto!.precio.toString();
-      _categoriaController.text = widget.producto!.categoria;
+      _categoria = widget.producto!.categoria;
+      _stockMinimoController.text = widget.producto!.stockMinimo.toString();
       _proveedorId = widget.producto!.proveedorId.isEmpty
           ? _kCustomProveedorValue
           : widget.producto!.proveedorId;
@@ -130,13 +135,14 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                   hintText: '0',
                 ),
                 keyboardType: TextInputType.number,
+                inputFormatters: [InputFormatters.digitsOnly],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Ingrese la cantidad';
                   }
                   final cantidad = int.tryParse(value);
                   if (cantidad == null || cantidad < 0) {
-                    return 'Cantidad debe ser un número válido (≥ 0)';
+                    return 'Cantidad inválida';
                   }
                   return null;
                 },
@@ -152,27 +158,74 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
+                inputFormatters: [InputFormatters.decimal],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Ingrese el precio';
                   }
                   final precio = double.tryParse(value.replaceAll(',', '.'));
                   if (precio == null || precio < 0) {
-                    return 'Precio debe ser un número válido (≥ 0)';
+                    return 'Precio inválido';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
+              Consumer<InventarioViewModel>(
+                builder: (context, ivm, child) {
+                  final categories = ivm.categorias;
+                  return DropdownButtonFormField<String>(
+                    initialValue: categories.contains(_categoria) ? _categoria : (categories.isNotEmpty ? null : null),
+                    decoration: const InputDecoration(
+                      labelText: 'Categoría',
+                      hintText: 'Seleccione una categoría',
+                    ),
+                    items: [
+                      ...categories.map(
+                        (c) => DropdownMenuItem(value: c, child: Text(c)),
+                      ),
+                      const DropdownMenuItem(
+                        value: _kNewCategoryValue,
+                        child: Text('+ Nueva categoría'),
+                      ),
+                    ],
+                    onChanged: (value) async {
+                      if (value == _kNewCategoryValue) {
+                        final newCat = await _showAddCategoryDialog();
+                        if (newCat != null && newCat.isNotEmpty) {
+                          ivm.agregarCategoria(newCat);
+                          setState(() => _categoria = newCat);
+                        }
+                      } else {
+                        setState(() => _categoria = value);
+                      }
+                    },
+                    validator: (value) {
+                      if (_categoria == null || _categoria!.isEmpty) {
+                        return 'Seleccione o cree una categoría';
+                      }
+                      return null;
+                    },
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
               TextFormField(
-                controller: _categoriaController,
+                controller: _stockMinimoController,
                 decoration: const InputDecoration(
-                  labelText: 'Categoría',
-                  hintText: 'Ej. Tintas, Papel',
+                  labelText: 'Stock Mínimo',
+                  hintText: '5',
+                  helperText: 'Alerta cuando la cantidad es menor o igual a este valor',
                 ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [InputFormatters.digitsOnly],
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Ingrese la categoría';
+                  if (value == null || value.isEmpty) {
+                    return 'Ingrese el stock mínimo';
+                  }
+                  final stock = int.tryParse(value);
+                  if (stock == null || stock < 0) {
+                    return 'Stock mínimo inválido';
                   }
                   return null;
                 },
@@ -254,6 +307,31 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
     );
   }
 
+  Future<String?> _showAddCategoryDialog() async {
+    final controller = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Nueva Categoría'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(hintText: 'Nombre de la categoría'),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: const Text('Agregar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _saveProducto() {
     if (!_formKey.currentState!.validate()) return;
 
@@ -272,7 +350,8 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
       nombre: _nombreController.text.trim(),
       cantidad: int.parse(_cantidadController.text),
       precio: precio,
-      categoria: _categoriaController.text.trim(),
+      categoria: _categoria ?? 'Otros',
+      stockMinimo: int.parse(_stockMinimoController.text),
       proveedorId: proveedorId.isEmpty ? '' : proveedorId,
       codigoBarras: codigoBarras,
       proveedorNombre: proveedorNombre,

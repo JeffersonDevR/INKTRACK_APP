@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/proveedores_viewmodel.dart';
 import '../models/proveedor.dart';
+import '../../../core/input_formatters.dart';
 
 class ProveedorFormPage extends StatefulWidget {
   final Proveedor? proveedor;
@@ -17,7 +18,7 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
   final _nombreController = TextEditingController();
   final _telefonoController = TextEditingController();
   final _diasParaLlegarController = TextEditingController();
-  String _diaDeLlegada = 'Lunes';
+  final List<String> _diasVisita = [];
 
   final List<String> _diasSemana = [
     'Lunes',
@@ -37,7 +38,7 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
       _telefonoController.text = widget.proveedor!.telefono;
       _diasParaLlegarController.text = widget.proveedor!.diasParaLlegar
           .toString();
-      _diaDeLlegada = widget.proveedor!.diaDeLlegada;
+      _diasVisita.addAll(widget.proveedor!.diasVisita);
     }
   }
 
@@ -98,6 +99,7 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
+                inputFormatters: [InputFormatters.digitsOnly],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor ingrese los días';
@@ -110,25 +112,33 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
                 },
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: _diaDeLlegada,
-                decoration: const InputDecoration(labelText: 'Día de llegada'),
-                items: _diasSemana.map((dia) {
-                  return DropdownMenuItem(value: dia, child: Text(dia));
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Días de visita',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: _diasSemana.map((dia) {
+                  final isSelected = _diasVisita.contains(dia);
+                  return FilterChip(
+                    label: Text(dia),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _diasVisita.add(dia);
+                        } else {
+                          _diasVisita.remove(dia);
+                        }
+                      });
+                    },
+                  );
                 }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _diaDeLlegada = value;
-                    });
-                  }
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Seleccione el día de llegada';
-                  }
-                  return null;
-                },
               ),
               const SizedBox(height: 32),
               SizedBox(
@@ -156,7 +166,7 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
           nombre: _nombreController.text,
           telefono: _telefonoController.text,
           diasParaLlegar: int.parse(_diasParaLlegarController.text),
-          diaDeLlegada: _diaDeLlegada,
+          diasVisita: _diasVisita,
         );
       } else {
         viewModel.editar(
@@ -164,7 +174,7 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
           nombre: _nombreController.text,
           telefono: _telefonoController.text,
           diasParaLlegar: int.parse(_diasParaLlegarController.text),
-          diaDeLlegada: _diaDeLlegada,
+          diasVisita: _diasVisita,
         );
       }
 
