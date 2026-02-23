@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../viewmodels/ventas_viewmodel.dart';
+import '../../movimientos/viewmodels/movimientos_viewmodel.dart';
+import '../../movimientos/models/movimiento.dart' as mov_model;
+import '../../movimientos/pages/movimiento_form_page.dart';
 import '../../../core/theme/app_theme.dart';
-import 'registrar_venta_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -17,7 +18,7 @@ class HomePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const _ResumenVentasCard(),
+            const _ResumenDiario(),
             const SizedBox(height: 28),
             Text(
               'Acciones rápidas',
@@ -25,74 +26,98 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _AccionButton(
-              icon: Icons.point_of_sale,
-              label: 'Registrar venta',
+              icon: Icons.add_circle_outline,
+              label: 'Registrar ingreso',
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const RegistrarVentaPage(),
+                    builder: (context) => const MovimientoFormPage(
+                      initialType: mov_model.MovimientoType.ingreso,
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 8),
+            _AccionButton(
+              icon: Icons.remove_circle_outline,
+              label: 'Registrar egreso',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MovimientoFormPage(
+                      initialType: mov_model.MovimientoType.egreso,
+                    ),
                   ),
                 );
               },
             ),
             const SizedBox(height: 24),
             Text(
-              'Historial de Ventas',
+              'Historial de Actividad',
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 12),
-            Consumer<VentasViewModel>(
+            Consumer<MovimientosViewModel>(
               builder: (context, viewModel, child) {
-                if (viewModel.ventas.isEmpty) {
+                final historial = viewModel.historialCompleto;
+                if (historial.isEmpty) {
                   return const Center(
-                    child: Text('No hay ventas registradas.'),
+                    child: Text('No hay actividad registrada.'),
                   );
                 }
                 return ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: viewModel.ventas.length,
+                  itemCount: historial.length > 10 ? 10 : historial.length,
                   itemBuilder: (context, index) {
-                    final venta = viewModel.ventas[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: AppTheme.primaryColor.withValues(
-                              alpha: 0.1,
-                            ),
-                            child: Icon(
-                              Icons.receipt,
-                              color: AppTheme.primaryColor,
-                            ),
-                          ),
-                          title: Text(
-                            venta.concepto ?? 'Venta general',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          subtitle: Text(
-                            venta.clienteNombre != null
-                                ? 'Cliente: ${venta.clienteNombre}'
-                                : 'Cliente: Anónimo',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          trailing: Container(
-                            constraints: const BoxConstraints(maxWidth: 120),
-                            child: Text(
-                              NumberFormat.currency(
-                                symbol: '\$',
-                              ).format(venta.monto),
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                              textAlign: TextAlign.end,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                    final mov = historial[index];
+                    final isMonetary = mov.tipo != mov_model.MovimientoType.actividad;
+                    
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: (mov.tipo == mov_model.MovimientoType.ingreso
+                                  ? Colors.green
+                                  : mov.tipo == mov_model.MovimientoType.egreso
+                                      ? Colors.red
+                                      : AppTheme.primaryColor)
+                              .withValues(alpha: 0.1),
+                          child: Icon(
+                            mov.tipo == mov_model.MovimientoType.ingreso
+                                ? Icons.add_circle_outline
+                                : mov.tipo == mov_model.MovimientoType.egreso
+                                    ? Icons.remove_circle_outline
+                                    : Icons.info_outline,
+                            color: mov.tipo == mov_model.MovimientoType.ingreso
+                                ? Colors.green
+                                : mov.tipo == mov_model.MovimientoType.egreso
+                                    ? Colors.red
+                                    : AppTheme.primaryColor,
                           ),
                         ),
-                      );
+                        title: Text(
+                          mov.concepto,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(
+                          '${DateFormat('HH:mm').format(mov.fecha)}${mov.categoria != null ? ' • ${mov.categoria}' : ''}',
+                        ),
+                        trailing: isMonetary 
+                          ? Text(
+                              NumberFormat.currency(symbol: '\$').format(mov.monto),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: mov.tipo == mov_model.MovimientoType.ingreso ? Colors.green : Colors.red,
+                              ),
+                            )
+                          : const Icon(Icons.check_circle_outline, color: Colors.grey, size: 16),
+                      ),
+                    );
                   },
                 );
               },
@@ -104,41 +129,111 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class _ResumenVentasCard extends StatelessWidget {
-  const _ResumenVentasCard();
+class _ResumenDiario extends StatelessWidget {
+  const _ResumenDiario();
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<VentasViewModel>();
-    final currencyFormat = NumberFormat.currency(
-      symbol: '\$',
-      decimalDigits: 2,
-    );
+    final viewModel = context.watch<MovimientosViewModel>();
+    final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
 
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Resumen del día',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            Text(
+              DateFormat('dd/MM/yyyy').format(DateTime.now()),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _StatMiniCard(
+                label: 'Ingresos',
+                value: currencyFormat.format(viewModel.totalIngresosHoy),
+                color: Colors.green,
+                icon: Icons.trending_up,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _StatMiniCard(
+                label: 'Egresos',
+                value: currencyFormat.format(viewModel.totalEgresosHoy),
+                color: Colors.red,
+                icon: Icons.trending_down,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        _StatMiniCard(
+          label: 'Balance Neto Hoy',
+          value: currencyFormat.format(viewModel.balanceHoy),
+          color: viewModel.balanceHoy >= 0 ? AppTheme.primaryColor : Colors.orange,
+          icon: Icons.account_balance_wallet,
+          isLarge: true,
+        ),
+      ],
+    );
+  }
+}
+
+class _StatMiniCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+  final IconData icon;
+  final bool isLarge;
+
+  const _StatMiniCard({
+    required this.label,
+    required this.value,
+    required this.color,
+    required this.icon,
+    this.isLarge = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(isLarge ? 16 : 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(Icons.today, color: AppTheme.accentColor, size: 28),
-                const SizedBox(width: 12),
+                Icon(icon, color: color, size: isLarge ? 24 : 18),
+                const SizedBox(width: 8),
                 Text(
-                  'Ventas del día',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  label,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppTheme.textSecondary,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              currencyFormat.format(viewModel.totalVentasDia),
-              style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                color: AppTheme.primaryColor,
-                fontWeight: FontWeight.bold,
+            const SizedBox(height: 8),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                value,
+                style: (isLarge 
+                  ? Theme.of(context).textTheme.headlineSmall 
+                  : Theme.of(context).textTheme.titleMedium)?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isLarge ? color : null,
+                  ),
               ),
             ),
           ],

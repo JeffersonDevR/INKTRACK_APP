@@ -112,6 +112,8 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                   labelText: 'Nombre',
                   hintText: 'Ej. Tinta negra 50ml',
                 ),
+                textCapitalization: TextCapitalization.sentences,
+                inputFormatters: [InputFormatters.textOnly],
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Ingrese el nombre del producto';
@@ -280,6 +282,8 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                     labelText: 'Nombre del proveedor',
                     hintText: 'Ej. Distribuidora XYZ',
                   ),
+                  textCapitalization: TextCapitalization.words,
+                  inputFormatters: [InputFormatters.textOnly],
                   onChanged: (_) => setState(() {}),
                   validator: (value) {
                     if (_useCustomProveedor &&

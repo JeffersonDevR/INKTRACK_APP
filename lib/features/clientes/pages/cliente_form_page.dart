@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/clientes_viewmodel.dart';
+import '../../movimientos/viewmodels/movimientos_viewmodel.dart';
 import '../models/cliente.dart';
+import '../../../core/input_formatters.dart';
 
 class ClienteFormPage extends StatefulWidget {
   final Cliente? cliente;
@@ -55,7 +57,10 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
                 decoration: const InputDecoration(
                   labelText: 'Nombre',
                   border: OutlineInputBorder(),
+                  hintText: 'Ej. Juan Pérez',
                 ),
+                textCapitalization: TextCapitalization.words,
+                inputFormatters: [InputFormatters.textOnly],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor ingrese el nombre';
@@ -69,7 +74,10 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
                 decoration: const InputDecoration(
                   labelText: 'Teléfono',
                   border: OutlineInputBorder(),
+                  hintText: 'Ej. 1234567890',
                 ),
+                keyboardType: TextInputType.phone,
+                inputFormatters: [InputFormatters.phone],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor ingrese el teléfono';
@@ -83,7 +91,9 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
                 decoration: const InputDecoration(
                   labelText: 'Email',
                   border: OutlineInputBorder(),
+                  hintText: 'ejemplo@correo.com',
                 ),
+                keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor ingrese el email';
@@ -120,6 +130,7 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
           nombre: _nombreController.text,
           telefono: _telefonoController.text,
           email: _emailController.text,
+          movimientosVM: context.read<MovimientosViewModel>(),
         );
       } else {
         viewModel.editar(

@@ -10,4 +10,12 @@ class InputFormatters {
   static final TextInputFormatter positiveInteger = FilteringTextInputFormatter.allow(
     RegExp(r'^[0-9]*$'),
   );
+
+  static final TextInputFormatter phone = FilteringTextInputFormatter.allow(
+    RegExp(r'[0-9+]'),
+  );
+
+  static final TextInputFormatter textOnly = FilteringTextInputFormatter.allow(
+    RegExp(r'[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]'),
+  );
 }

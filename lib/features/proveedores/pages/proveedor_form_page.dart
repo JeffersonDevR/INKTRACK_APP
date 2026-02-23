@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/proveedores_viewmodel.dart';
+import '../../movimientos/viewmodels/movimientos_viewmodel.dart';
 import '../models/proveedor.dart';
 import '../../../core/input_formatters.dart';
 
@@ -69,7 +70,10 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
                 decoration: const InputDecoration(
                   labelText: 'Nombre',
                   border: OutlineInputBorder(),
+                  hintText: 'Ej. Distribuidora Ink',
                 ),
+                textCapitalization: TextCapitalization.words,
+                inputFormatters: [InputFormatters.textOnly],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor ingrese el nombre';
@@ -83,7 +87,10 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
                 decoration: const InputDecoration(
                   labelText: 'Teléfono',
                   border: OutlineInputBorder(),
+                  hintText: 'Ej. 1234567890',
                 ),
+                keyboardType: TextInputType.phone,
+                inputFormatters: [InputFormatters.phone],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor ingrese el teléfono';
@@ -167,6 +174,7 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
           telefono: _telefonoController.text,
           diasParaLlegar: int.parse(_diasParaLlegarController.text),
           diasVisita: _diasVisita,
+          movimientosVM: context.read<MovimientosViewModel>(),
         );
       } else {
         viewModel.editar(

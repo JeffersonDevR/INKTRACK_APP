@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/ventas_viewmodel.dart';
 import '../models/venta.dart';
 import '../../clientes/viewmodels/clientes_viewmodel.dart';
+import '../../movimientos/viewmodels/movimientos_viewmodel.dart';
 import '../../../core/input_formatters.dart';
 import '../../../core/theme/app_theme.dart';
 
@@ -51,7 +52,10 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
       concepto: _conceptoController.text.trim(),
     );
 
-    context.read<VentasViewModel>().guardar(venta);
+    context.read<VentasViewModel>().guardar(
+          venta,
+          movimientosVM: context.read<MovimientosViewModel>(),
+        );
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -78,9 +82,10 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                 controller: _conceptoController,
                 decoration: const InputDecoration(
                   labelText: 'Concepto',
-                  hintText: 'Ej. Tatuaje',
+                  hintText: 'Ej. Tatuaje ',
                 ),
-                textCapitalization: TextCapitalization.words,
+                textCapitalization: TextCapitalization.sentences,
+                inputFormatters: [InputFormatters.textOnly],
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Ingrese el concepto';
@@ -165,6 +170,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                     hintText: 'Ej. Juan Pérez',
                   ),
                   textCapitalization: TextCapitalization.words,
+                  inputFormatters: [InputFormatters.textOnly],
                   validator: (value) {
                     if (_clienteId == _kWriteNameValue &&
                         (value == null || value.trim().isEmpty)) {

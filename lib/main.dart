@@ -5,6 +5,7 @@ import 'features/ventas/viewmodels/ventas_viewmodel.dart';
 import 'features/clientes/viewmodels/clientes_viewmodel.dart';
 import 'features/proveedores/viewmodels/proveedores_viewmodel.dart';
 import 'features/inventario/viewmodels/inventario_viewmodel.dart';
+import 'features/movimientos/viewmodels/movimientos_viewmodel.dart';
 
 import 'features/home/presentation/pages/main_layout_page.dart';
 
@@ -23,6 +24,7 @@ class InkTrackApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ClientesViewModel()),
         ChangeNotifierProvider(create: (_) => ProveedoresViewModel()),
         ChangeNotifierProvider(create: (_) => InventarioViewModel()),
+        ChangeNotifierProvider(create: (_) => MovimientosViewModel()),
       ],
       child: MaterialApp(
         title: 'InkTrack Proto',

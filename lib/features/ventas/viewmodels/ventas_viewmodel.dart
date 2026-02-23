@@ -1,5 +1,8 @@
 import '../../../core/base_crud_viewmodel.dart';
 import '../models/venta.dart';
+import '../../movimientos/viewmodels/movimientos_viewmodel.dart';
+import '../../movimientos/models/movimiento.dart';
+import 'package:uuid/uuid.dart';
 
 class VentasViewModel extends BaseCrudViewModel<Venta> {
   List<Venta> get ventas => items;
@@ -16,7 +19,7 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
         .fold(0.0, (sum, item) => sum + item.monto);
   }
 
-  void guardar(Venta venta) {
+  void guardar(Venta venta, {MovimientosViewModel? movimientosVM}) {
     if (venta.monto <= 0) return;
     
     final bool isNew = venta.id.isEmpty;
@@ -35,6 +38,18 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
 
     if (isNew) {
       add(ventaAGuardar);
+      
+      // Record movement
+      if (movimientosVM != null) {
+        movimientosVM.add(Movimiento(
+          id: const Uuid().v4(),
+          monto: venta.monto,
+          fecha: venta.fecha,
+          tipo: MovimientoType.ingreso,
+          concepto: 'Venta: ${venta.concepto ?? "Venta general"}',
+          categoria: 'Ventas',
+        ));
+      }
     } else {
       final existingIndex = items.indexWhere((v) => v.id == id);
       if (existingIndex != -1) {

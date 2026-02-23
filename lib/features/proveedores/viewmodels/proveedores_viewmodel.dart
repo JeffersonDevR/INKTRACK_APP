@@ -1,5 +1,8 @@
 import '../../../core/base_crud_viewmodel.dart';
 import '../models/proveedor.dart';
+import '../../movimientos/viewmodels/movimientos_viewmodel.dart';
+import '../../movimientos/models/movimiento.dart';
+import 'package:uuid/uuid.dart';
 
 class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
   List<Proveedor> get proveedores => items;
@@ -9,6 +12,7 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
     required String telefono,
     required int diasParaLlegar,
     required List<String> diasVisita,
+    MovimientosViewModel? movimientosVM,
   }) {
     add(
       Proveedor(
@@ -19,6 +23,17 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
         diasVisita: diasVisita,
       ),
     );
+
+    if (movimientosVM != null) {
+      movimientosVM.add(Movimiento(
+        id: const Uuid().v4(),
+        monto: 0,
+        fecha: DateTime.now(),
+        tipo: MovimientoType.actividad,
+        concepto: 'Nuevo proveedor: $nombre',
+        categoria: 'Proveedores',
+      ));
+    }
   }
 
   void editar({
