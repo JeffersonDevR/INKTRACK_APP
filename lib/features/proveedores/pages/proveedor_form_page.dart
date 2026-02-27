@@ -18,7 +18,6 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _nombreController = TextEditingController();
   final _telefonoController = TextEditingController();
-  final _diasParaLlegarController = TextEditingController();
   final List<String> _diasVisita = [];
 
   final List<String> _diasSemana = [
@@ -37,8 +36,6 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
     if (widget.proveedor != null) {
       _nombreController.text = widget.proveedor!.nombre;
       _telefonoController.text = widget.proveedor!.telefono;
-      _diasParaLlegarController.text = widget.proveedor!.diasParaLlegar
-          .toString();
       _diasVisita.addAll(widget.proveedor!.diasVisita);
     }
   }
@@ -47,7 +44,6 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
   void dispose() {
     _nombreController.dispose();
     _telefonoController.dispose();
-    _diasParaLlegarController.dispose();
     super.dispose();
   }
 
@@ -94,26 +90,6 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor ingrese el teléfono';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _diasParaLlegarController,
-                decoration: const InputDecoration(
-                  labelText: 'Días para llegar',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [InputFormatters.digitsOnly],
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese los días';
-                  }
-                  final dias = int.tryParse(value);
-                  if (dias == null || dias < 0) {
-                    return 'Por favor ingrese un número válido';
                   }
                   return null;
                 },
@@ -172,7 +148,6 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
         viewModel.agregar(
           nombre: _nombreController.text,
           telefono: _telefonoController.text,
-          diasParaLlegar: int.parse(_diasParaLlegarController.text),
           diasVisita: _diasVisita,
           movimientosVM: context.read<MovimientosViewModel>(),
         );
@@ -181,7 +156,6 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
           id: widget.proveedor!.id,
           nombre: _nombreController.text,
           telefono: _telefonoController.text,
-          diasParaLlegar: int.parse(_diasParaLlegarController.text),
           diasVisita: _diasVisita,
         );
       }

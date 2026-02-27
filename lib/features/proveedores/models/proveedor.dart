@@ -5,14 +5,13 @@ class Proveedor implements HasId {
   final String id;
   final String nombre;
   final String telefono;
-  final int diasParaLlegar;
-  final List<String> diasVisita;
+  final List<String> _diasVisita;
+  List<String> get diasVisita => List.unmodifiable(_diasVisita);
 
   Proveedor({
     required this.id,
     required this.nombre,
     required this.telefono,
-    required this.diasParaLlegar,
-    required this.diasVisita,
-  });
+    required List<String> diasVisita,
+  }) : _diasVisita = diasVisita;
 }

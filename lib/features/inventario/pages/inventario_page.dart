@@ -210,42 +210,147 @@ class _ProductoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provLabel = producto.proveedorNombre ?? producto.proveedorId;
+
     return Card(
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: CircleAvatar(
-          backgroundColor: producto.stockBajo
-              ? AppTheme.errorColor.withValues(alpha: 0.12)
-              : AppTheme.primaryColor.withValues(alpha: 0.12),
-          child: Icon(
-            producto.stockBajo ? Icons.warning_amber_rounded : Icons.inventory_2,
-            color: producto.stockBajo ? AppTheme.errorColor : AppTheme.primaryColor,
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 2,
+      child: InkWell(
+        onTap: onEdit,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: (producto.stockBajo ? AppTheme.errorColor : AppTheme.primaryColor)
+                          .withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      producto.stockBajo ? Icons.warning_amber_rounded : Icons.inventory_2,
+                      color: producto.stockBajo ? AppTheme.errorColor : AppTheme.primaryColor,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          producto.nombre,
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: producto.stockBajo ? AppTheme.errorColor : null,
+                              ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          producto.categoria,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: AppTheme.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuButton<String>(
+                    onSelected: (value) {
+                      if (value == 'edit') onEdit();
+                      if (value == 'delete') onDelete();
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(value: 'edit', child: Text('Editar')),
+                      const PopupMenuItem(value: 'delete', child: Text('Eliminar')),
+                    ],
+                    icon: const Icon(Icons.more_vert),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Precio',
+                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                              color: AppTheme.textSecondary,
+                            ),
+                      ),
+                      Text(
+                        '\$${producto.precio.toStringAsFixed(2)}',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.primaryColor,
+                            ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: (producto.stockBajo ? AppTheme.errorColor : Colors.green)
+                          .withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: (producto.stockBajo ? AppTheme.errorColor : Colors.green)
+                            .withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.stacked_bar_chart,
+                          size: 16,
+                          color: producto.stockBajo ? AppTheme.errorColor : Colors.green,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${producto.cantidad} unidades',
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: producto.stockBajo ? AppTheme.errorColor : Colors.green,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (provLabel.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                const Divider(height: 1),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(Icons.local_shipping_outlined, size: 16, color: AppTheme.textSecondary),
+                    const SizedBox(width: 8),
+                    Text(
+                      provLabel,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppTheme.textSecondary,
+                          ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
           ),
-        ),
-        title: Text(
-          producto.nombre,
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: producto.stockBajo ? AppTheme.errorColor : null,
-          ),
-        ),
-        subtitle: Text(
-          '${producto.cantidad} ud. • \$${producto.precio.toStringAsFixed(2)} • ${producto.categoria}${provLabel.isNotEmpty ? ' • $provLabel' : ''}',
-          style: TextStyle(
-            color: producto.stockBajo
-                ? AppTheme.errorColor.withValues(alpha: 0.7)
-                : null,
-          ),
-        ),
-        trailing: PopupMenuButton<String>(
-          onSelected: (value) {
-            if (value == 'edit') onEdit();
-            if (value == 'delete') onDelete();
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(value: 'edit', child: Text('Editar')),
-            const PopupMenuItem(value: 'delete', child: Text('Eliminar')),
-          ],
         ),
       ),
     );

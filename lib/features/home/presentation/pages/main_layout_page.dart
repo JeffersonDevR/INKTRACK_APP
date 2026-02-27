@@ -221,10 +221,9 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
   }
 
   Widget _buildFab(BuildContext context) {
-    return FloatingActionButton.extended(
+    return FloatingActionButton(
       onPressed: () => _onFabPressed(context),
-      icon: const Icon(Icons.add),
-      label: const Text('Acciones'),
+      child: const Icon(Icons.add),
     );
   }
 }

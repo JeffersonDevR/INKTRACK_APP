@@ -9,6 +9,69 @@ import '../../../core/theme/app_theme.dart';
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
+  void _showMovimientoDetalle(BuildContext context, mov_model.Movimiento mov) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: AppTheme.surfaceColor,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Detalle de movimiento',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            const Divider(),
+            const SizedBox(height: 16),
+            _DetailRow(label: 'Concepto', value: mov.concepto),
+            _DetailRow(
+              label: 'Monto',
+              value: NumberFormat.currency(symbol: '\$').format(mov.monto),
+              valueStyle: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: mov.tipo == mov_model.MovimientoType.ingreso
+                    ? Colors.green
+                    : mov.tipo == mov_model.MovimientoType.egreso
+                        ? Colors.red
+                        : null,
+              ),
+            ),
+            _DetailRow(
+              label: 'Fecha',
+              value: DateFormat('dd/MM/yyyy HH:mm').format(mov.fecha),
+            ),
+            if (mov.categoria != null)
+              _DetailRow(label: 'Categoría', value: mov.categoria!),
+            _DetailRow(
+              label: 'Tipo',
+              value: mov.tipo == mov_model.MovimientoType.ingreso
+                  ? 'Ingreso'
+                  : mov.tipo == mov_model.MovimientoType.egreso
+                      ? 'Egreso'
+                      : 'Actividad',
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -79,6 +142,7 @@ class HomePage extends StatelessWidget {
                     return Card(
                       margin: const EdgeInsets.only(bottom: 8),
                       child: ListTile(
+                        onTap: () => _showMovimientoDetalle(context, mov),
                         leading: CircleAvatar(
                           backgroundColor: (mov.tipo == mov_model.MovimientoType.ingreso
                                   ? Colors.green
@@ -275,6 +339,33 @@ class _AccionButton extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final TextStyle? valueStyle;
+
+  const _DetailRow({
+    required this.label,
+    required this.value,
+    this.valueStyle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: AppTheme.textSecondary,
+          )),
+          Text(value, style: valueStyle ?? Theme.of(context).textTheme.bodyLarge),
+        ],
       ),
     );
   }

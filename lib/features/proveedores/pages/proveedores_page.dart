@@ -42,7 +42,7 @@ class ProveedoresPage extends StatelessWidget {
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                   subtitle: Text(
-                    '${proveedor.telefono} • ${proveedor.diasParaLlegar} días • ${proveedor.diasVisita.isNotEmpty ? proveedor.diasVisita.join(", ") : "Sin días"}',
+                    '${proveedor.telefono} • ${proveedor.diasVisita.isNotEmpty ? proveedor.diasVisita.join(", ") : "Sin días"}',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   trailing: PopupMenuButton<String>(

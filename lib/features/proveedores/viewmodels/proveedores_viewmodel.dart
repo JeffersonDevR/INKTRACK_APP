@@ -10,7 +10,6 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
   void agregar({
     required String nombre,
     required String telefono,
-    required int diasParaLlegar,
     required List<String> diasVisita,
     MovimientosViewModel? movimientosVM,
   }) {
@@ -19,7 +18,6 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         nombre: nombre,
         telefono: telefono,
-        diasParaLlegar: diasParaLlegar,
         diasVisita: diasVisita,
       ),
     );
@@ -40,7 +38,6 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
     required String id,
     required String nombre,
     required String telefono,
-    required int diasParaLlegar,
     required List<String> diasVisita,
   }) {
     update(
@@ -49,7 +46,6 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
         id: id,
         nombre: nombre,
         telefono: telefono,
-        diasParaLlegar: diasParaLlegar,
         diasVisita: diasVisita,
       ),
     );
