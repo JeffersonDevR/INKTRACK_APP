@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import '../../../clientes/pages/clientes_page.dart';
-import '../../../clientes/pages/cliente_form_page.dart';
-import '../../../proveedores/pages/proveedores_page.dart';
-import '../../../proveedores/pages/proveedor_form_page.dart';
-import '../../../ventas/pages/home_page.dart';
-import '../../../inventario/pages/inventario_page.dart';
-import '../../../inventario/pages/producto_form_page.dart';
-import '../../../inventario/pages/barcode_scanner_page.dart';
-import '../../../movimientos/pages/movimientos_page.dart';
-import '../../../movimientos/pages/movimiento_form_page.dart';
-import '../../../movimientos/models/movimiento.dart' as mov_model;
-import '../../../../core/theme/app_theme.dart';
+import 'package:InkTrack/features/clientes/presentation/pages/clientes_page.dart';
+import 'package:InkTrack/features/clientes/presentation/pages/cliente_form_page.dart';
+import 'package:InkTrack/features/proveedores/presentation/pages/proveedores_page.dart';
+import 'package:InkTrack/features/proveedores/presentation/pages/proveedor_form_page.dart';
+import 'package:InkTrack/features/ventas/presentation/pages/home_page.dart';
+import 'package:InkTrack/features/inventario/presentation/pages/inventario_page.dart';
+import 'package:InkTrack/features/inventario/presentation/pages/producto_form_page.dart';
+import 'package:InkTrack/features/inventario/presentation/pages/barcode_scanner_page.dart';
+import 'package:InkTrack/features/movimientos/presentation/pages/movimientos_page.dart';
+import 'package:InkTrack/features/movimientos/presentation/pages/movimiento_form_page.dart';
+import 'package:InkTrack/features/movimientos/data/models/movimiento.dart' as mov_model;
+import 'package:InkTrack/core/theme/app_theme.dart';
 
 class MainLayoutPage extends StatefulWidget {
   const MainLayoutPage({super.key});
@@ -194,45 +194,36 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
             label: 'Inicio',
           ),
           NavigationDestination(
-            icon: Icon(Icons.people_outlined),
-            selectedIcon: Icon(Icons.people),
+            icon: Icon(Icons.attach_money_outlined),
+            selectedIcon: Icon(Icons.attach_money),
             label: 'Clientes',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.local_shipping_outlined),
-            selectedIcon: Icon(Icons.local_shipping),
-            label: 'Proveedores',
           ),
           NavigationDestination(
             icon: Icon(Icons.inventory_2_outlined),
             selectedIcon: Icon(Icons.inventory_2),
-            label: 'Inventario',
+            label: 'Proveedores',
           ),
           NavigationDestination(
-            icon: Icon(Icons.swap_horiz_outlined),
-            selectedIcon: Icon(Icons.swap_horiz),
-            label: 'Ventas',
-            tooltip: 'Ventas',
+            icon: Icon(Icons.local_shipping_outlined),
+            selectedIcon: Icon(Icons.local_shipping),
+            label: 'Inventario',
           ),
         ],
       ),
       floatingActionButton: _buildFab(context),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
   Widget _buildFab(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0, right: 8.0),
-      child: FloatingActionButton(
-        onPressed: () => _onFabPressed(context),
-        elevation: 4,
-        highlightElevation: 0,
-        backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        child: const Icon(Icons.add_rounded, size: 28),
-      ),
+    return FloatingActionButton(
+      onPressed: () => _onFabPressed(context),
+      elevation: 4,
+      highlightElevation: 0,
+      backgroundColor: AppTheme.primaryColor,
+      foregroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: const Icon(Icons.add_rounded, size: 32),
     );
   }
 }

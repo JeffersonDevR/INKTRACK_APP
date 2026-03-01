@@ -8,6 +8,7 @@ class StatCard extends StatelessWidget {
   final IconData icon;
   final bool isLarge;
   final String? subtitle;
+  final bool useSolidBackground;
 
   const StatCard({
     super.key,
@@ -17,28 +18,28 @@ class StatCard extends StatelessWidget {
     required this.icon,
     this.isLarge = false,
     this.subtitle,
+    this.useSolidBackground = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: isLarge ? 4 : 2,
-      shadowColor: color.withValues(alpha: 0.1),
+      elevation: isLarge ? 2 : 1,
+      shadowColor: color.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: isLarge 
-          ? BorderSide(color: color.withValues(alpha: 0.1), width: 1)
-          : BorderSide.none,
+        borderRadius: BorderRadius.circular(24),
+        side: const BorderSide(color: Color(0xFFF1F5F9), width: 1),
       ),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: isLarge ? LinearGradient(
+          borderRadius: BorderRadius.circular(24),
+          color: useSolidBackground ? color : null,
+          gradient: (isLarge && !useSolidBackground) ? LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppTheme.surfaceColor,
-              color.withValues(alpha: 0.03),
+              Colors.white,
+              color.withValues(alpha: 0.02),
             ],
           ) : null,
         ),
@@ -52,10 +53,10 @@ class StatCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
+                    color: useSolidBackground ? Colors.white.withValues(alpha: 0.2) : color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(icon, color: color, size: isLarge ? 24 : 18),
+                  child: Icon(icon, color: useSolidBackground ? Colors.white : color, size: isLarge ? 24 : 18),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -63,7 +64,7 @@ class StatCard extends StatelessWidget {
                     label,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: AppTheme.textSecondary,
+                          color: useSolidBackground ? Colors.white70 : AppTheme.textSecondary,
                           letterSpacing: 0.5,
                         ),
                   ),
@@ -81,7 +82,7 @@ class StatCard extends StatelessWidget {
                         : Theme.of(context).textTheme.titleLarge)
                     ?.copyWith(
                   fontWeight: FontWeight.w800,
-                  color: isLarge ? color : AppTheme.textPrimary,
+                  color: useSolidBackground ? Colors.white : (isLarge ? color : AppTheme.textPrimary),
                   letterSpacing: -0.5,
                 ),
               ),

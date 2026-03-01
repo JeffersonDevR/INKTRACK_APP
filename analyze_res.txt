@@ -1,0 +1,5 @@
+Analyzing inktrack_proto...                                     
+
+  error • The named parameter 'shadowColor' isn't defined • lib/core/theme/app_theme.dart:119:9 • undefined_named_parameter
+
+1 issue found. (ran in 1.8s)

@@ -1,21 +1,23 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:InkTrack/features/ventas/viewmodels/ventas_viewmodel.dart';
-import 'package:InkTrack/features/ventas/models/venta.dart';
+import 'package:InkTrack/features/ventas/presentation/viewmodels/ventas_viewmodel.dart';
+import 'package:InkTrack/features/ventas/data/models/venta.dart';
+
+import 'package:InkTrack/features/ventas/data/repositories/ventas_repository.dart';
 
 void main() {
   late VentasViewModel viewModel;
 
   setUp(() {
-    viewModel = VentasViewModel();
+    viewModel = VentasViewModel(VentasRepository());
   });
 
   group('VentasViewModel Business Logic Requirements', () {
-    test('TC-UNIT-01: Should register a valid sale and notify listeners', () {
+    test('TC-UNIT-01: Should register a valid sale and notify listeners', () async {
       const validAmount = 100.0;
       bool wasNotified = false;
       viewModel.addListener(() => wasNotified = true);
 
-      viewModel.guardar(Venta(
+      await viewModel.guardar(Venta(
         id: '',
         monto: validAmount,
         fecha: DateTime.now(),
@@ -34,10 +36,10 @@ void main() {
       expect(wasNotified, isTrue, reason: 'Listeners should be notified');
     });
 
-    test('TC-UNIT-02: Should calculate daily total correctly', () {
-      viewModel.guardar(Venta(id: '', monto: 50.0, fecha: DateTime.now()));
-      viewModel.guardar(Venta(id: '', monto: 150.0, fecha: DateTime.now()));
-      viewModel.guardar(Venta(id: '', monto: 25.50, fecha: DateTime.now()));
+    test('TC-UNIT-02: Should calculate daily total correctly', () async {
+      await viewModel.guardar(Venta(id: '', monto: 50.0, fecha: DateTime.now()));
+      await viewModel.guardar(Venta(id: '', monto: 150.0, fecha: DateTime.now()));
+      await viewModel.guardar(Venta(id: '', monto: 25.50, fecha: DateTime.now()));
 
       final total = viewModel.totalVentasDia;
 
@@ -46,11 +48,11 @@ void main() {
 
     test(
       'TC-UNIT-03: Should NOT register sales with zero or negative amounts',
-      () {
+      () async {
         final initialCount = viewModel.ventas.length;
 
-        viewModel.guardar(Venta(id: '', monto: 0, fecha: DateTime.now()));
-        viewModel.guardar(Venta(id: '', monto: -10.5, fecha: DateTime.now()));
+        await viewModel.guardar(Venta(id: '', monto: 0, fecha: DateTime.now()));
+        await viewModel.guardar(Venta(id: '', monto: -10.5, fecha: DateTime.now()));
 
         expect(
           viewModel.ventas.length,

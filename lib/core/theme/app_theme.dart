@@ -3,22 +3,23 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // POS / Local store palette: Modern Fintech look
-  static const Color primaryColor = Color(0xFF6366F1);      // Indigo 500
-  static const Color secondaryColor = Color(0xFF4F46E5);    // Indigo 600
-  static const Color accentColor = Color(0xFFF59E0B);       // Amber 500
-  static const Color backgroundColor = Color(0xFFF8FAFC);   // Slate 50
+  // Light Mode Palette: Color Psychology (Indigo/Emerald/Amber)
+  static const Color primaryColor = Color(0xFF2563EB);      // Indigo (Trust, Stability, Professionalism)
+  static const Color secondaryColor = Color(0xFF10B981);    // Emerald (Success, Growth, Confirmation)
+  static const Color accentColor = Color(0xFFF59E0B);       // Amber (Activity, Attention, Income)
+  static const Color backgroundColor = Color(0xFFF8FAFC);   // Soft Slate/White (Cleanliness)
   static const Color surfaceColor = Colors.white;
-  static const Color errorColor = Color(0xFFF43F5E);        // Rose 500
-  static const Color successColor = Color(0xFF10B981);      // Emerald 500
+  static const Color errorColor = Color(0xFFEF4444);        // Modern Red
+  static const Color successColor = Color(0xFF10B981);
+  
+  static const Color textPrimary = Color(0xFF0F172A);       // Deep Slate
+  static const Color textSecondary = Color(0xFF64748B);     // Muted Slate
 
-  static const Color textPrimary = Color(0xFF1E293B);       // Slate 800
-  static const Color textSecondary = Color(0xFF64748B);     // Slate 500
-
-  // Dark palette
-  static const Color darkBackground = Color(0xFF0F172A);    // Slate 900
-  static const Color darkSurface = Color(0xFF1E293B);       // Slate 800
-  static const Color darkTextPrimary = Color(0xFFF8FAFC);
-  static const Color darkTextSecondary = Color(0xFF94A3B8);
+  // Dark palette (Reference based - Kept as fallback)
+  static const Color darkBackground = Color(0xFF4A4545);
+  static const Color darkSurface = Color(0xFF332F2F);
+  static const Color darkTextPrimary = Colors.white;
+  static const Color darkTextSecondary = Color(0xFFBDBDBD);
 
   static ThemeData get lightTheme {
     final base = ThemeData.light(useMaterial3: true);
@@ -34,12 +35,12 @@ class AppTheme {
         surface: surfaceColor,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
-        onTertiary: textPrimary,
+        onTertiary: Colors.white,
         onSurface: textPrimary,
       ),
 
       appBarTheme: AppBarTheme(
-        backgroundColor: Colors.transparent,
+        backgroundColor: backgroundColor,
         foregroundColor: textPrimary,
         elevation: 0,
         centerTitle: true,
@@ -55,7 +56,7 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+          side: const BorderSide(color: Color(0xFFF1F5F9), width: 1),
         ),
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       ),
@@ -64,7 +65,8 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
-          elevation: 0,
+          elevation: 2,
+          shadowColor: primaryColor.withValues(alpha: 0.2),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -86,7 +88,7 @@ class AppTheme {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+          borderSide: const BorderSide(color: Color(0xFFEEF2F6)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -113,13 +115,13 @@ class AppTheme {
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
-        elevation: 4,
+        elevation: 6,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),
 
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: surfaceColor,
-        elevation: 8,
+        elevation: 12,
         height: 80,
         indicatorColor: primaryColor.withValues(alpha: 0.1),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
@@ -127,6 +129,12 @@ class AppTheme {
             return GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 12, color: primaryColor);
           }
           return GoogleFonts.outfit(fontSize: 12, color: textSecondary);
+        }),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(color: primaryColor, size: 28);
+          }
+          return const IconThemeData(color: textSecondary, size: 24);
         }),
       ),
     );
@@ -230,15 +238,21 @@ class AppTheme {
       ),
 
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: const Color(0xFF0A101F),
+        backgroundColor: const Color(0xFF2C2828),
         elevation: 8,
         height: 80,
-        indicatorColor: primaryColor.withValues(alpha: 0.2),
+        indicatorColor: Colors.transparent,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 12, color: Colors.white);
+            return GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 12, color: accentColor);
           }
           return GoogleFonts.outfit(fontSize: 12, color: darkTextSecondary);
+        }),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(color: accentColor, size: 28);
+          }
+          return const IconThemeData(color: Colors.white70, size: 24);
         }),
       ),
     );
