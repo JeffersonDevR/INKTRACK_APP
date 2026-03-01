@@ -19,6 +19,7 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
   final _nombreController = TextEditingController();
   final _telefonoController = TextEditingController();
   final _emailController = TextEditingController();
+  bool _esFiado = false;
 
   @override
   void initState() {
@@ -27,6 +28,7 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
       _nombreController.text = widget.cliente!.nombre;
       _telefonoController.text = widget.cliente!.telefono;
       _emailController.text = widget.cliente!.email;
+      _esFiado = widget.cliente!.esFiado;
     }
   }
 
@@ -104,6 +106,15 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
                   return null;
                 },
               ),
+              const SizedBox(height: 16),
+              SwitchListTile(
+                title: const Text('¿Es Fiado?'),
+                subtitle: const Text('Activar si este cliente tiene deudas pendientes'),
+                value: _esFiado,
+                onChanged: (value) => setState(() => _esFiado = value),
+                tileColor: Colors.grey.withValues(alpha: 0.05),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
@@ -130,6 +141,7 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
           nombre: _nombreController.text,
           telefono: _telefonoController.text,
           email: _emailController.text,
+          esFiado: _esFiado,
           movimientosVM: context.read<MovimientosViewModel>(),
         );
       } else {
@@ -138,6 +150,7 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
           nombre: _nombreController.text,
           telefono: _telefonoController.text,
           email: _emailController.text,
+          esFiado: _esFiado,
         );
       }
 

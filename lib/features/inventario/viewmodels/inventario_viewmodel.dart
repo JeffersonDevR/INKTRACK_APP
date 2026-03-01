@@ -59,6 +59,27 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
 
   void eliminar(String id) => delete(id);
 
+  void actualizarStock(String id, int delta) {
+    final index = items.indexWhere((p) => p.id == id);
+    if (index != -1) {
+      final p = items[index];
+      update(
+        id,
+        Producto(
+          id: p.id,
+          nombre: p.nombre,
+          cantidad: (p.cantidad + delta).clamp(0, 999999),
+          precio: p.precio,
+          categoria: p.categoria,
+          proveedorId: p.proveedorId,
+          stockMinimo: p.stockMinimo,
+          codigoBarras: p.codigoBarras,
+          proveedorNombre: p.proveedorNombre,
+        ),
+      );
+    }
+  }
+
   double get valorTotalInventario => items.fold(
     0.0,
     (sum, producto) => sum + (producto.precio * producto.cantidad),

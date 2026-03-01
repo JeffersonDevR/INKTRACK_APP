@@ -4,7 +4,8 @@ import '../viewmodels/inventario_viewmodel.dart';
 import '../models/producto.dart';
 import '../../proveedores/viewmodels/proveedores_viewmodel.dart';
 import '../../../core/input_formatters.dart';
-import 'actualizar_stock_page.dart';
+import '../../movimientos/pages/movimiento_form_page.dart';
+import '../../movimientos/models/movimiento.dart' as mov_model;
 
 const String _kCustomProveedorValue = '__custom__';
 const String _kNewCategoryValue = '__new_category__';
@@ -71,7 +72,18 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
         if (mounted) {
            Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) => ActualizarStockPage(producto: existing),
+              builder: (context) => MovimientoFormPage(
+                initialType: mov_model.MovimientoType.egreso,
+                movimiento: mov_model.Movimiento(
+                  id: '',
+                  monto: 0,
+                  fecha: DateTime.now(),
+                  tipo: mov_model.MovimientoType.egreso,
+                  concepto: 'Restock: ${existing.nombre}',
+                  productoId: existing.id,
+                  categoria: existing.categoria,
+                ),
+              ),
             ),
           );
         }

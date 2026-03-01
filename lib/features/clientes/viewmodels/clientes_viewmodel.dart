@@ -11,6 +11,7 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
     required String nombre,
     required String telefono,
     required String email,
+    bool esFiado = false,
     MovimientosViewModel? movimientosVM,
   }) {
     add(
@@ -19,6 +20,7 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
         nombre: nombre,
         telefono: telefono,
         email: email,
+        esFiado: esFiado,
       ),
     );
 
@@ -39,11 +41,37 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
     required String nombre,
     required String telefono,
     required String email,
+    required bool esFiado,
   }) {
     update(
       id,
-      Cliente(id: id, nombre: nombre, telefono: telefono, email: email),
+      Cliente(
+        id: id,
+        nombre: nombre,
+        telefono: telefono,
+        email: email,
+        esFiado: esFiado,
+        saldoPendiente: items.firstWhere((c) => c.id == id).saldoPendiente,
+      ),
     );
+  }
+
+  void actualizarSaldo(String id, double delta) {
+    final index = items.indexWhere((c) => c.id == id);
+    if (index != -1) {
+      final c = items[index];
+      update(
+        id,
+        Cliente(
+          id: c.id,
+          nombre: c.nombre,
+          telefono: c.telefono,
+          email: c.email,
+          esFiado: c.esFiado,
+          saldoPendiente: c.saldoPendiente + delta,
+        ),
+      );
+    }
   }
 
   void eliminar(String id) => delete(id);

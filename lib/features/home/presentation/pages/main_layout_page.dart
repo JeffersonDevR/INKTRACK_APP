@@ -209,9 +209,10 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
             label: 'Inventario',
           ),
           NavigationDestination(
-            icon: Icon(Icons.history_outlined),
-            selectedIcon: Icon(Icons.history),
-            label: 'Ingresos/Egresos',
+            icon: Icon(Icons.swap_horiz_outlined),
+            selectedIcon: Icon(Icons.swap_horiz),
+            label: 'Ventas',
+            tooltip: 'Ventas',
           ),
         ],
       ),
@@ -221,9 +222,17 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
   }
 
   Widget _buildFab(BuildContext context) {
-    return FloatingActionButton(
-      onPressed: () => _onFabPressed(context),
-      child: const Icon(Icons.add),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0, right: 8.0),
+      child: FloatingActionButton(
+        onPressed: () => _onFabPressed(context),
+        elevation: 4,
+        highlightElevation: 0,
+        backgroundColor: AppTheme.primaryColor,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        child: const Icon(Icons.add_rounded, size: 28),
+      ),
     );
   }
 }
@@ -239,42 +248,61 @@ class _FabOptionsSheet extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
+            Center(
+              child: Container(
+                width: 40,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: AppTheme.textSecondary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             ),
-            const SizedBox(height: 20),
-            Text(title, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
             Flexible(
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: options
-                      .map((option) => ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor:
-                                  AppTheme.primaryColor.withValues(alpha: 0.12),
-                              child: Icon(option.icon, color: AppTheme.primaryColor),
+                      .map((option) => Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.backgroundColor.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                              leading: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(option.icon, color: AppTheme.primaryColor, size: 22),
+                              ),
+                              title: Text(option.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              subtitle: Text(option.subtitle, style: const TextStyle(fontSize: 12)),
+                              trailing: const Icon(Icons.chevron_right_rounded, size: 20, color: AppTheme.textSecondary),
+                              onTap: () {
+                                Navigator.pop(context);
+                                option.onTap();
+                              },
                             ),
-                            title: Text(option.title),
-                            subtitle: Text(option.subtitle),
-                            onTap: () {
-                              Navigator.pop(context);
-                              option.onTap();
-                            },
-                          ))
+                      ))
                       .toList(),
                 ),
               ),

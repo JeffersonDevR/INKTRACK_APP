@@ -34,9 +34,56 @@ class ClientesPage extends StatelessWidget {
                     ),
                     child: Icon(Icons.person, color: AppTheme.primaryColor),
                   ),
-                  title: Text(
-                    cliente.nombre,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  title: Row(
+                    children: [
+                      Text(
+                        cliente.nombre,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      if (cliente.esFiado) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppTheme.errorColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: AppTheme.errorColor.withValues(alpha: 0.5)),
+                          ),
+                          child: Text(
+                            'FIADO',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.errorColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                      if (cliente.saldoPendiente > 0) ...[
+                        const Spacer(),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              'Saldo',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: AppTheme.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Text(
+                              '\$${cliente.saldoPendiente.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.errorColor,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
                   ),
                   subtitle: Text(
                     '${cliente.telefono} • ${cliente.email}',

@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../models/movimiento.dart';
 import '../viewmodels/movimientos_viewmodel.dart';
+import '../../clientes/viewmodels/clientes_viewmodel.dart';
+import '../../inventario/viewmodels/inventario_viewmodel.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/input_formatters.dart';
 
@@ -27,7 +29,11 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
   late MovimientoType _tipo;
   final _montoController = TextEditingController();
   final _conceptoController = TextEditingController();
+  final _cantidadController = TextEditingController(text: '1');
   String? _categoria;
+  String? _clienteId;
+  String? _productoId;
+  bool _esFiado = false;
   DateTime _fecha = DateTime.now();
 
   @override
@@ -38,6 +44,10 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
       _montoController.text = widget.movimiento!.monto.toString();
       _conceptoController.text = widget.movimiento!.concepto;
       _categoria = widget.movimiento!.categoria;
+      _clienteId = widget.movimiento!.clienteId;
+      _productoId = widget.movimiento!.productoId;
+      _cantidadController.text = widget.movimiento!.cantidad?.toString() ?? '1';
+      _esFiado = widget.movimiento!.esFiado;
       _fecha = widget.movimiento!.fecha;
     } else {
       _tipo = widget.initialType;
@@ -48,25 +58,60 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
   void dispose() {
     _montoController.dispose();
     _conceptoController.dispose();
+    _cantidadController.dispose();
     super.dispose();
+  }
+
+  void _updateMontoAuto() {
+    if (_productoId == null) return;
+    
+    final ivm = context.read<InventarioViewModel>();
+    final producto = ivm.productos.firstWhere((p) => p.id == _productoId);
+    final cantidad = int.tryParse(_cantidadController.text) ?? 0;
+    
+    setState(() {
+      _montoController.text = (producto.precio * cantidad).toStringAsFixed(2);
+    });
   }
 
   void _save() {
     if (_formKey.currentState!.validate()) {
+      final monto = double.parse(_montoController.text);
+      final cantidad = int.tryParse(_cantidadController.text);
+      
       final mov = Movimiento(
         id: widget.movimiento?.id ?? const Uuid().v4(),
-        monto: double.parse(_montoController.text),
+        monto: monto,
         fecha: _fecha,
         tipo: _tipo,
         concepto: _conceptoController.text,
         categoria: _categoria,
+        clienteId: _clienteId,
+        productoId: _productoId,
+        cantidad: cantidad,
+        esFiado: _esFiado,
       );
 
       final viewModel = context.read<MovimientosViewModel>();
+      final ivm = context.read<InventarioViewModel>();
+      final cvm = context.read<ClientesViewModel>();
+
       if (widget.movimiento == null) {
         viewModel.add(mov);
+        
+        // Post-save hooks for NEW movements
+        if (_productoId != null && cantidad != null) {
+          final delta = _tipo == MovimientoType.ingreso ? -cantidad : cantidad;
+          ivm.actualizarStock(_productoId!, delta);
+        }
+        
+        if (_tipo == MovimientoType.ingreso && _esFiado && _clienteId != null) {
+          cvm.actualizarSaldo(_clienteId!, monto);
+        }
       } else {
         viewModel.editar(widget.movimiento!.id, mov);
+        // Note: For simplicity in this proto, we don't recalculate stock/debt on EDIT 
+        // to avoid complex reversal logic. Typically you'd compare old vs new.
       }
       Navigator.pop(context);
     }
@@ -130,21 +175,48 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                   });
                 },
               ),
-              const SizedBox(height: 24),
-              TextFormField(
-                controller: _montoController,
-                decoration: const InputDecoration(
-                  labelText: 'Monto',
-                  prefixText: '\$ ',
-                  hintText: '0.00',
-                ),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                inputFormatters: [InputFormatters.decimal],
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Ingrese un monto';
-                  if (double.tryParse(value) == null) return 'Monto inválido';
-                  return null;
-                },
+               const SizedBox(height: 24),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: TextFormField(
+                      controller: _montoController,
+                      decoration: const InputDecoration(
+                        labelText: 'Monto Total',
+                        prefixText: '\$ ',
+                        hintText: '0.00',
+                      ),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [InputFormatters.decimal],
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return 'Ingrese un monto';
+                        if (double.tryParse(value) == null) return 'Monto inválido';
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _cantidadController,
+                      decoration: const InputDecoration(
+                        labelText: 'Cantidad',
+                      ),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [InputFormatters.digitsOnly],
+                      onChanged: (value) => _updateMontoAuto(),
+                      validator: (value) {
+                        if (_productoId != null) {
+                          if (value == null || value.isEmpty) return 'Requerido';
+                          if (int.tryParse(value) == null || int.parse(value) <= 0) return '> 0';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -165,6 +237,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                 builder: (context, mvm, child) {
                   final categories = mvm.categorias;
                   return DropdownButtonFormField<String>(
+                    isExpanded: true,
                     initialValue: categories.contains(_categoria) ? _categoria : null,
                     decoration: const InputDecoration(
                       labelText: 'Categoría',
@@ -196,6 +269,74 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                         return 'Seleccione o cree una categoría';
                       }
                       return null;
+                    },
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              Consumer<ClientesViewModel>(
+                builder: (context, cvm, child) {
+                  final clientes = cvm.items;
+                  return DropdownButtonFormField<String?>(
+                    isExpanded: true,
+                    initialValue: _clienteId,
+                    decoration: const InputDecoration(
+                      labelText: 'Cliente (Opcional)',
+                      prefixIcon: Icon(Icons.person_outline),
+                      hintText: 'Seleccione un cliente',
+                    ),
+                    items: [
+                      const DropdownMenuItem(value: null, child: Text('Ninguno')),
+                      ...clientes.map(
+                        (c) => DropdownMenuItem(
+                          value: c.id, 
+                          child: Text('${c.nombre}${c.saldoPendiente > 0 ? " (\$${c.saldoPendiente.toStringAsFixed(0)})" : ""}'),
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) => setState(() {
+                      _clienteId = value;
+                      if (value == null) _esFiado = false;
+                    }),
+                  );
+                },
+              ),
+              if (_tipo == MovimientoType.ingreso && _clienteId != null) ...[
+                const SizedBox(height: 8),
+                SwitchListTile(
+                  title: const Text('Venta Fiada'),
+                  subtitle: const Text('Añadir al saldo pendiente del cliente'),
+                  value: _esFiado,
+                  onChanged: (value) => setState(() => _esFiado = value),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                  dense: true,
+                ),
+              ],
+              const SizedBox(height: 16),
+              Consumer<InventarioViewModel>(
+                builder: (context, ivm, child) {
+                  final productos = ivm.productos;
+                  return DropdownButtonFormField<String?>(
+                    isExpanded: true,
+                    initialValue: _productoId,
+                    decoration: const InputDecoration(
+                      labelText: 'Producto (Asociar)',
+                      prefixIcon: Icon(Icons.inventory_2_outlined),
+                      hintText: 'Seleccione un producto',
+                    ),
+                    items: [
+                      const DropdownMenuItem(value: null, child: Text('Ninguno')),
+                      ...productos.map(
+                        (p) => DropdownMenuItem(value: p.id, child: Text('${p.nombre} (\$${p.precio})')),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _productoId = value;
+                        if (value != null) {
+                          _updateMontoAuto();
+                        }
+                      });
                     },
                   );
                 },

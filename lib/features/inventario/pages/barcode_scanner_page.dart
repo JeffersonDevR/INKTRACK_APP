@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
 import 'producto_form_page.dart';
-import 'actualizar_stock_page.dart';
+import '../../movimientos/pages/movimiento_form_page.dart';
+import '../../movimientos/models/movimiento.dart' as mov_model;
 import '../viewmodels/inventario_viewmodel.dart';
 
 class BarcodeScannerPage extends StatefulWidget {
@@ -42,7 +43,18 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
     if (productoExistente != null) {
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => ActualizarStockPage(producto: productoExistente),
+          builder: (context) => MovimientoFormPage(
+            initialType: mov_model.MovimientoType.egreso,
+            movimiento: mov_model.Movimiento(
+              id: '', // New movement
+              monto: 0,
+              fecha: DateTime.now(),
+              tipo: mov_model.MovimientoType.egreso,
+              concepto: 'Restock: ${productoExistente.nombre}',
+              productoId: productoExistente.id,
+              categoria: productoExistente.categoria,
+            ),
+          ),
         ),
       );
     } else {

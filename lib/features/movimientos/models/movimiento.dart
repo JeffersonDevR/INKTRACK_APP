@@ -10,6 +10,10 @@ class Movimiento implements HasId {
   final MovimientoType tipo;
   final String concepto;
   final String? categoria;
+  final String? productoId;
+  final String? clienteId;
+  final int? cantidad;
+  final bool esFiado;
 
   Movimiento({
     required this.id,
@@ -18,5 +22,9 @@ class Movimiento implements HasId {
     required this.tipo,
     required this.concepto,
     this.categoria,
+    this.productoId,
+    this.clienteId,
+    this.cantidad,
+    this.esFiado = false,
   });
 }
