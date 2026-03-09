@@ -1,48 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
+import 'package:InkTrack/core/data/local/database.dart';
+import 'package:InkTrack/features/clientes/data/repositories/drift_clientes_repository.dart';
+import 'package:InkTrack/features/proveedores/data/repositories/drift_proveedores_repository.dart';
+import 'package:InkTrack/features/inventario/data/repositories/drift_productos_repository.dart';
+import 'package:InkTrack/features/movimientos/data/repositories/drift_movimientos_repository.dart';
+import 'package:InkTrack/features/ventas/data/repositories/drift_ventas_repository.dart';
 
-// Clientes
-import 'package:InkTrack/features/clientes/data/repositories/clientes_repository.dart';
+// ViewModels
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
-
-// Proveedores
-import 'package:InkTrack/features/proveedores/data/repositories/proveedores_repository.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
-
-// Inventario
-import 'package:InkTrack/features/inventario/data/repositories/productos_repository.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
-
-// Movimientos
-import 'package:InkTrack/features/movimientos/data/repositories/movimientos_repository.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
-
-// Ventas
-import 'package:InkTrack/features/ventas/data/repositories/ventas_repository.dart';
 import 'package:InkTrack/features/ventas/presentation/viewmodels/ventas_viewmodel.dart';
 
 import 'package:InkTrack/features/home/presentation/pages/main_layout_page.dart';
 
 void main() {
-  runApp(const InkTrackApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  final database = AppDatabase();
+  runApp(InkTrackApp(database: database));
 }
 
 class InkTrackApp extends StatelessWidget {
-  const InkTrackApp({super.key});
+  final AppDatabase database;
+  const InkTrackApp({super.key, required this.database});
 
   @override
   Widget build(BuildContext context) {
-    // Create Repositories
-    final clientesRepo = ClientesRepository();
-    final proveedoresRepo = ProveedoresRepository();
-    final productosRepo = ProductosRepository();
-    final movimientosRepo = MovimientosRepository();
-    final ventasRepo = VentasRepository();
+    // Create Drift Repositories
+    final clientesRepo = DriftClientesRepository(database);
+    final proveedoresRepo = DriftProveedoresRepository(database);
+    final productosRepo = DriftProductosRepository(database);
+    final movimientosRepo = DriftMovimientosRepository(database);
+    final ventasRepo = DriftVentasRepository(database);
 
     return MultiProvider(
       providers: [
-        // Provide Repositories (if needed directly in UI, though ViewModels should handle it)
+        // Provide the Database itself (optional, but good for inspection)
+        Provider.value(value: database),
+
+        // Provide Repositories
         Provider.value(value: clientesRepo),
         Provider.value(value: proveedoresRepo),
         Provider.value(value: productosRepo),

@@ -71,10 +71,6 @@ class MovimientosViewModel extends BaseCrudViewModel<Movimiento> {
 
   @override
   void add(Movimiento item) {
-    // Note: In a real app, we would await _repository.save(item) here
-    // but BaseCrudViewModel.add is synchronous. 
-    // We expect the caller to have already saved to the repository or we handle it here.
-    // For now, we'll keep it consistent with other VMs.
     super.add(item);
   }
 

@@ -101,7 +101,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
       final cvm = context.read<ClientesViewModel>();
 
       if (widget.movimiento == null) {
-        viewModel.add(mov);
+        viewModel.guardar(mov);
         
         // Post-save hooks for NEW movements
         if (_productoId != null && cantidad != null) {

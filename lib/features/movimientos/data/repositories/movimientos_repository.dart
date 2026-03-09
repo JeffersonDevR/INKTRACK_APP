@@ -1,7 +1,9 @@
 import 'package:InkTrack/core/data/base_repository.dart';
 import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
 
-class MovimientosRepository implements BaseRepository<Movimiento> {
+abstract class MovimientosRepository implements BaseRepository<Movimiento> {}
+
+class InMemoryMovimientosRepository implements MovimientosRepository {
   final List<Movimiento> _items = [];
 
   @override

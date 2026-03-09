@@ -1,7 +1,9 @@
 import 'package:InkTrack/core/data/base_repository.dart';
 import 'package:InkTrack/features/clientes/data/models/cliente.dart';
 
-class ClientesRepository implements BaseRepository<Cliente> {
+abstract class ClientesRepository implements BaseRepository<Cliente> {}
+
+class InMemoryClientesRepository implements ClientesRepository {
   final List<Cliente> _items = [];
 
   @override

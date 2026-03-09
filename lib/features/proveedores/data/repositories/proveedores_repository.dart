@@ -1,7 +1,9 @@
 import '../../../../core/data/base_repository.dart';
 import '../models/proveedor.dart';
 
-class ProveedoresRepository implements BaseRepository<Proveedor> {
+abstract class ProveedoresRepository implements BaseRepository<Proveedor> {}
+
+class InMemoryProveedoresRepository implements ProveedoresRepository {
   final List<Proveedor> _items = [];
 
   @override

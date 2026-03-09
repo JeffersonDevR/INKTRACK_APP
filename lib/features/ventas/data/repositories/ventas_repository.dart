@@ -1,7 +1,9 @@
 import 'package:InkTrack/core/data/base_repository.dart';
 import 'package:InkTrack/features/ventas/data/models/venta.dart';
 
-class VentasRepository implements BaseRepository<Venta> {
+abstract class VentasRepository implements BaseRepository<Venta> {}
+
+class InMemoryVentasRepository implements VentasRepository {
   final List<Venta> _items = [];
 
   @override

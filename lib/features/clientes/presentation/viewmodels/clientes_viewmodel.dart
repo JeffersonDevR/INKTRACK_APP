@@ -49,7 +49,7 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
         categoria: 'Clientes',
       );
       // Note: MovimientosViewModel will also be refactored similarly
-      movimientosVM.add(movimiento);
+      movimientosVM.guardar(movimiento);
     }
   }
 

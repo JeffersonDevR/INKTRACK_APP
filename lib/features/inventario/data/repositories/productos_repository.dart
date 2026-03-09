@@ -1,7 +1,11 @@
 import 'package:InkTrack/core/data/base_repository.dart';
 import 'package:InkTrack/features/inventario/data/models/producto.dart';
 
-class ProductosRepository implements BaseRepository<Producto> {
+abstract class ProductosRepository implements BaseRepository<Producto> {
+  Future<Producto?> getByBarcode(String barcode);
+}
+
+class InMemoryProductosRepository implements ProductosRepository {
   final List<Producto> _items = [];
 
   @override
@@ -36,6 +40,7 @@ class ProductosRepository implements BaseRepository<Producto> {
     _items.removeWhere((item) => item.id == id);
   }
 
+  @override
   Future<Producto?> getByBarcode(String barcode) async {
     try {
       return _items.firstWhere((p) => p.codigoBarras == barcode);

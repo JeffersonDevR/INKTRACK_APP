@@ -46,7 +46,7 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
         concepto: 'Nuevo proveedor: $nombre',
         categoria: 'Proveedores',
       );
-      movimientosVM.add(movimiento);
+      movimientosVM.guardar(movimiento);
     }
   }
 
