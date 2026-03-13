@@ -44,3 +44,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+pubspec.yaml
+shorebird.yaml
+android/app/src/main/AndroidManifest.xml
+macos/Runner/Release.entitlements
+pubspec.yaml
