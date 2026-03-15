@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/clientes/data/models/cliente.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
+import 'package:InkTrack/core/widgets/stat_card.dart';
 import 'cliente_form_page.dart';
+import '../widgets/pago_dialog.dart';
 
 class ClientesPage extends StatelessWidget {
   const ClientesPage({super.key});
@@ -17,13 +19,71 @@ class ClientesPage extends StatelessWidget {
           if (viewModel.clientes.isEmpty) {
             return _EmptyClientes();
           }
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            itemCount: viewModel.clientes.length,
-            itemBuilder: (context, index) {
-              final cliente = viewModel.clientes[index];
-              return Card(
-                child: ListTile(
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Resumen de Clientes',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.5,
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: StatCard(
+                            value: '${viewModel.totalClientes}',
+                            label: 'Total Clientes',
+                            icon: Icons.people_rounded,
+                            color: AppTheme.primaryColor,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: StatCard(
+                            value: viewModel.clientesConDeuda.toString(),
+                            label: 'Con Deuda',
+                            icon: Icons.assignment_late_rounded,
+                            color: AppTheme.errorColor,
+                            subtitle: viewModel.clientesConDeuda == 0 ? 'Sin deudas pendientes' : 'Clientes fiados',
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    StatCard(
+                      value: '\$${viewModel.totalDeuda.toStringAsFixed(2)}',
+                      label: 'Deuda Total Pendiente',
+                      icon: Icons.payments_rounded,
+                      color: AppTheme.accentColor,
+                      isLarge: true,
+                      subtitle: 'Suma de saldos de todos los clientes',
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text(
+                  'Listado de Clientes',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  itemCount: viewModel.clientes.length,
+                  itemBuilder: (context, index) {
+                    final cliente = viewModel.clientes[index];
+                    return Card(
+                      child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 8,
@@ -90,20 +150,19 @@ class ClientesPage extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   trailing: PopupMenuButton<String>(
-                    onSelected: (value) {
-                      if (value == 'edit') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ClienteFormPage(cliente: cliente),
-                          ),
-                        );
-                      } else if (value == 'delete') {
-                        _showDeleteDialog(context, cliente);
-                      }
-                    },
+                    onSelected: (value) => _onMenuSelected(context, value, cliente),
                     itemBuilder: (context) => [
+                      if (cliente.saldoPendiente > 0)
+                        const PopupMenuItem(
+                          value: 'pay',
+                          child: Row(
+                            children: [
+                              Icon(Icons.payments_outlined, size: 20),
+                              SizedBox(width: 8),
+                              Text('Registrar Pago'),
+                            ],
+                          ),
+                        ),
                       const PopupMenuItem(value: 'edit', child: Text('Editar')),
                       const PopupMenuItem(
                         value: 'delete',
@@ -114,10 +173,31 @@ class ClientesPage extends StatelessWidget {
                 ),
               );
             },
+                ),
+              ),
+            ],
           );
         },
       ),
     );
+  }
+
+  void _onMenuSelected(BuildContext context, String value, Cliente cliente) {
+    if (value == 'edit') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ClienteFormPage(cliente: cliente),
+        ),
+      );
+    } else if (value == 'delete') {
+      _showDeleteDialog(context, cliente);
+    } else if (value == 'pay') {
+      showDialog(
+        context: context,
+        builder: (context) => PagoDialog(cliente: cliente),
+      );
+    }
   }
 
   void _showDeleteDialog(BuildContext context, Cliente cliente) {

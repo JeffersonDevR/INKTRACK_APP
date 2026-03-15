@@ -14,6 +14,10 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
 
   List<Cliente> get clientes => items;
 
+  double get totalDeuda => items.fold(0.0, (sum, item) => sum + item.saldoPendiente);
+  int get totalClientes => items.length;
+  int get clientesConDeuda => items.where((c) => c.saldoPendiente > 0).length;
+
   Future<void> _loadClientes() async {
     final loaded = await _repository.getAll();
     for (var cliente in loaded) {
@@ -89,5 +93,29 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
   Future<void> eliminar(String id) async {
     await _repository.delete(id);
     delete(id);
+  }
+
+  Future<void> registrarPago(
+    String clienteId,
+    double monto,
+    MovimientosViewModel movimientosVM,
+  ) async {
+    final cliente = getById(clienteId);
+    if (cliente == null || monto <= 0) return;
+
+    // 1. Reduce debt
+    await actualizarSaldo(clienteId, -monto);
+
+    // 2. Register income movement
+    final movimiento = Movimiento(
+      id: IdUtils.generateId(),
+      monto: monto,
+      fecha: DateTime.now(),
+      tipo: MovimientoType.ingreso,
+      concepto: 'Pago de deuda: ${cliente.nombre}',
+      categoria: 'Cobros',
+      clienteId: clienteId,
+    );
+    await movimientosVM.guardar(movimiento);
   }
 }

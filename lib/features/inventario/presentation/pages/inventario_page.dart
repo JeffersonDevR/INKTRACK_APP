@@ -23,15 +23,24 @@ class InventarioPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    Text(
+                      'Resumen de Inventario',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.5,
+                          ),
+                    ),
+                    const SizedBox(height: 16),
                     Row(
                       children: [
                         Expanded(
                           child: StatCard(
                             value: '${vm.totalProductos}',
-                            label: 'TOTAL PRODUCTOS',
+                            label: 'Total Productos',
                             icon: Icons.inventory_2_rounded,
                             color: AppTheme.primaryColor,
                           ),
@@ -40,9 +49,10 @@ class InventarioPage extends StatelessWidget {
                         Expanded(
                           child: StatCard(
                             value: vm.productosConStockBajo.length.toString(),
-                            label: 'STOCK BAJO',
+                            label: 'Stock Bajo',
                             icon: Icons.warning_amber_rounded,
                             color: AppTheme.errorColor,
+                            subtitle: vm.productosConStockBajo.isEmpty ? 'Todo al día' : 'Requiere atención',
                           ),
                         ),
                       ],
@@ -50,10 +60,11 @@ class InventarioPage extends StatelessWidget {
                     const SizedBox(height: 12),
                     StatCard(
                       value: '\$${vm.valorTotalInventario.toStringAsFixed(2)}',
-                      label: 'VALOR TOTAL DEL INVENTARIO',
+                      label: 'Valor Total del Inventario',
                       icon: Icons.account_balance_rounded,
                       color: AppTheme.secondaryColor,
                       isLarge: true,
+                      subtitle: 'Capital invertido en productos',
                     ),
                   ],
                 ),

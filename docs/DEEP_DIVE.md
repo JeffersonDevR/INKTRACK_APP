@@ -184,6 +184,27 @@ var maria = Persona.jubilado("Maria");  // edad = 65
 
 ---
 
+# PARTE INTERMEDIA: EL PROCESO SDD 📜
+
+Antes de seguir con el código, tenés que entender **CÓMO trabajamos**. En InkTrack no tiramos código al azar. Usamos **Spec-Driven Development (SDD)**.
+
+## ¿Qué es SDD?
+Es "Desarrollo Guiado por Especificaciones". Primero definimos qué vamos a hacer, cómo lo vamos a hacer, y recién ahí codificamos.
+
+### El "Combo de 4 Archivos"
+Cada funcionalidad grande (como `Clientes`, `Inventario` o `Ventas`) tiene su propia carpeta en `specs/` con 4 archivos obligatorios:
+
+1.  **`spec.md`**: El "Qué". Define el comportamiento, reglas de negocio y actores.
+2.  **`plan.md`**: El "Cómo". Define los cambios técnicos, qué archivos se tocan y qué lógica se agrega.
+3.  **`tasks.md`**: El checklist. Se va marcando `[x]` a medida que avanzamos.
+4.  **`history.md`**: El diario. Registra qué se hizo y cuándo.
+
+**¿Por qué hacemos esto?**
+Para que un desarrollador nuevo (¡como vos!) pueda entrar a `specs/003-clientes-basic-lifecycle/` y entender TODA la lógica de clientes sin tener que leer 500 líneas de código Dart primero.
+
+---
+
+
 # SEGUNDA PARTE: PROVIDER Y MANEJO DE ESTADO 💡
 
 Ahora vamos a lo más importante del proyecto: **Provider**.
@@ -606,55 +627,59 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
 2. **Lógica de negocio:** El ViewModel decide CÓMO guardar, no solo lo hace
 3. **Relaciones:** Cuando se guarda una venta, también crea un movimiento (flujo de caja)
 
-## 3.7 El Repository (La capa de datos)
+## 3.7 La Capa de Datos: Drift (SQLite) 💾
 
-El Repository es como un DAO en Java. Abstrae la fuente de datos.
+Originalmente, este proyecto usaba listas en memoria (RAM), pero para una app real necesitás que los datos sobrevivan al cerrar el app. Usamos **Drift**, el mejor motor de base de datos para Flutter.
+
+**La analogía con Java/Android:**
+`Drift` es como `Room` en Android. Definís tablas como clases y él genera el código SQL por vos.
+
+### ¿Cómo definimos una Tabla?
+Mirá este ejemplo de `lib/core/data/local/database.dart`:
 
 ```dart
-// lib/features/ventas/data/repositories/ventas_repository.dart
-
-class VentasRepository implements BaseRepository<Venta> {
-  final List<Venta> _items = [];  // Por ahora, solo en memoria (RAM)
-
-  @override
-  Future<List<Venta>> getAll() async {
-    return List.unmodifiable(_items);
-  }
+@DataClassName('ClienteData')
+class Clientes extends Table {
+  TextColumn get id => text()();
+  TextColumn get nombre => text()();
+  TextColumn get telefono => text()();
+  BoolColumn get esFiado => boolean().withDefault(const Constant(false))();
+  RealColumn get saldoPendiente => real().withDefault(const Constant(0.0))();
 
   @override
-  Future<Venta?> getById(String id) async {
-    try {
-      return _items.firstWhere((item) => item.id == id);
-    } catch (e) {
-      return null;
-    }
-  }
+  Set<Column> get primaryKey => {id};
+}
+```
 
-  @override
-  Future<void> save(Venta item) async {
-    _items.add(item);
-  }
+**Puntos clave:**
+1.  **Columnas tipadas**: `text()`, `boolean()`, `real()` (para números con decimales).
+2.  **Valores por defecto**: Como `Constant(false)`.
+3.  **Clave Primaria**: Definimos `id` como la llave única.
 
-  @override
-  Future<void> update(String id, Venta item) async {
-    final index = _items.indexWhere((i) => i.id == id);
-    if (index != -1) {
-      _items[index] = item;
-    }
-  }
+### El Repositorio Real
+El repositorio actúa como un puente. Los ViewModels no saben que existe una base de datos; solo piden "dame todos los clientes".
 
-  @override
-  Future<void> delete(String id) async {
-    _items.removeWhere((item) => item.id == id);
+```dart
+// lib/features/clientes/data/repositories/clientes_repository.dart
+class ClientesRepository {
+  final AppDatabase _db;
+  
+  ClientesRepository(this._db);
+
+  Future<List<Cliente>> getAll() async {
+    // Esto hace un "SELECT * FROM Clientes" por abajo
+    final items = await _db.select(_db.clientes).get();
+    return items.map((data) => Cliente.fromData(data)).toList();
   }
 }
 ```
 
-**Analogía con Java:**
-- `implements BaseRepository<Venta>` ≈ `class VentasDao implements Dao<Venta>`
-- Los métodos son todos `Future` porque eventualmenteTalk: se conectarán a una base de datos real
+**¿Ves la magia?** No escribiste `SELECT`, no abriste conexiones manualmente. Drift y el Repositorio se encargan de todo.
+
+---
 
 ## 3.8 La Vista (Las páginas)
+
 
 Finalmente, la vista consume los datos del ViewModel:
 
@@ -968,11 +993,44 @@ class ProductosPage extends StatelessWidget {
 
 ---
 
-# QUINTA PARTE: DE VOLÁTIL A PERMANENTE 💾
+# QUINTA PARTE: CALIDAD Y TDD 🧪
 
-Actualmente, los datos de InkTrack viven solo en RAM. Si cerrás la app, se borran todo. Vamos a ver cómo Persistirlos.
+Para asegurarnos de que la lógica de negocio (como el cálculo de deudas o el stock) funcione siempre, usamos **Unit Testing**.
 
-## 5.1 El Problema: Memoria Volátil
+## 5.1 ¿Por qué testear?
+En una app de finanzas, un error de `+500` en lugar de `-500` es un desastre. Los tests nos dan la tranquilidad de que la lógica "aburrida" pero crítica funciona.
+
+## 5.2 Estructura de un Test
+Mirá `test/features/clientes/clientes_viewmodel_test.dart`:
+
+```dart
+test('registrarPago reduce deuda y crea movimiento', () async {
+  // 1. Arrange (Preparar)
+  final vm = ClientesViewModel(repo);
+  await vm.actualizarSaldo('cliente-1', 500.0);
+
+  // 2. Act (Actuar)
+  await vm.registrarPago('cliente-1', 200.0, movimientosVM);
+
+  // 3. Assert (Verificar)
+  expect(vm.getById('cliente-1')!.saldoPendiente, 300.0);
+});
+```
+
+**La regla de oro:** Cada vez que agregás una función crítica en un ViewModel, agregá un test. Si el test pasa, podés dormir tranquilo.
+
+---
+
+# SEXTA PARTE: CONCLUSIÓN 🚀
+
+¡Felicidades! Ahora sabés cómo se construye InkTrack:
+1.  **SDD**: Primero la especificación en `specs/`.
+2.  **MVVM**: Separación clara entre Datos, Lógica (ViewModel) y Vista.
+3.  **Provider**: Estado reactivo que actualiza la UI automáticamente.
+4.  **Drift**: Persistencia real en SQLite.
+5.  **TDD**: Calidad asegurada con tests.
+
+Este es un enfoque de **Nivel Senior**. No solo se trata de que la app "funcione", sino de que sea mantenible, escalable y libre de errores. ¡A seguir codeando! 🖋️🚀
 
 Cada vez que ejecutás `flutter run`, la app empieza con listas vacías:
 

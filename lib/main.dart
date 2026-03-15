@@ -14,7 +14,7 @@ import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedore
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/features/ventas/presentation/viewmodels/ventas_viewmodel.dart';
-
+import 'package:InkTrack/core/services/scanner_service.dart';
 import 'package:InkTrack/features/home/presentation/pages/main_layout_page.dart';
 
 void main() {
@@ -47,9 +47,13 @@ class InkTrackApp extends StatelessWidget {
         Provider.value(value: productosRepo),
         Provider.value(value: movimientosRepo),
         Provider.value(value: ventasRepo),
+        Provider(create: (_) => ScannerService()),
 
         // Provide ViewModels with Repo Injection
-        ChangeNotifierProvider(create: (_) => VentasViewModel(ventasRepo)),
+        ChangeNotifierProvider(create: (context) => VentasViewModel(
+          ventasRepo,
+          context.read<ScannerService>(),
+        )),
         ChangeNotifierProvider(create: (_) => ClientesViewModel(clientesRepo)),
         ChangeNotifierProvider(create: (_) => ProveedoresViewModel(proveedoresRepo)),
         ChangeNotifierProvider(create: (_) => InventarioViewModel(productosRepo)),

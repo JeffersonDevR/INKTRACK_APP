@@ -24,24 +24,45 @@ class StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: isLarge ? 2 : 1,
-      shadowColor: color.withValues(alpha: 0.05),
+      elevation: isLarge ? 4 : 2,
+      shadowColor: color.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
-        side: const BorderSide(color: Color(0xFFF1F5F9), width: 1),
+        side: BorderSide(
+          color: useSolidBackground ? Colors.transparent : const Color(0xFFF1F5F9),
+          width: 1,
+        ),
       ),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
-          color: useSolidBackground ? color : null,
-          gradient: (isLarge && !useSolidBackground) ? LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.white,
-              color.withValues(alpha: 0.02),
-            ],
-          ) : null,
+          color: useSolidBackground ? color : Colors.white,
+          gradient: !useSolidBackground
+              ? LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white,
+                    color.withValues(alpha: isLarge ? 0.05 : 0.02),
+                  ],
+                )
+              : LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    color,
+                    color.withValues(alpha: 0.8),
+                  ],
+                ),
+          boxShadow: useSolidBackground
+              ? [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  )
+                ]
+              : null,
         ),
         padding: EdgeInsets.all(isLarge ? 20 : 16),
         child: Column(
@@ -49,24 +70,41 @@ class StatCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: useSolidBackground ? Colors.white.withValues(alpha: 0.2) : color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    color: useSolidBackground
+                        ? Colors.white.withValues(alpha: 0.2)
+                        : color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(icon, color: useSolidBackground ? Colors.white : color, size: isLarge ? 24 : 18),
+                  child: Icon(
+                    icon,
+                    color: useSolidBackground ? Colors.white : color,
+                    size: isLarge ? 24 : 18,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    label,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: useSolidBackground ? Colors.white70 : AppTheme.textSecondary,
-                          letterSpacing: 0.5,
-                        ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: useSolidBackground
+                                  ? Colors.white.withValues(alpha: 0.9)
+                                  : AppTheme.textSecondary,
+                              letterSpacing: 0.3,
+                              height: 1.2,
+                            ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -81,20 +119,27 @@ class StatCard extends StatelessWidget {
                         ? Theme.of(context).textTheme.headlineSmall
                         : Theme.of(context).textTheme.titleLarge)
                     ?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: useSolidBackground ? Colors.white : (isLarge ? color : AppTheme.textPrimary),
-                  letterSpacing: -0.5,
+                  fontWeight: FontWeight.w900,
+                  color: useSolidBackground
+                      ? Colors.white
+                      : (isLarge ? color : AppTheme.textPrimary),
+                  letterSpacing: -0.8,
                 ),
               ),
             ),
             if (subtitle != null) ...[
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 subtitle!,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppTheme.textSecondary,
-                  fontSize: 11,
-                ),
+                      color: useSolidBackground
+                          ? Colors.white.withValues(alpha: 0.7)
+                          : AppTheme.textSecondary,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ],

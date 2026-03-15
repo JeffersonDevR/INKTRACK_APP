@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/features/movimientos/data/models/movimiento.dart' as mov_model;
+import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/widgets/stat_card.dart';
 
@@ -122,7 +123,7 @@ class HomePage extends StatelessWidget {
                             : AppTheme.primaryColor;
 
                     return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
+                      margin: const EdgeInsets.only(bottom: 8),
                       decoration: BoxDecoration(
                         color: AppTheme.surfaceColor,
                         borderRadius: BorderRadius.circular(16),
@@ -137,7 +138,7 @@ class HomePage extends StatelessWidget {
                       ),
                       child: ListTile(
                         onTap: () => _showMovimientoDetalle(context, mov),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
                         leading: Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
@@ -195,6 +196,7 @@ class _ResumenDiario extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<MovimientosViewModel>();
+    final inventarioViewModel = context.watch<InventarioViewModel>();
     final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
 
     return Column(
@@ -203,32 +205,55 @@ class _ResumenDiario extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Resumen del día',
-              style: Theme.of(context).textTheme.titleMedium,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Panel de Control',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.5,
+                      ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Hoy en un vistazo',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppTheme.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                ),
+              ],
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: AppTheme.primaryColor.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.1)),
               ),
-              child: Text(
-                DateFormat('dd MMM').format(DateTime.now()),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppTheme.primaryColor,
-                  fontWeight: FontWeight.bold,
-                ),
+              child: Row(
+                children: [
+                  const Icon(Icons.calendar_today_rounded, size: 12, color: AppTheme.primaryColor),
+                  const SizedBox(width: 6),
+                  Text(
+                    DateFormat('dd MMM').format(DateTime.now()),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppTheme.primaryColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         Row(
           children: [
             Expanded(
               child: StatCard(
-                label: 'Ingresos Totales',
+                label: 'Ingresos',
                 value: currencyFormat.format(viewModel.totalIngresosHoy),
                 color: AppTheme.accentColor,
                 icon: Icons.trending_up_rounded,
@@ -238,7 +263,7 @@ class _ResumenDiario extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: StatCard(
-                label: 'Gastos Totales',
+                label: 'Gastos',
                 value: currencyFormat.format(viewModel.totalEgresosHoy),
                 color: AppTheme.primaryColor,
                 icon: Icons.trending_down_rounded,
@@ -254,7 +279,32 @@ class _ResumenDiario extends StatelessWidget {
           color: viewModel.balanceHoy >= 0 ? AppTheme.primaryColor : AppTheme.accentColor,
           icon: Icons.account_balance_wallet_rounded,
           isLarge: true,
-          subtitle: 'Calculado sobre ingresos y egresos de hoy',
+          subtitle: 'Suma de ingresos menos egresos del día',
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: StatCard(
+                label: 'V. Inventario',
+                value: currencyFormat.format(inventarioViewModel.valorTotalInventario),
+                color: AppTheme.secondaryColor,
+                icon: Icons.storefront_rounded,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: StatCard(
+                label: 'En Stock',
+                value: inventarioViewModel.totalProductos.toString(),
+                color: inventarioViewModel.hayStockBajo ? AppTheme.errorColor : AppTheme.primaryColor,
+                icon: inventarioViewModel.hayStockBajo ? Icons.warning_amber_rounded : Icons.inventory_2_rounded,
+                subtitle: inventarioViewModel.hayStockBajo
+                    ? 'Atención: Stock Bajo'
+                    : 'Niveles óptimos',
+              ),
+            ),
+          ],
         ),
       ],
     );
