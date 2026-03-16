@@ -33,6 +33,7 @@ class DriftProductosRepository implements ProductosRepository {
         proveedorId: item.proveedorId,
         stockMinimo: Value(item.stockMinimo),
         codigoBarras: Value(item.codigoBarras),
+        codigoPersonalizado: Value(item.codigoPersonalizado),
         proveedorNombre: Value(item.proveedorNombre),
       ),
     );
@@ -49,6 +50,7 @@ class DriftProductosRepository implements ProductosRepository {
         proveedorId: Value(item.proveedorId),
         stockMinimo: Value(item.stockMinimo),
         codigoBarras: Value(item.codigoBarras),
+        codigoPersonalizado: Value(item.codigoPersonalizado),
         proveedorNombre: Value(item.proveedorNombre),
       ),
     );
@@ -67,6 +69,16 @@ class DriftProductosRepository implements ProductosRepository {
     return row != null ? _toModel(row) : null;
   }
 
+  @override
+  Future<Producto?> getByAnyCode(String code) async {
+    final query = _db.select(_db.productos)
+      ..where((t) => t.codigoBarras.equals(code) | 
+                     t.codigoPersonalizado.equals(code) | 
+                     t.id.equals(code));
+    final row = await query.getSingleOrNull();
+    return row != null ? _toModel(row) : null;
+  }
+
   Producto _toModel(ProductoData data) {
     return Producto(
       id: data.id,
@@ -77,6 +89,7 @@ class DriftProductosRepository implements ProductosRepository {
       proveedorId: data.proveedorId,
       stockMinimo: data.stockMinimo,
       codigoBarras: data.codigoBarras,
+      codigoPersonalizado: data.codigoPersonalizado,
       proveedorNombre: data.proveedorNombre,
     );
   }

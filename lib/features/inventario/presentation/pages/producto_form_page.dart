@@ -28,6 +28,7 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
   final _categoriaController = TextEditingController();
   final _stockMinimoController = TextEditingController(text: '5');
   final _codigoBarrasController = TextEditingController();
+  final _codigoPersonalizadoController = TextEditingController();
   final _proveedorNombreController = TextEditingController();
   String? _proveedorId;
   String? _categoria;
@@ -46,6 +47,9 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
           : widget.producto!.proveedorId;
       if (widget.producto!.codigoBarras != null) {
         _codigoBarrasController.text = widget.producto!.codigoBarras!;
+      }
+      if (widget.producto!.codigoPersonalizado != null) {
+        _codigoPersonalizadoController.text = widget.producto!.codigoPersonalizado!;
       }
       if (widget.producto!.proveedorNombre != null) {
         _proveedorNombreController.text = widget.producto!.proveedorNombre!;
@@ -98,6 +102,7 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
     _precioController.dispose();
     _categoriaController.dispose();
     _codigoBarrasController.dispose();
+    _codigoPersonalizadoController.dispose();
     _proveedorNombreController.dispose();
     super.dispose();
   }
@@ -140,6 +145,30 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                   labelText: 'Código de barras / QR (opcional)',
                   hintText: 'O escanear con el botón',
                 ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _codigoPersonalizadoController,
+                      decoration: const InputDecoration(
+                        labelText: 'Código Personalizado (opcional)',
+                        hintText: 'Ej. PROD-001',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () {
+                      final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+                      _codigoPersonalizadoController.text = 'IT-${timestamp.substring(timestamp.length - 8)}';
+                    },
+                    icon: const Icon(Icons.auto_awesome),
+                    tooltip: 'Generar código',
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -359,6 +388,8 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
         : null;
     final codigo = _codigoBarrasController.text.trim();
     final codigoBarras = codigo.isEmpty ? null : codigo;
+    final customCode = _codigoPersonalizadoController.text.trim();
+    final codigoPersonalizado = customCode.isEmpty ? null : customCode;
 
     final viewModel = context.read<InventarioViewModel>();
     final precio = double.parse(_precioController.text.replaceAll(',', '.'));
@@ -372,6 +403,7 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
       stockMinimo: int.parse(_stockMinimoController.text),
       proveedorId: proveedorId.isEmpty ? '' : proveedorId,
       codigoBarras: codigoBarras,
+      codigoPersonalizado: codigoPersonalizado,
       proveedorNombre: proveedorNombre,
     );
 

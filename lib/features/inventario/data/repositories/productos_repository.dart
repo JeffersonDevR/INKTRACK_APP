@@ -3,6 +3,7 @@ import 'package:InkTrack/features/inventario/data/models/producto.dart';
 
 abstract class ProductosRepository implements BaseRepository<Producto> {
   Future<Producto?> getByBarcode(String barcode);
+  Future<Producto?> getByAnyCode(String code);
 }
 
 class InMemoryProductosRepository implements ProductosRepository {
@@ -44,6 +45,17 @@ class InMemoryProductosRepository implements ProductosRepository {
   Future<Producto?> getByBarcode(String barcode) async {
     try {
       return _items.firstWhere((p) => p.codigoBarras == barcode);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
+  Future<Producto?> getByAnyCode(String code) async {
+    try {
+      return _items.firstWhere((p) => 
+        p.codigoBarras == code || p.codigoPersonalizado == code || p.id == code
+      );
     } catch (e) {
       return null;
     }

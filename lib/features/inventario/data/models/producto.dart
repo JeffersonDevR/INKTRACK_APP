@@ -10,8 +10,8 @@ class Producto implements HasId {
   final String proveedorId;
   final int stockMinimo;
 
-  /// Optional barcode/QR code.
   final String? codigoBarras;
+  final String? codigoPersonalizado;
 
   /// When no provider is selected, optional name.
   final String? proveedorNombre;
@@ -29,6 +29,7 @@ class Producto implements HasId {
     required this.proveedorId,
     this.stockMinimo = 5,
     this.codigoBarras,
+    this.codigoPersonalizado,
     this.proveedorNombre,
   });
 
@@ -41,6 +42,7 @@ class Producto implements HasId {
     String? proveedorId,
     int? stockMinimo,
     String? codigoBarras,
+    String? codigoPersonalizado,
     String? proveedorNombre,
   }) {
     return Producto(
@@ -52,6 +54,7 @@ class Producto implements HasId {
       proveedorId: proveedorId ?? this.proveedorId,
       stockMinimo: stockMinimo ?? this.stockMinimo,
       codigoBarras: codigoBarras ?? this.codigoBarras,
+      codigoPersonalizado: codigoPersonalizado ?? this.codigoPersonalizado,
       proveedorNombre: proveedorNombre ?? this.proveedorNombre,
     );
   }

@@ -813,6 +813,17 @@ class $ProductosTable extends Productos
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _codigoPersonalizadoMeta =
+      const VerificationMeta('codigoPersonalizado');
+  @override
+  late final GeneratedColumn<String> codigoPersonalizado =
+      GeneratedColumn<String>(
+        'codigo_personalizado',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _proveedorNombreMeta = const VerificationMeta(
     'proveedorNombre',
   );
@@ -834,6 +845,7 @@ class $ProductosTable extends Productos
     proveedorId,
     stockMinimo,
     codigoBarras,
+    codigoPersonalizado,
     proveedorNombre,
   ];
   @override
@@ -914,6 +926,15 @@ class $ProductosTable extends Productos
         ),
       );
     }
+    if (data.containsKey('codigo_personalizado')) {
+      context.handle(
+        _codigoPersonalizadoMeta,
+        codigoPersonalizado.isAcceptableOrUnknown(
+          data['codigo_personalizado']!,
+          _codigoPersonalizadoMeta,
+        ),
+      );
+    }
     if (data.containsKey('proveedor_nombre')) {
       context.handle(
         _proveedorNombreMeta,
@@ -964,6 +985,10 @@ class $ProductosTable extends Productos
         DriftSqlType.string,
         data['${effectivePrefix}codigo_barras'],
       ),
+      codigoPersonalizado: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}codigo_personalizado'],
+      ),
       proveedorNombre: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}proveedor_nombre'],
@@ -986,6 +1011,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
   final String proveedorId;
   final int stockMinimo;
   final String? codigoBarras;
+  final String? codigoPersonalizado;
   final String? proveedorNombre;
   const ProductoData({
     required this.id,
@@ -996,6 +1022,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
     required this.proveedorId,
     required this.stockMinimo,
     this.codigoBarras,
+    this.codigoPersonalizado,
     this.proveedorNombre,
   });
   @override
@@ -1010,6 +1037,9 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
     map['stock_minimo'] = Variable<int>(stockMinimo);
     if (!nullToAbsent || codigoBarras != null) {
       map['codigo_barras'] = Variable<String>(codigoBarras);
+    }
+    if (!nullToAbsent || codigoPersonalizado != null) {
+      map['codigo_personalizado'] = Variable<String>(codigoPersonalizado);
     }
     if (!nullToAbsent || proveedorNombre != null) {
       map['proveedor_nombre'] = Variable<String>(proveedorNombre);
@@ -1029,6 +1059,9 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
       codigoBarras: codigoBarras == null && nullToAbsent
           ? const Value.absent()
           : Value(codigoBarras),
+      codigoPersonalizado: codigoPersonalizado == null && nullToAbsent
+          ? const Value.absent()
+          : Value(codigoPersonalizado),
       proveedorNombre: proveedorNombre == null && nullToAbsent
           ? const Value.absent()
           : Value(proveedorNombre),
@@ -1049,6 +1082,9 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
       proveedorId: serializer.fromJson<String>(json['proveedorId']),
       stockMinimo: serializer.fromJson<int>(json['stockMinimo']),
       codigoBarras: serializer.fromJson<String?>(json['codigoBarras']),
+      codigoPersonalizado: serializer.fromJson<String?>(
+        json['codigoPersonalizado'],
+      ),
       proveedorNombre: serializer.fromJson<String?>(json['proveedorNombre']),
     );
   }
@@ -1064,6 +1100,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
       'proveedorId': serializer.toJson<String>(proveedorId),
       'stockMinimo': serializer.toJson<int>(stockMinimo),
       'codigoBarras': serializer.toJson<String?>(codigoBarras),
+      'codigoPersonalizado': serializer.toJson<String?>(codigoPersonalizado),
       'proveedorNombre': serializer.toJson<String?>(proveedorNombre),
     };
   }
@@ -1077,6 +1114,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
     String? proveedorId,
     int? stockMinimo,
     Value<String?> codigoBarras = const Value.absent(),
+    Value<String?> codigoPersonalizado = const Value.absent(),
     Value<String?> proveedorNombre = const Value.absent(),
   }) => ProductoData(
     id: id ?? this.id,
@@ -1087,6 +1125,9 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
     proveedorId: proveedorId ?? this.proveedorId,
     stockMinimo: stockMinimo ?? this.stockMinimo,
     codigoBarras: codigoBarras.present ? codigoBarras.value : this.codigoBarras,
+    codigoPersonalizado: codigoPersonalizado.present
+        ? codigoPersonalizado.value
+        : this.codigoPersonalizado,
     proveedorNombre: proveedorNombre.present
         ? proveedorNombre.value
         : this.proveedorNombre,
@@ -1107,6 +1148,9 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
       codigoBarras: data.codigoBarras.present
           ? data.codigoBarras.value
           : this.codigoBarras,
+      codigoPersonalizado: data.codigoPersonalizado.present
+          ? data.codigoPersonalizado.value
+          : this.codigoPersonalizado,
       proveedorNombre: data.proveedorNombre.present
           ? data.proveedorNombre.value
           : this.proveedorNombre,
@@ -1124,6 +1168,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
           ..write('proveedorId: $proveedorId, ')
           ..write('stockMinimo: $stockMinimo, ')
           ..write('codigoBarras: $codigoBarras, ')
+          ..write('codigoPersonalizado: $codigoPersonalizado, ')
           ..write('proveedorNombre: $proveedorNombre')
           ..write(')'))
         .toString();
@@ -1139,6 +1184,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
     proveedorId,
     stockMinimo,
     codigoBarras,
+    codigoPersonalizado,
     proveedorNombre,
   );
   @override
@@ -1153,6 +1199,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
           other.proveedorId == this.proveedorId &&
           other.stockMinimo == this.stockMinimo &&
           other.codigoBarras == this.codigoBarras &&
+          other.codigoPersonalizado == this.codigoPersonalizado &&
           other.proveedorNombre == this.proveedorNombre);
 }
 
@@ -1165,6 +1212,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
   final Value<String> proveedorId;
   final Value<int> stockMinimo;
   final Value<String?> codigoBarras;
+  final Value<String?> codigoPersonalizado;
   final Value<String?> proveedorNombre;
   final Value<int> rowid;
   const ProductosCompanion({
@@ -1176,6 +1224,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
     this.proveedorId = const Value.absent(),
     this.stockMinimo = const Value.absent(),
     this.codigoBarras = const Value.absent(),
+    this.codigoPersonalizado = const Value.absent(),
     this.proveedorNombre = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1188,6 +1237,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
     required String proveedorId,
     this.stockMinimo = const Value.absent(),
     this.codigoBarras = const Value.absent(),
+    this.codigoPersonalizado = const Value.absent(),
     this.proveedorNombre = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -1205,6 +1255,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
     Expression<String>? proveedorId,
     Expression<int>? stockMinimo,
     Expression<String>? codigoBarras,
+    Expression<String>? codigoPersonalizado,
     Expression<String>? proveedorNombre,
     Expression<int>? rowid,
   }) {
@@ -1217,6 +1268,8 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
       if (proveedorId != null) 'proveedor_id': proveedorId,
       if (stockMinimo != null) 'stock_minimo': stockMinimo,
       if (codigoBarras != null) 'codigo_barras': codigoBarras,
+      if (codigoPersonalizado != null)
+        'codigo_personalizado': codigoPersonalizado,
       if (proveedorNombre != null) 'proveedor_nombre': proveedorNombre,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1231,6 +1284,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
     Value<String>? proveedorId,
     Value<int>? stockMinimo,
     Value<String?>? codigoBarras,
+    Value<String?>? codigoPersonalizado,
     Value<String?>? proveedorNombre,
     Value<int>? rowid,
   }) {
@@ -1243,6 +1297,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
       proveedorId: proveedorId ?? this.proveedorId,
       stockMinimo: stockMinimo ?? this.stockMinimo,
       codigoBarras: codigoBarras ?? this.codigoBarras,
+      codigoPersonalizado: codigoPersonalizado ?? this.codigoPersonalizado,
       proveedorNombre: proveedorNombre ?? this.proveedorNombre,
       rowid: rowid ?? this.rowid,
     );
@@ -1275,6 +1330,9 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
     if (codigoBarras.present) {
       map['codigo_barras'] = Variable<String>(codigoBarras.value);
     }
+    if (codigoPersonalizado.present) {
+      map['codigo_personalizado'] = Variable<String>(codigoPersonalizado.value);
+    }
     if (proveedorNombre.present) {
       map['proveedor_nombre'] = Variable<String>(proveedorNombre.value);
     }
@@ -1295,6 +1353,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
           ..write('proveedorId: $proveedorId, ')
           ..write('stockMinimo: $stockMinimo, ')
           ..write('codigoBarras: $codigoBarras, ')
+          ..write('codigoPersonalizado: $codigoPersonalizado, ')
           ..write('proveedorNombre: $proveedorNombre, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -2819,6 +2878,7 @@ typedef $$ProductosTableCreateCompanionBuilder =
       required String proveedorId,
       Value<int> stockMinimo,
       Value<String?> codigoBarras,
+      Value<String?> codigoPersonalizado,
       Value<String?> proveedorNombre,
       Value<int> rowid,
     });
@@ -2832,6 +2892,7 @@ typedef $$ProductosTableUpdateCompanionBuilder =
       Value<String> proveedorId,
       Value<int> stockMinimo,
       Value<String?> codigoBarras,
+      Value<String?> codigoPersonalizado,
       Value<String?> proveedorNombre,
       Value<int> rowid,
     });
@@ -2882,6 +2943,11 @@ class $$ProductosTableFilterComposer
 
   ColumnFilters<String> get codigoBarras => $composableBuilder(
     column: $table.codigoBarras,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get codigoPersonalizado => $composableBuilder(
+    column: $table.codigoPersonalizado,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2940,6 +3006,11 @@ class $$ProductosTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get codigoPersonalizado => $composableBuilder(
+    column: $table.codigoPersonalizado,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get proveedorNombre => $composableBuilder(
     column: $table.proveedorNombre,
     builder: (column) => ColumnOrderings(column),
@@ -2982,6 +3053,11 @@ class $$ProductosTableAnnotationComposer
 
   GeneratedColumn<String> get codigoBarras => $composableBuilder(
     column: $table.codigoBarras,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get codigoPersonalizado => $composableBuilder(
+    column: $table.codigoPersonalizado,
     builder: (column) => column,
   );
 
@@ -3030,6 +3106,7 @@ class $$ProductosTableTableManager
                 Value<String> proveedorId = const Value.absent(),
                 Value<int> stockMinimo = const Value.absent(),
                 Value<String?> codigoBarras = const Value.absent(),
+                Value<String?> codigoPersonalizado = const Value.absent(),
                 Value<String?> proveedorNombre = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ProductosCompanion(
@@ -3041,6 +3118,7 @@ class $$ProductosTableTableManager
                 proveedorId: proveedorId,
                 stockMinimo: stockMinimo,
                 codigoBarras: codigoBarras,
+                codigoPersonalizado: codigoPersonalizado,
                 proveedorNombre: proveedorNombre,
                 rowid: rowid,
               ),
@@ -3054,6 +3132,7 @@ class $$ProductosTableTableManager
                 required String proveedorId,
                 Value<int> stockMinimo = const Value.absent(),
                 Value<String?> codigoBarras = const Value.absent(),
+                Value<String?> codigoPersonalizado = const Value.absent(),
                 Value<String?> proveedorNombre = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ProductosCompanion.insert(
@@ -3065,6 +3144,7 @@ class $$ProductosTableTableManager
                 proveedorId: proveedorId,
                 stockMinimo: stockMinimo,
                 codigoBarras: codigoBarras,
+                codigoPersonalizado: codigoPersonalizado,
                 proveedorNombre: proveedorNombre,
                 rowid: rowid,
               ),

@@ -101,7 +101,9 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
   Producto? findProductoByCodigo(String codigo) {
     try {
       return items.firstWhere(
-        (p) => p.codigoBarras == codigo || p.id == codigo,
+        (p) => p.codigoBarras == codigo || 
+               p.codigoPersonalizado == codigo || 
+               p.id == codigo,
       );
     } catch (_) {
       return null;

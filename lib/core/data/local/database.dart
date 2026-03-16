@@ -42,6 +42,7 @@ class Productos extends Table {
   TextColumn get proveedorId => text()();
   IntColumn get stockMinimo => integer().withDefault(const Constant(5))();
   TextColumn get codigoBarras => text().nullable()();
+  TextColumn get codigoPersonalizado => text().nullable()();
   TextColumn get proveedorNombre => text().nullable()();
 
   @override
@@ -97,7 +98,17 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.addColumn(productos, productos.codigoPersonalizado);
+      }
+    },
+  );
 }
 
 LazyDatabase _openConnection() {

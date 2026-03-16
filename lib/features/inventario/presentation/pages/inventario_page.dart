@@ -4,6 +4,7 @@ import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_
 import 'package:InkTrack/features/inventario/data/models/producto.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
+import 'package:InkTrack/features/inventario/presentation/widgets/barcode_viewer_dialog.dart';
 import 'producto_form_page.dart';
 
 class InventarioPage extends StatelessWidget {
@@ -197,9 +198,22 @@ class _ProductoCard extends StatelessWidget {
                     onSelected: (value) {
                       if (value == 'edit') onEdit();
                       if (value == 'delete') onDelete();
+                      if (value == 'view_code') {
+                        final code = producto.codigoBarras ?? producto.codigoPersonalizado ?? producto.id;
+                        final isCustom = producto.codigoPersonalizado != null && producto.codigoPersonalizado == code;
+                        showDialog(
+                          context: context,
+                          builder: (context) => BarcodeViewerDialog(
+                            code: code,
+                            productName: producto.nombre,
+                            isCustom: isCustom,
+                          ),
+                        );
+                      }
                     },
                     itemBuilder: (context) => [
                       const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit_outlined, size: 20), SizedBox(width: 8), Text('Editar')])),
+                      const PopupMenuItem(value: 'view_code', child: Row(children: [Icon(Icons.qr_code_2_rounded, size: 20), SizedBox(width: 8), Text('Ver Código')])),
                       PopupMenuItem(
                         value: 'delete',
                         child: Row(children: [Icon(Icons.delete_outline_rounded, color: AppTheme.errorColor, size: 20), const SizedBox(width: 8), Text('Eliminar', style: TextStyle(color: AppTheme.errorColor))]),
