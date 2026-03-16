@@ -19,6 +19,9 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
   double? _lastScannedAmount;
   double? get lastScannedAmount => _lastScannedAmount;
 
+  String? _lastScannedClientName;
+  String? get lastScannedClientName => _lastScannedClientName;
+
   VentasViewModel(this._repository, [this._scannerService]) {
     _loadVentas();
   }
@@ -54,8 +57,23 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
 
     final bool isNew = venta.id.isEmpty;
     final id = isNew ? IdUtils.generateTimestampId() : venta.id;
+    
+    String? finalClienteId = venta.clienteId;
 
-    final ventaAGuardar = venta.copyWith(id: id);
+    // Auto-create client if name is provided but ID is missing
+    if (isNew && finalClienteId == null && venta.clienteNombre != null && venta.clienteNombre!.isNotEmpty && clientesVM != null) {
+      finalClienteId = await clientesVM.agregar(
+        nombre: venta.clienteNombre!,
+        telefono: '',
+        email: '',
+        movimientosVM: movimientosVM,
+      );
+    }
+
+    final ventaAGuardar = venta.copyWith(
+      id: id,
+      clienteId: finalClienteId,
+    );
 
     if (isNew) {
       await _repository.save(ventaAGuardar);
@@ -82,8 +100,8 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
       }
 
       // auto-update client debt
-      if (clientesVM != null && venta.clienteId != null && venta.esFiado) {
-        await clientesVM.actualizarSaldo(venta.clienteId!, venta.monto);
+      if (clientesVM != null && finalClienteId != null && venta.esFiado) {
+        await clientesVM.actualizarSaldo(finalClienteId, venta.monto);
       }
     } else {
       await _repository.update(id, ventaAGuardar);
@@ -99,17 +117,19 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
   List<Venta> getVentasPorCliente(String clienteId) =>
       items.where((venta) => venta.clienteId == clienteId).toList();
 
-  Future<double?> procesarImagenOCR(XFile image) async {
+  Future<OcrResult?> procesarImagenOCR(XFile image) async {
     if (_scannerService == null) return null;
 
     _isScanning = true;
     _lastScannedAmount = null;
+    _lastScannedClientName = null;
     notifyListeners();
 
     try {
-      final amount = await _scannerService.scanImageForAmount(image);
-      _lastScannedAmount = amount;
-      return amount;
+      final result = await _scannerService.scanImage(image);
+      _lastScannedAmount = result.amount;
+      _lastScannedClientName = result.clientName;
+      return result;
     } catch (e) {
       return null;
     } finally {
@@ -118,8 +138,9 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
     }
   }
 
-  void clearScannedAmount() {
+  void clearScannedData() {
     _lastScannedAmount = null;
+    _lastScannedClientName = null;
     notifyListeners();
   }
 }

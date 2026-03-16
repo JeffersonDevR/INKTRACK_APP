@@ -2744,17 +2744,56 @@ MES 4: Conceptos avanzados
 
 ---
 
+---
+
+# OCTAVA PARTE: DISEÑO PREMIUM Y AUTOMATIZACIÓN (OCR) 🎨🤖
+
+En esta última etapa del proyecto, elevamos la calidad de InkTrack a un nivel **Premium**. No solo nos aseguramos de que los datos se guarden bien (Drift/MVVM), sino de que la experiencia del usuario sea excepcional.
+
+## 8.1 Dashboards de Alto Impacto (SPEC-009)
+
+¿Alguna vez te pasó que una app parece un conjunto de piezas que no encajan? Para evitar eso, estandarizamos todas nuestras pantallas principales (`Clientes`, `Inventario`, `Proveedores`, `Historial`) con un nuevo componente estrella: el **FinancialSummaryHeader**.
+
+Pensa en este componente como un "Cerebro Visual" flexible:
+- **Adaptabilidad**: No solo muestra dinero. Gracias a parámetros como `isCurrency1`, `label2`, etc., puede mostrar "Pares de zapatos", "Clientes con deuda" o "Total de pesos" en la misma estructura.
+- **Jerarquía Visual**: Usa tipografía `headlineMedium` (muy grande y negrita) para el KPI principal, haciendo que el usuario no tenga que esforzarse para ver lo importante.
+- **Gráficos de Tendencia**: Integramos `fl_chart` para crear el `TrendChart`. Lo interesante aquí no es solo mostrar líneas, sino cómo filtramos los datos del `MovimientosViewModel` para que el gráfico sea "vivo" y reaccione a los filtros de fecha.
+
+## 8.2 Accesibilidad y Legibilidad Premium
+
+Nuestros usuarios suelen ser personas mayores o comerciantes que ven la app en el trajín del negocio. Por eso:
+- **Fuentes Dinámicas**: Subimos el tamaño de la tipografía en `AppTheme`. Lo que antes era `12px` ahora es `14-16px`. Además, usamos `Expanded` y `TextOverflow.ellipsis` en TODO el dashboard. 
+- **¿Por qué esto es Senior?** Porque un Junior deja que el texto rompa el diseño (overflow). Un Senior se asegura de que si el usuario tiene una deuda de $10,000,000, el número se vea bien o se corte elegantemente, pero NUNCA rompa la pantalla.
+
+## 8.3 Unificación de Flujos: "Nueva Operación"
+
+En vez de llenar la pantalla de botones (+ Cliente, + Producto, + Venta), unificamos todo en un único **Floating Action Button (FAB)** central.
+
+**El concepto técnico:**
+- Al tocar el FAB, disparamos un `showModalBottomSheet`.
+- Centralizamos la navegación en `MainLayoutPage`. Si el usuario quiere registrar una Venta, un Клиенте o un Proveedor, todo nace del mismo lugar. 
+- Esto limpia el "ruido visual" y permite que el usuario se concentre en navegar sus datos, sabiendo que para *crear* algo, siempre es el botón de abajo.
+
+## 8.4 El "Cerebro" de la App: OCR y Product Discovery
+
+La función de **OCR (Optical Character Recognition)** es lo que diferencia a una app común de una moderna.
+- **OcrParser**: No solo lee texto, "entiende" contextos. Busca palabras clave y mapea resultados al `ClientesViewModel` para auto-seleccionar el cliente.
+
+**¿Ves la ventaja?** El usuario ahorra tiempo y evitamos errores de dedo. Esto es **Product Discovery** aplicado al código.
+
+---
+
 ## RESUMEN FINAL
 
 Lo más importante que te llevás de esta guía:
 
-1. **Widgets** = Los bloques de construcción de Flutter
-2. **Provider** = La forma de compartir estado
-3. **Repository** = La abstracción de datos
-4. **MVVM** = La arquitectura del proyecto
-5. **Inmutabilidad** = Datos que no cambian = menos bugs
-6. **SOLID** = Principios universales de buen código
-7. **Patrones** = Soluciones probadas a problemas comunes
+1.  **Widgets** = Los bloques de construcción de Flutter
+2.  **Provider** = La forma de compartir estado
+3.  **Repository** = La abstracción de datos
+4.  **MVVM** = La arquitectura del proyecto
+5.  **Inmutabilidad** = Datos que no cambian = menos bugs
+6.  **SOLID** = Principios universales de buen código
+7.  **Patrones** = Soluciones probadas a problemas comunes
 
 Pero sobre todo: **PRACTICA**. No vas a aprender leyendo nomás. Abrí el proyecto, tocá código, rompé cosas, arreglalas.
 

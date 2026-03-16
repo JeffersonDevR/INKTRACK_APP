@@ -25,7 +25,7 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
     }
   }
 
-  Future<void> agregar({
+  Future<String> agregar({
     required String nombre,
     required String telefono,
     required String email,
@@ -55,6 +55,8 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
       // Note: MovimientosViewModel will also be refactored similarly
       movimientosVM.guardar(movimiento);
     }
+    
+    return nuevoCliente.id;
   }
 
   Future<void> editar({

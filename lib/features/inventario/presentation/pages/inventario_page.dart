@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/inventario/data/models/producto.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
-import 'package:InkTrack/core/widgets/stat_card.dart';
+import 'package:InkTrack/core/widgets/financial_summary_header.dart';
 import 'producto_form_page.dart';
 
 class InventarioPage extends StatelessWidget {
@@ -14,86 +14,63 @@ class InventarioPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Inventario')),
       body: Consumer<InventarioViewModel>(
-        builder: (context, vm, child) {
-          final productos = vm.productos;
-          if (productos.isEmpty) {
+        builder: (context, viewModel, child) {
+          if (viewModel.productos.isEmpty) {
             return _EmptyInventario();
           }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Resumen de Inventario',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.5,
-                          ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: StatCard(
-                            value: '${vm.totalProductos}',
-                            label: 'Total Productos',
-                            icon: Icons.inventory_2_rounded,
-                            color: AppTheme.primaryColor,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: StatCard(
-                            value: vm.productosConStockBajo.length.toString(),
-                            label: 'Stock Bajo',
-                            icon: Icons.warning_amber_rounded,
-                            color: AppTheme.errorColor,
-                            subtitle: vm.productosConStockBajo.isEmpty ? 'Todo al día' : 'Requiere atención',
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    StatCard(
-                      value: '\$${vm.valorTotalInventario.toStringAsFixed(2)}',
-                      label: 'Valor Total del Inventario',
-                      icon: Icons.account_balance_rounded,
-                      color: AppTheme.secondaryColor,
-                      isLarge: true,
-                      subtitle: 'Capital invertido en productos',
-                    ),
-                  ],
+
+          return CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+                sliver: SliverToBoxAdapter(
+                  child: FinancialSummaryHeader(
+                    title: 'Resumen\nInventario',
+                    totalIngresos: viewModel.totalProductos.toDouble(),
+                    totalEgresos: viewModel.productosConStockBajo.length.toDouble(),
+                    balance: viewModel.valorTotalInventario,
+                    label1: 'Stock Total',
+                    label2: 'Bajo Stock',
+                    label3: 'Valor Total',
+                    icon1: Icons.inventory_2_rounded,
+                    icon2: Icons.warning_amber_rounded,
+                    icon3: Icons.account_balance_wallet_rounded,
+                    isCurrency1: false,
+                    isCurrency2: false,
+                    isCurrency3: true,
+                  ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  'Productos',
-                  style: Theme.of(context).textTheme.titleMedium,
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                sliver: SliverToBoxAdapter(
+                  child: Text(
+                    'Catálogo de Productos',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                 ),
               ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: productos.length,
-                  itemBuilder: (context, index) {
-                    final p = productos[index];
-                    return _ProductoCard(
-                      producto: p,
-                      onEdit: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ProductoFormPage(producto: p),
-                        ),
-                      ),
-                      onDelete: () => _showDeleteDialog(context, p),
-                    );
-                  },
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final producto = viewModel.productos[index];
+                      return _ProductoCard(
+                        producto: producto,
+                        onEdit: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProductoFormPage(producto: producto),
+                            ),
+                          );
+                        },
+                        onDelete: () => _showDeleteDialog(context, producto),
+                      );
+                    },
+                    childCount: viewModel.productos.length,
+                  ),
                 ),
               ),
             ],
@@ -174,32 +151,17 @@ class _ProductoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provLabel = producto.proveedorNombre ?? (producto.proveedorId.isNotEmpty ? producto.proveedorId : null);
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: onEdit,
         borderRadius: BorderRadius.circular(20),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
                     width: 48,
@@ -222,18 +184,11 @@ class _ProductoCard extends StatelessWidget {
                       children: [
                         Text(
                           producto.nombre,
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: producto.stockBajo ? AppTheme.errorColor : AppTheme.textPrimary,
-                              ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.labelLarge,
                         ),
                         Text(
                           producto.categoria,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppTheme.textSecondary,
-                              ),
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
                     ),
@@ -243,12 +198,13 @@ class _ProductoCard extends StatelessWidget {
                       if (value == 'edit') onEdit();
                       if (value == 'delete') onDelete();
                     },
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     itemBuilder: (context) => [
-                      const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit_outlined, size: 18), SizedBox(width: 8), Text('Editar')])),
-                      PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete_outline_rounded, color: AppTheme.errorColor, size: 18), const SizedBox(width: 8), Text('Eliminar', style: TextStyle(color: AppTheme.errorColor))])),
+                      const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit_outlined, size: 20), SizedBox(width: 8), Text('Editar')])),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Row(children: [Icon(Icons.delete_outline_rounded, color: AppTheme.errorColor, size: 20), const SizedBox(width: 8), Text('Eliminar', style: TextStyle(color: AppTheme.errorColor))]),
+                      ),
                     ],
-                    icon: const Icon(Icons.more_horiz_rounded, color: AppTheme.textSecondary),
                   ),
                 ],
               ),
@@ -259,83 +215,42 @@ class _ProductoCard extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'PRECIO VENTA',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1,
-                              color: AppTheme.textSecondary,
-                            ),
-                      ),
+                      Text('Precio Unitario', style: Theme.of(context).textTheme.labelSmall),
                       Text(
                         '\$${producto.precio.toStringAsFixed(2)}',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: AppTheme.primaryColor,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: AppTheme.secondaryColor,
+                              fontWeight: FontWeight.w900,
                             ),
                       ),
                     ],
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        'STOCK DISPONIBLE',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1,
-                              color: AppTheme.textSecondary,
-                            ),
-                      ),
-                      const SizedBox(height: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: (producto.stockBajo ? AppTheme.errorColor : AppTheme.successColor)
-                              .withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: (producto.stockBajo ? AppTheme.errorColor : AppTheme.secondaryColor).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.warehouse_rounded,
+                          size: 16,
+                          color: producto.stockBajo ? AppTheme.errorColor : AppTheme.secondaryColor,
                         ),
-                        child: Text(
-                          '${producto.cantidad} un.',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        const SizedBox(width: 6),
+                        Text(
+                          'Stock: ${producto.cantidad}',
+                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                color: producto.stockBajo ? AppTheme.errorColor : AppTheme.secondaryColor,
                                 fontWeight: FontWeight.bold,
-                                color: producto.stockBajo ? AppTheme.errorColor : AppTheme.successColor,
                               ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
-              if (provLabel != null) ...[
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppTheme.backgroundColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.local_shipping_outlined, size: 16, color: AppTheme.textSecondary),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          provLabel,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppTheme.textSecondary,
-                                fontWeight: FontWeight.w500,
-                              ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
             ],
           ),
         ),

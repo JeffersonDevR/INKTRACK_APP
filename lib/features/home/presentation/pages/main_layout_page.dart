@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:InkTrack/features/clientes/presentation/pages/clientes_page.dart';
-import 'package:InkTrack/features/clientes/presentation/pages/cliente_form_page.dart';
 import 'package:InkTrack/features/proveedores/presentation/pages/proveedores_page.dart';
-import 'package:InkTrack/features/proveedores/presentation/pages/proveedor_form_page.dart';
 import 'package:InkTrack/features/ventas/presentation/pages/home_page.dart';
 import 'package:InkTrack/features/inventario/presentation/pages/inventario_page.dart';
-import 'package:InkTrack/features/inventario/presentation/pages/producto_form_page.dart';
-import 'package:InkTrack/features/inventario/presentation/pages/barcode_scanner_page.dart';
 import 'package:InkTrack/features/movimientos/presentation/pages/movimientos_page.dart';
 import 'package:InkTrack/features/movimientos/presentation/pages/movimiento_form_page.dart';
 import 'package:InkTrack/features/movimientos/data/models/movimiento.dart' as mov_model;
+import 'package:InkTrack/features/ventas/presentation/pages/registrar_venta_page.dart';
+import 'package:InkTrack/features/clientes/presentation/pages/cliente_form_page.dart';
+import 'package:InkTrack/features/proveedores/presentation/pages/proveedor_form_page.dart';
+import 'package:InkTrack/features/inventario/presentation/pages/barcode_scanner_page.dart';
+import 'package:InkTrack/features/inventario/presentation/pages/producto_form_page.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 
 class MainLayoutPage extends StatefulWidget {
@@ -31,150 +32,133 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
   ];
 
   void _onFabPressed(BuildContext context) {
+    // ALWAYS visible options (General)
+    final List<_FabOption> options = [
+      _FabOption(
+        icon: Icons.add_circle_outline,
+        title: 'Nuevo Ingreso',
+        subtitle: 'Entrada de dinero casual',
+        color: AppTheme.successColor,
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MovimientoFormPage(
+              initialType: mov_model.MovimientoType.ingreso,
+            ),
+          ),
+        ),
+      ),
+      _FabOption(
+        icon: Icons.remove_circle_outline,
+        title: 'Nuevo Egreso',
+        subtitle: 'Gasto o pago realizado',
+        color: AppTheme.errorColor,
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MovimientoFormPage(
+              initialType: mov_model.MovimientoType.egreso,
+            ),
+          ),
+        ),
+      ),
+    ];
+
+    // CONTEXT-SPECIFIC options
     switch (_currentIndex) {
-      case 0:
-        _showHomeFabOptions(context);
-        break;
-      case 1:
-        _showClientesFabOptions(context);
-        break;
-      case 2:
-        _showProveedoresFabOptions(context);
-        break;
-      case 3:
-        _showInventarioFabOptions(context);
-        break;
-      case 4:
-        _showMovimientosFabOptions(context);
-        break;
-    }
-  }
-
-  List<_FabOption> get _globalOptions => [
-        _FabOption(
-          icon: Icons.add_circle_outline,
-          title: 'Nuevo ingreso',
-          subtitle: 'Entrada de dinero casual o venta',
+      case 0: // Home
+        options.insert(0, _FabOption(
+          icon: Icons.point_of_sale_rounded,
+          title: 'Registrar Venta',
+          subtitle: 'Con OCR y control de stock',
+          color: AppTheme.primaryColor,
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const MovimientoFormPage(
-                initialType: mov_model.MovimientoType.ingreso,
-              ),
-            ),
+            MaterialPageRoute(builder: (context) => const RegistrarVentaPage()),
           ),
-        ),
-        _FabOption(
-          icon: Icons.remove_circle_outline,
-          title: 'Nuevo egreso',
-          subtitle: 'Gasto o pago realizado',
+        ));
+        break;
+      case 1: // Clientes
+        options.insert(0, _FabOption(
+          icon: Icons.person_add_alt_1_rounded,
+          title: 'Nuevo Cliente',
+          subtitle: 'Registrar datos de contacto',
+          color: AppTheme.primaryColor,
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const MovimientoFormPage(
-                initialType: mov_model.MovimientoType.egreso,
-              ),
-            ),
+            MaterialPageRoute(builder: (context) => const ClienteFormPage()),
           ),
-        ),
-      ];
-
-  void _showHomeFabOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _FabOptionsSheet(
-        title: 'Acciones globales',
-        options: _globalOptions,
-      ),
-    );
-  }
-
-  void _showClientesFabOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _FabOptionsSheet(
-        title: 'Acciones de clientes',
-        options: [
-          _FabOption(
-            icon: Icons.person_add,
-            title: 'Nuevo cliente',
-            subtitle: 'Registrar nuevo contacto',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ClienteFormPage()),
-            ),
+        ));
+        options.insert(0, _FabOption(
+          icon: Icons.point_of_sale_rounded,
+          title: 'Registrar Venta (OCR)',
+          subtitle: 'Con escáner y buscador',
+          color: AppTheme.primaryColor,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const RegistrarVentaPage()),
           ),
-          ..._globalOptions,
-        ],
-      ),
-    );
-  }
-
-  void _showProveedoresFabOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _FabOptionsSheet(
-        title: 'Acciones de proveedores',
-        options: [
-          _FabOption(
-            icon: Icons.local_shipping,
-            title: 'Nuevo proveedor',
-            subtitle: 'Registrar nueva fuente',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ProveedorFormPage()),
-            ),
+        ));
+        break;
+      case 2: // Proveedores
+        options.add(_FabOption(
+          icon: Icons.local_shipping_outlined,
+          title: 'Nuevo Proveedor',
+          subtitle: 'Para compras y pedidos',
+          color: AppTheme.secondaryColor,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ProveedorFormPage()),
           ),
-          ..._globalOptions,
-        ],
-      ),
-    );
-  }
-
-  void _showMovimientosFabOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _FabOptionsSheet(
-        title: 'Nuevo registro',
-        options: _globalOptions,
-      ),
-    );
-  }
-
-  void _showInventarioFabOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _FabOptionsSheet(
-        title: 'Gestión de inventario',
-        options: [
-          _FabOption(
-            icon: Icons.edit,
-            title: 'Añadir manualmente',
-            subtitle: 'Completar formulario',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ProductoFormPage()),
-            ),
+        ));
+        break;
+      case 3: // Inventario
+        options.insert(0, _FabOption(
+          icon: Icons.point_of_sale_rounded,
+          title: 'Registrar Venta (OCR)',
+          subtitle: 'Con escáner y buscador',
+          color: AppTheme.primaryColor,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const RegistrarVentaPage()),
           ),
+        ));
+        options.addAll([
           _FabOption(
-            icon: Icons.qr_code_scanner,
-            title: 'Escanear código',
-            subtitle: 'Código de barras o QR',
+            icon: Icons.qr_code_scanner_rounded, // or Icons.barcode_reader
+            title: 'Escanear Código',
+            subtitle: 'Escanear código de barras o QR',
+            color: AppTheme.secondaryColor,
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const BarcodeScannerPage()),
             ),
           ),
-          ..._globalOptions,
-        ],
+          _FabOption(
+            icon: Icons.inventory_2_outlined,
+            title: 'Nuevo Producto',
+            subtitle: 'Agregar ítem al inventario',
+            color: AppTheme.accentColor,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProductoFormPage()),
+            ),
+          ),
+        ]);
+        break;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _FabOptionsSheet(
+        title: 'Nueva Operación',
+        options: options,
       ),
     );
   }
+
+  // Removed page-specific FAB options as they are now unified
 
   @override
   Widget build(BuildContext context) {
@@ -182,6 +166,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
       body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
+        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         onDestinationSelected: (int index) {
           setState(() {
             _currentIndex = index;
@@ -194,19 +179,24 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
             label: 'Inicio',
           ),
           NavigationDestination(
-            icon: Icon(Icons.attach_money_outlined),
-            selectedIcon: Icon(Icons.attach_money),
+            icon: Icon(Icons.people_alt_outlined),
+            selectedIcon: Icon(Icons.people_alt),
             label: 'Clientes',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.inventory_2_outlined),
-            selectedIcon: Icon(Icons.inventory_2),
-            label: 'Proveedores',
           ),
           NavigationDestination(
             icon: Icon(Icons.local_shipping_outlined),
             selectedIcon: Icon(Icons.local_shipping),
+            label: 'Proveedor',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.inventory_2_outlined),
+            selectedIcon: Icon(Icons.inventory_2),
             label: 'Inventario',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.history_outlined),
+            selectedIcon: Icon(Icons.history),
+            label: 'Historial',
           ),
         ],
       ),
@@ -280,10 +270,10 @@ class _FabOptionsSheet extends StatelessWidget {
                               leading: Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                  color: (option.color ?? AppTheme.primaryColor).withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: Icon(option.icon, color: AppTheme.primaryColor, size: 22),
+                                child: Icon(option.icon, color: option.color ?? AppTheme.primaryColor, size: 22),
                               ),
                               title: Text(option.title, style: const TextStyle(fontWeight: FontWeight.bold)),
                               subtitle: Text(option.subtitle, style: const TextStyle(fontSize: 12)),
@@ -309,12 +299,14 @@ class _FabOption {
   final IconData icon;
   final String title;
   final String subtitle;
+  final Color? color;
   final VoidCallback onTap;
 
   _FabOption({
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.color,
     required this.onTap,
   });
 }

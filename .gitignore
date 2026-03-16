@@ -33,6 +33,7 @@ migrate_working_dir/
 /build/
 /coverage/
 /docs/
+/docs/DEEP_DIVE.md
 /specs/
 /test/
 *.txt
@@ -51,3 +52,4 @@ app.*.map.json
 shorebird.yaml
 android/app/src/main/AndroidManifest.xml
 macos/Runner/Release.entitlements
+docs/DEEP_DIVE.md

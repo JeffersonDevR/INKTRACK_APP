@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:InkTrack/features/ventas/presentation/viewmodels/ventas_viewmodel.dart';
 import 'package:InkTrack/features/ventas/data/models/venta.dart';
+import 'package:InkTrack/features/clientes/data/models/cliente.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
@@ -83,23 +84,58 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
     if (image == null) return;
 
     final viewModel = context.read<VentasViewModel>();
-    final amount = await viewModel.procesarImagenOCR(image);
+    final result = await viewModel.procesarImagenOCR(image);
 
-    if (amount != null) {
-      _montoController.text = amount.toStringAsFixed(2);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Monto detectado: \$${amount.toStringAsFixed(2)}'),
-          backgroundColor: AppTheme.primaryColor,
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se detectó un monto claro. Intente de nuevo.'),
-          backgroundColor: AppTheme.errorColor,
-        ),
-      );
+    if (result != null) {
+      bool foundSomething = false;
+
+      if (result.amount != null) {
+        _montoController.text = result.amount!.toStringAsFixed(2);
+        foundSomething = true;
+      }
+
+      if (result.clientName != null) {
+        final clientName = result.clientName!;
+        final clientesVM = context.read<ClientesViewModel>();
+        
+        // Try to find a match in existing clients
+        final match = clientesVM.clientes.firstWhere(
+          (c) => c.nombre.toLowerCase().contains(clientName.toLowerCase()) || 
+                 clientName.toLowerCase().contains(c.nombre.toLowerCase()),
+          orElse: () => Cliente(id: '', nombre: '', telefono: '', email: ''),
+        );
+
+        setState(() {
+          if (match.id.isNotEmpty) {
+            _clienteId = match.id;
+            _clienteNombreController.clear();
+          } else {
+            _clienteId = _kWriteNameValue;
+            _clienteNombreController.text = clientName;
+          }
+        });
+        foundSomething = true;
+      }
+
+      if (foundSomething) {
+        String message = 'Datos detectados:';
+        if (result.amount != null) message += '\n- Monto: \$${result.amount!.toStringAsFixed(2)}';
+        if (result.clientName != null) message += '\n- Cliente: ${result.clientName}';
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: AppTheme.primaryColor,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No se detectaron datos claros. Intente de nuevo.'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
     }
   }
 
@@ -342,7 +378,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                 ),
               ],
               const SizedBox(height: 24),
-              if (_clienteId != null && _clienteId != _kWriteNameValue) ...[
+              if (_clienteId != null) ...[
                 SwitchListTile(
                   title: const Text('Venta a crédito (Fiado)'),
                   subtitle: const Text('Aumentará el saldo pendiente del cliente'),

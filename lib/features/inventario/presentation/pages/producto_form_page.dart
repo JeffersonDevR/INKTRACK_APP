@@ -194,6 +194,7 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                       labelText: 'Categoría',
                       hintText: 'Seleccione una categoría',
                     ),
+                    isExpanded: true,
                     items: [
                       ...categories.map(
                         (c) => DropdownMenuItem(value: c, child: Text(c)),
@@ -229,7 +230,7 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                 decoration: const InputDecoration(
                   labelText: 'Stock Mínimo',
                   hintText: '5',
-                  helperText: 'Alerta cuando la cantidad es menor o igual a este valor',
+                  helperText: 'Alerta cuando la cantidad.',
                 ),
                 keyboardType: TextInputType.number,
                 inputFormatters: [InputFormatters.digitsOnly],
@@ -250,7 +251,7 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                   final items = <DropdownMenuItem<String>>[
                     const DropdownMenuItem(
                       value: null,
-                      child: Text('-- Seleccionar proveedor --'),
+                      child: Text('Seleccionar proveedor'),
                     ),
                     ...pvm.proveedores.map(
                       (p) =>
@@ -264,6 +265,7 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                   return DropdownButtonFormField<String>(
                     initialValue: _proveedorId,
                     decoration: const InputDecoration(labelText: 'Proveedor'),
+                    isExpanded: true,
                     items: items,
                     onChanged: (value) {
                       setState(() {

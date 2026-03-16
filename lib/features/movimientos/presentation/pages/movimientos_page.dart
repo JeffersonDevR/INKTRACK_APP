@@ -5,116 +5,134 @@ import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'movimiento_form_page.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
+import 'package:InkTrack/core/widgets/financial_summary_header.dart';
 
 class MovimientosPage extends StatelessWidget {
   const MovimientosPage({super.key});
 
+  Future<void> _selectDateRange(BuildContext context) async {
+    final viewModel = context.read<MovimientosViewModel>();
+    final initialRange = DateTimeRange(
+      start: viewModel.startDateFilter ?? DateTime.now().subtract(const Duration(days: 7)),
+      end: viewModel.endDateFilter ?? DateTime.now(),
+    );
+
+    final DateTimeRange? picked = await showDateRangePicker(
+      context: context,
+      initialDateRange: initialRange,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppTheme.primaryColor,
+              onPrimary: Colors.white,
+              onSurface: AppTheme.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      viewModel.setDateFilter(picked.start, picked.end);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ingresos / Egresos')),
+      appBar: AppBar(
+        title: const Text('Historial de Movimientos'),
+        actions: [
+          IconButton(
+            onPressed: () => _selectDateRange(context),
+            icon: const Icon(Icons.date_range_rounded),
+          ),
+        ],
+      ),
       body: Consumer<MovimientosViewModel>(
-        builder: (context, vm, child) {
-          return Column(
-            children: [
-              _BalanceHeader(vm: vm),
-              Expanded(
-                child: vm.items.isEmpty
-                    ? _EmptyMovimientos()
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        itemCount: vm.items.length,
-                        itemBuilder: (context, index) {
-                          final m = vm.items[vm.items.length - 1 - index]; // Show newest first
-                          return _MovimientoItem(movimiento: m);
-                        },
+        builder: (context, viewModel, child) {
+          final items = viewModel.startDateFilter == null ? viewModel.items.reversed.toList() : viewModel.filteredItems..sort((a,b) => b.fecha.compareTo(a.fecha));
+
+          if (viewModel.items.isEmpty) {
+            return _EmptyMovimientos();
+          }
+
+          return CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+                sliver: SliverToBoxAdapter(
+                  child: Column(
+                    children: [
+                      FinancialSummaryHeader(
+                        totalIngresos: viewModel.startDateFilter == null ? viewModel.totalIngresos : viewModel.totalIngresosFiltered,
+                        totalEgresos: viewModel.startDateFilter == null ? viewModel.totalEgresos : viewModel.totalEgresosFiltered,
+                        balance: viewModel.startDateFilter == null ? viewModel.balance : viewModel.balanceFiltered,
+                        startDate: viewModel.startDateFilter,
+                        endDate: viewModel.endDateFilter,
+                        onDateTap: () => _selectDateRange(context),
                       ),
+                      if (viewModel.startDateFilter != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: OutlinedButton.icon(
+                            onPressed: () => viewModel.clearDateFilter(),
+                            icon: const Icon(Icons.clear_rounded, size: 18),
+                            label: const Text('Limpiar Filtro'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppTheme.textSecondary,
+                              side: const BorderSide(color: Color(0xFFF1F5F9)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                sliver: SliverToBoxAdapter(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        viewModel.startDateFilter == null ? 'Registros Recientes' : 'Resultados del Filtro',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (viewModel.startDateFilter == null)
+                        Text(
+                          'Total: ${items.length}',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final m = items[index];
+                      return _MovimientoItem(movimiento: m);
+                    },
+                    childCount: items.length,
+                  ),
+                ),
               ),
             ],
           );
         },
       ),
-    );
-  }
-}
-
-class _BalanceHeader extends StatelessWidget {
-  final MovimientosViewModel vm;
-
-  const _BalanceHeader({required this.vm});
-
-  @override
-  Widget build(BuildContext context) {
-    final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
-    
-    return Container(
-      padding: const EdgeInsets.all(20),
-      color: AppTheme.primaryColor.withValues(alpha: 0.05),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _StatItem(
-                label: 'Ingresos',
-                value: currencyFormat.format(vm.totalIngresos),
-                color: Colors.green.shade600,
-                icon: Icons.arrow_upward,
-              ),
-              _StatItem(
-                label: 'Egresos',
-                value: currencyFormat.format(vm.totalEgresos),
-                color: AppTheme.errorColor,
-                icon: Icons.arrow_downward,
-              ),
-            ],
-          ),
-          const Divider(height: 32),
-          Text(
-            'Balance Actual',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          Text(
-            currencyFormat.format(vm.balance),
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: vm.balance >= 0 ? AppTheme.primaryColor : AppTheme.errorColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatItem extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color color;
-  final IconData icon;
-
-  const _StatItem({
-    required this.label,
-    required this.value,
-    required this.color,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 14, color: color),
-            const SizedBox(width: 4),
-            Text(label, style: TextStyle(color: color, fontWeight: FontWeight.bold)),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(value, style: Theme.of(context).textTheme.titleMedium),
-      ],
     );
   }
 }
@@ -130,7 +148,7 @@ class _MovimientoItem extends StatelessWidget {
     final isEgreso = movimiento.tipo == MovimientoType.egreso;
     
     final color = isIngreso 
-        ? Colors.green.shade600 
+        ? AppTheme.secondaryColor 
         : isEgreso 
             ? AppTheme.errorColor 
             : AppTheme.primaryColor;
@@ -140,20 +158,33 @@ class _MovimientoItem extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
+        contentPadding: const EdgeInsets.all(16),
         leading: CircleAvatar(
+          radius: 24,
           backgroundColor: color.withValues(alpha: 0.1),
           child: Icon(
             isIngreso 
-                ? Icons.arrow_upward 
+                ? Icons.south_west_rounded 
                 : isEgreso 
-                    ? Icons.arrow_downward 
+                    ? Icons.north_east_rounded 
                     : Icons.info_outline,
             color: color,
+            size: 20,
           ),
         ),
-        title: Text(movimiento.concepto),
-        subtitle: Text(
-          '${DateFormat('dd/MM/yyyy').format(movimiento.fecha)}${movimiento.categoria != null ? ' • ${movimiento.categoria}' : ''}',
+        title: Text(
+          movimiento.concepto,
+          style: Theme.of(context).textTheme.labelLarge,
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Text(
+              '${DateFormat('dd MMM yyyy').format(movimiento.fecha)}${movimiento.categoria != null ? ' • ${movimiento.categoria}' : ''}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -161,13 +192,12 @@ class _MovimientoItem extends StatelessWidget {
             if (movimiento.tipo != MovimientoType.actividad)
               Text(
                 '${isIngreso ? '+' : '-'}${currencyFormat.format(movimiento.monto)}',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
                   color: color,
-                  fontSize: 16,
                 ),
               ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 4),
             PopupMenuButton<String>(
               onSelected: (value) {
                 if (value == 'edit') {
@@ -184,21 +214,10 @@ class _MovimientoItem extends StatelessWidget {
                 }
               },
               itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'edit',
-                  child: ListTile(
-                    leading: Icon(Icons.edit, size: 20),
-                    title: Text('Editar'),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-                const PopupMenuItem(
+                const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit_outlined, size: 20), SizedBox(width: 8), Text('Editar')])),
+                PopupMenuItem(
                   value: 'delete',
-                  child: ListTile(
-                    leading: Icon(Icons.delete, color: AppTheme.errorColor, size: 20),
-                    title: Text('Eliminar', style: TextStyle(color: AppTheme.errorColor)),
-                    contentPadding: EdgeInsets.zero,
-                  ),
+                  child: Row(children: [Icon(Icons.delete_outline_rounded, color: AppTheme.errorColor, size: 20), const SizedBox(width: 8), Text('Eliminar', style: TextStyle(color: AppTheme.errorColor))]),
                 ),
               ],
             ),
@@ -212,8 +231,8 @@ class _MovimientoItem extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar Movimiento'),
-        content: const Text('¿Estás seguro de que deseas eliminar este registro?'),
+        title: const Text('Eliminar Registro'),
+        content: const Text('¿Estás seguro de que deseas eliminar este registro permanentemente?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -224,7 +243,8 @@ class _MovimientoItem extends StatelessWidget {
               context.read<MovimientosViewModel>().eliminar(movimiento.id);
               Navigator.pop(context);
             },
-            child: const Text('Eliminar', style: TextStyle(color: AppTheme.errorColor)),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
+            child: const Text('Eliminar'),
           ),
         ],
       ),
@@ -236,16 +256,29 @@ class _EmptyMovimientos extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.history, size: 64, color: Colors.grey.shade300),
-          const SizedBox(height: 16),
-          Text(
-            'Sin movimientos aún',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.history_toggle_off_rounded,
+              size: 80,
+              color: AppTheme.textSecondary.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Historial vacío',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No hay registros de ingresos o egresos todavía.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+        ),
       ),
     );
   }

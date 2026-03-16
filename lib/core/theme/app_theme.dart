@@ -12,8 +12,8 @@ class AppTheme {
   static const Color errorColor = Color(0xFFEF4444);        // Modern Red
   static const Color successColor = Color(0xFF10B981);
   
-  static const Color textPrimary = Color(0xFF0F172A);       // Deep Slate
-  static const Color textSecondary = Color(0xFF64748B);     // Muted Slate
+  static const Color textPrimary = Color(0xFF0F172A);       // Deep Slate (High contrast)
+  static const Color textSecondary = Color(0xFF475569);     // Medium-Deep Slate (Improved contrast from 0xFF64748B)
 
   // Dark palette (Reference based - Kept as fallback)
   static const Color darkBackground = Color(0xFF4A4545);
@@ -103,13 +103,18 @@ class AppTheme {
       ),
 
       textTheme: GoogleFonts.outfitTextTheme(base.textTheme).copyWith(
-        displayLarge: GoogleFonts.outfit(fontSize: 32, fontWeight: FontWeight.w800, color: textPrimary, letterSpacing: -1),
-        displayMedium: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.w700, color: textPrimary, letterSpacing: -0.5),
-        bodyLarge: GoogleFonts.outfit(fontSize: 16, color: textPrimary),
-        bodyMedium: GoogleFonts.outfit(fontSize: 14, color: textSecondary),
-        titleLarge: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w700, color: textPrimary),
-        titleMedium: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w600, color: textPrimary),
-        titleSmall: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600, color: textPrimary),
+        displayLarge: GoogleFonts.outfit(fontSize: 34, fontWeight: FontWeight.w800, color: textPrimary, letterSpacing: -1),
+        displayMedium: GoogleFonts.outfit(fontSize: 26, fontWeight: FontWeight.w700, color: textPrimary, letterSpacing: -0.5),
+        displaySmall: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w700, color: textPrimary),
+        bodyLarge: GoogleFonts.outfit(fontSize: 18, color: textPrimary),
+        bodyMedium: GoogleFonts.outfit(fontSize: 16, color: textSecondary),
+        bodySmall: GoogleFonts.outfit(fontSize: 14, color: textSecondary, fontWeight: FontWeight.w500),
+        titleLarge: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w700, color: textPrimary),
+        titleMedium: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w600, color: textPrimary),
+        titleSmall: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w600, color: textPrimary),
+        labelLarge: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600, color: textPrimary),
+        labelMedium: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w500, color: textSecondary),
+        labelSmall: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w600, color: textSecondary, letterSpacing: 0.5),
       ),
 
       floatingActionButtonTheme: FloatingActionButtonThemeData(
