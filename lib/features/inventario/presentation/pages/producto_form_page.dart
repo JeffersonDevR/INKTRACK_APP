@@ -4,8 +4,7 @@ import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_
 import 'package:InkTrack/features/inventario/data/models/producto.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
 import 'package:InkTrack/core/input_formatters.dart';
-import 'package:InkTrack/features/movimientos/presentation/pages/movimiento_form_page.dart';
-import 'package:InkTrack/features/movimientos/data/models/movimiento.dart' as mov_model;
+import 'package:InkTrack/core/utils/ean13_generator.dart';
 
 const String _kCustomProveedorValue = '__custom__';
 const String _kNewCategoryValue = '__new_category__';
@@ -25,10 +24,8 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
   final _nombreController = TextEditingController();
   final _cantidadController = TextEditingController();
   final _precioController = TextEditingController();
-  final _categoriaController = TextEditingController();
   final _stockMinimoController = TextEditingController(text: '5');
   final _codigoBarrasController = TextEditingController();
-  final _codigoPersonalizadoController = TextEditingController();
   final _proveedorNombreController = TextEditingController();
   String? _proveedorId;
   String? _categoria;
@@ -48,51 +45,19 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
       if (widget.producto!.codigoBarras != null) {
         _codigoBarrasController.text = widget.producto!.codigoBarras!;
       }
-      if (widget.producto!.codigoPersonalizado != null) {
-        _codigoPersonalizadoController.text = widget.producto!.codigoPersonalizado!;
-      }
       if (widget.producto!.proveedorNombre != null) {
         _proveedorNombreController.text = widget.producto!.proveedorNombre!;
       }
     } else if (widget.initialCodigoBarras != null) {
       _codigoBarrasController.text = widget.initialCodigoBarras!;
     }
-
-    _codigoBarrasController.addListener(_checkBarcodeExistence);
   }
 
-  void _checkBarcodeExistence() {
-    if (widget.producto != null) return; // Only for new products
-    final code = _codigoBarrasController.text.trim();
-    if (code.isEmpty) return;
-
-    final viewModel = context.read<InventarioViewModel>();
-    final existing = viewModel.findProductoByCodigo(code);
-
-    if (existing != null) {
-      // If found, redirect to update stock
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        // Only if still mounted and we haven't already popped
-        if (mounted) {
-           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => MovimientoFormPage(
-                initialType: mov_model.MovimientoType.egreso,
-                movimiento: mov_model.Movimiento(
-                  id: '',
-                  monto: 0,
-                  fecha: DateTime.now(),
-                  tipo: mov_model.MovimientoType.egreso,
-                  concepto: 'Restock: ${existing.nombre}',
-                  productoId: existing.id,
-                  categoria: existing.categoria,
-                ),
-              ),
-            ),
-          );
-        }
-      });
-    }
+  void _generateBarcode() {
+    final barcode = Ean13Generator.generate();
+    setState(() {
+      _codigoBarrasController.text = barcode;
+    });
   }
 
   @override
@@ -100,9 +65,8 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
     _nombreController.dispose();
     _cantidadController.dispose();
     _precioController.dispose();
-    _categoriaController.dispose();
+    _stockMinimoController.dispose();
     _codigoBarrasController.dispose();
-    _codigoPersonalizadoController.dispose();
     _proveedorNombreController.dispose();
     super.dispose();
   }
@@ -139,35 +103,27 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                 },
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _codigoBarrasController,
-                decoration: const InputDecoration(
-                  labelText: 'Código de barras / QR (opcional)',
-                  hintText: 'O escanear con el botón',
-                ),
-              ),
-              const SizedBox(height: 16),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Expanded(
                     child: TextFormField(
-                      controller: _codigoPersonalizadoController,
+                      controller: _codigoBarrasController,
                       decoration: const InputDecoration(
-                        labelText: 'Código Personalizado (opcional)',
-                        hintText: 'Ej. PROD-001',
+                        labelText: 'Código de barras (EAN-13)',
+                        hintText: 'Se genera automáticamente',
                       ),
+                      readOnly: true,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: () {
-                      final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-                      _codigoPersonalizadoController.text = 'IT-${timestamp.substring(timestamp.length - 8)}';
-                    },
-                    icon: const Icon(Icons.auto_awesome),
-                    tooltip: 'Generar código',
-                  ),
+                  if (widget.producto == null) ...[
+                    const SizedBox(width: 8),
+                    FilledButton.icon(
+                      onPressed: _generateBarcode,
+                      icon: const Icon(Icons.qr_code),
+                      label: const Text('Generar'),
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: 16),
@@ -218,7 +174,9 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                 builder: (context, ivm, child) {
                   final categories = ivm.categorias;
                   return DropdownButtonFormField<String>(
-                    initialValue: categories.contains(_categoria) ? _categoria : (categories.isNotEmpty ? null : null),
+                    initialValue: categories.contains(_categoria)
+                        ? _categoria
+                        : (categories.isNotEmpty ? null : null),
                     decoration: const InputDecoration(
                       labelText: 'Categoría',
                       hintText: 'Seleccione una categoría',
@@ -388,14 +346,12 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
         : null;
     final codigo = _codigoBarrasController.text.trim();
     final codigoBarras = codigo.isEmpty ? null : codigo;
-    final customCode = _codigoPersonalizadoController.text.trim();
-    final codigoPersonalizado = customCode.isEmpty ? null : customCode;
 
     final viewModel = context.read<InventarioViewModel>();
     final precio = double.parse(_precioController.text.replaceAll(',', '.'));
 
     final producto = Producto(
-      id: widget.producto?.id ?? '', // Empty ID means new (or barcode will take precedence in VM)
+      id: widget.producto?.id ?? '',
       nombre: _nombreController.text.trim(),
       cantidad: int.parse(_cantidadController.text),
       precio: precio,
@@ -403,12 +359,12 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
       stockMinimo: int.parse(_stockMinimoController.text),
       proveedorId: proveedorId.isEmpty ? '' : proveedorId,
       codigoBarras: codigoBarras,
-      codigoPersonalizado: codigoPersonalizado,
       proveedorNombre: proveedorNombre,
+      isActivo: widget.producto?.isActivo ?? true,
     );
 
     viewModel.guardar(producto);
-    
+
     if (mounted) {
       Navigator.pop(context);
     }

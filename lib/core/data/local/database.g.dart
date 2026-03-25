@@ -74,6 +74,21 @@ class $ClientesTable extends Clientes
     requiredDuringInsert: false,
     defaultValue: const Constant(0.0),
   );
+  static const VerificationMeta _isActivoMeta = const VerificationMeta(
+    'isActivo',
+  );
+  @override
+  late final GeneratedColumn<bool> isActivo = GeneratedColumn<bool>(
+    'is_activo',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_activo" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -82,6 +97,7 @@ class $ClientesTable extends Clientes
     email,
     esFiado,
     saldoPendiente,
+    isActivo,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -139,6 +155,12 @@ class $ClientesTable extends Clientes
         ),
       );
     }
+    if (data.containsKey('is_activo')) {
+      context.handle(
+        _isActivoMeta,
+        isActivo.isAcceptableOrUnknown(data['is_activo']!, _isActivoMeta),
+      );
+    }
     return context;
   }
 
@@ -172,6 +194,10 @@ class $ClientesTable extends Clientes
         DriftSqlType.double,
         data['${effectivePrefix}saldo_pendiente'],
       )!,
+      isActivo: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_activo'],
+      )!,
     );
   }
 
@@ -188,6 +214,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
   final String email;
   final bool esFiado;
   final double saldoPendiente;
+  final bool isActivo;
   const ClienteData({
     required this.id,
     required this.nombre,
@@ -195,6 +222,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
     required this.email,
     required this.esFiado,
     required this.saldoPendiente,
+    required this.isActivo,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -205,6 +233,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
     map['email'] = Variable<String>(email);
     map['es_fiado'] = Variable<bool>(esFiado);
     map['saldo_pendiente'] = Variable<double>(saldoPendiente);
+    map['is_activo'] = Variable<bool>(isActivo);
     return map;
   }
 
@@ -216,6 +245,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
       email: Value(email),
       esFiado: Value(esFiado),
       saldoPendiente: Value(saldoPendiente),
+      isActivo: Value(isActivo),
     );
   }
 
@@ -231,6 +261,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
       email: serializer.fromJson<String>(json['email']),
       esFiado: serializer.fromJson<bool>(json['esFiado']),
       saldoPendiente: serializer.fromJson<double>(json['saldoPendiente']),
+      isActivo: serializer.fromJson<bool>(json['isActivo']),
     );
   }
   @override
@@ -243,6 +274,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
       'email': serializer.toJson<String>(email),
       'esFiado': serializer.toJson<bool>(esFiado),
       'saldoPendiente': serializer.toJson<double>(saldoPendiente),
+      'isActivo': serializer.toJson<bool>(isActivo),
     };
   }
 
@@ -253,6 +285,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
     String? email,
     bool? esFiado,
     double? saldoPendiente,
+    bool? isActivo,
   }) => ClienteData(
     id: id ?? this.id,
     nombre: nombre ?? this.nombre,
@@ -260,6 +293,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
     email: email ?? this.email,
     esFiado: esFiado ?? this.esFiado,
     saldoPendiente: saldoPendiente ?? this.saldoPendiente,
+    isActivo: isActivo ?? this.isActivo,
   );
   ClienteData copyWithCompanion(ClientesCompanion data) {
     return ClienteData(
@@ -271,6 +305,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
       saldoPendiente: data.saldoPendiente.present
           ? data.saldoPendiente.value
           : this.saldoPendiente,
+      isActivo: data.isActivo.present ? data.isActivo.value : this.isActivo,
     );
   }
 
@@ -282,14 +317,22 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
           ..write('telefono: $telefono, ')
           ..write('email: $email, ')
           ..write('esFiado: $esFiado, ')
-          ..write('saldoPendiente: $saldoPendiente')
+          ..write('saldoPendiente: $saldoPendiente, ')
+          ..write('isActivo: $isActivo')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, nombre, telefono, email, esFiado, saldoPendiente);
+  int get hashCode => Object.hash(
+    id,
+    nombre,
+    telefono,
+    email,
+    esFiado,
+    saldoPendiente,
+    isActivo,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -299,7 +342,8 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
           other.telefono == this.telefono &&
           other.email == this.email &&
           other.esFiado == this.esFiado &&
-          other.saldoPendiente == this.saldoPendiente);
+          other.saldoPendiente == this.saldoPendiente &&
+          other.isActivo == this.isActivo);
 }
 
 class ClientesCompanion extends UpdateCompanion<ClienteData> {
@@ -309,6 +353,7 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
   final Value<String> email;
   final Value<bool> esFiado;
   final Value<double> saldoPendiente;
+  final Value<bool> isActivo;
   final Value<int> rowid;
   const ClientesCompanion({
     this.id = const Value.absent(),
@@ -317,6 +362,7 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
     this.email = const Value.absent(),
     this.esFiado = const Value.absent(),
     this.saldoPendiente = const Value.absent(),
+    this.isActivo = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ClientesCompanion.insert({
@@ -326,6 +372,7 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
     required String email,
     this.esFiado = const Value.absent(),
     this.saldoPendiente = const Value.absent(),
+    this.isActivo = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        nombre = Value(nombre),
@@ -338,6 +385,7 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
     Expression<String>? email,
     Expression<bool>? esFiado,
     Expression<double>? saldoPendiente,
+    Expression<bool>? isActivo,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -347,6 +395,7 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
       if (email != null) 'email': email,
       if (esFiado != null) 'es_fiado': esFiado,
       if (saldoPendiente != null) 'saldo_pendiente': saldoPendiente,
+      if (isActivo != null) 'is_activo': isActivo,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -358,6 +407,7 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
     Value<String>? email,
     Value<bool>? esFiado,
     Value<double>? saldoPendiente,
+    Value<bool>? isActivo,
     Value<int>? rowid,
   }) {
     return ClientesCompanion(
@@ -367,6 +417,7 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
       email: email ?? this.email,
       esFiado: esFiado ?? this.esFiado,
       saldoPendiente: saldoPendiente ?? this.saldoPendiente,
+      isActivo: isActivo ?? this.isActivo,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -392,6 +443,9 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
     if (saldoPendiente.present) {
       map['saldo_pendiente'] = Variable<double>(saldoPendiente.value);
     }
+    if (isActivo.present) {
+      map['is_activo'] = Variable<bool>(isActivo.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -407,6 +461,7 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
           ..write('email: $email, ')
           ..write('esFiado: $esFiado, ')
           ..write('saldoPendiente: $saldoPendiente, ')
+          ..write('isActivo: $isActivo, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -457,8 +512,29 @@ class $ProveedoresTable extends Proveedores
         type: DriftSqlType.string,
         requiredDuringInsert: true,
       ).withConverter<List<String>>($ProveedoresTable.$converterdiasVisita);
+  static const VerificationMeta _isActivoMeta = const VerificationMeta(
+    'isActivo',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, nombre, telefono, diasVisita];
+  late final GeneratedColumn<bool> isActivo = GeneratedColumn<bool>(
+    'is_activo',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_activo" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    nombre,
+    telefono,
+    diasVisita,
+    isActivo,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -492,6 +568,12 @@ class $ProveedoresTable extends Proveedores
     } else if (isInserting) {
       context.missing(_telefonoMeta);
     }
+    if (data.containsKey('is_activo')) {
+      context.handle(
+        _isActivoMeta,
+        isActivo.isAcceptableOrUnknown(data['is_activo']!, _isActivoMeta),
+      );
+    }
     return context;
   }
 
@@ -519,6 +601,10 @@ class $ProveedoresTable extends Proveedores
           data['${effectivePrefix}dias_visita'],
         )!,
       ),
+      isActivo: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_activo'],
+      )!,
     );
   }
 
@@ -536,11 +622,13 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
   final String nombre;
   final String telefono;
   final List<String> diasVisita;
+  final bool isActivo;
   const ProveedorData({
     required this.id,
     required this.nombre,
     required this.telefono,
     required this.diasVisita,
+    required this.isActivo,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -553,6 +641,7 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
         $ProveedoresTable.$converterdiasVisita.toSql(diasVisita),
       );
     }
+    map['is_activo'] = Variable<bool>(isActivo);
     return map;
   }
 
@@ -562,6 +651,7 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
       nombre: Value(nombre),
       telefono: Value(telefono),
       diasVisita: Value(diasVisita),
+      isActivo: Value(isActivo),
     );
   }
 
@@ -575,6 +665,7 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
       nombre: serializer.fromJson<String>(json['nombre']),
       telefono: serializer.fromJson<String>(json['telefono']),
       diasVisita: serializer.fromJson<List<String>>(json['diasVisita']),
+      isActivo: serializer.fromJson<bool>(json['isActivo']),
     );
   }
   @override
@@ -585,6 +676,7 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
       'nombre': serializer.toJson<String>(nombre),
       'telefono': serializer.toJson<String>(telefono),
       'diasVisita': serializer.toJson<List<String>>(diasVisita),
+      'isActivo': serializer.toJson<bool>(isActivo),
     };
   }
 
@@ -593,11 +685,13 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
     String? nombre,
     String? telefono,
     List<String>? diasVisita,
+    bool? isActivo,
   }) => ProveedorData(
     id: id ?? this.id,
     nombre: nombre ?? this.nombre,
     telefono: telefono ?? this.telefono,
     diasVisita: diasVisita ?? this.diasVisita,
+    isActivo: isActivo ?? this.isActivo,
   );
   ProveedorData copyWithCompanion(ProveedoresCompanion data) {
     return ProveedorData(
@@ -607,6 +701,7 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
       diasVisita: data.diasVisita.present
           ? data.diasVisita.value
           : this.diasVisita,
+      isActivo: data.isActivo.present ? data.isActivo.value : this.isActivo,
     );
   }
 
@@ -616,13 +711,14 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
           ..write('id: $id, ')
           ..write('nombre: $nombre, ')
           ..write('telefono: $telefono, ')
-          ..write('diasVisita: $diasVisita')
+          ..write('diasVisita: $diasVisita, ')
+          ..write('isActivo: $isActivo')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, nombre, telefono, diasVisita);
+  int get hashCode => Object.hash(id, nombre, telefono, diasVisita, isActivo);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -630,7 +726,8 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
           other.id == this.id &&
           other.nombre == this.nombre &&
           other.telefono == this.telefono &&
-          other.diasVisita == this.diasVisita);
+          other.diasVisita == this.diasVisita &&
+          other.isActivo == this.isActivo);
 }
 
 class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
@@ -638,12 +735,14 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
   final Value<String> nombre;
   final Value<String> telefono;
   final Value<List<String>> diasVisita;
+  final Value<bool> isActivo;
   final Value<int> rowid;
   const ProveedoresCompanion({
     this.id = const Value.absent(),
     this.nombre = const Value.absent(),
     this.telefono = const Value.absent(),
     this.diasVisita = const Value.absent(),
+    this.isActivo = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ProveedoresCompanion.insert({
@@ -651,6 +750,7 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
     required String nombre,
     required String telefono,
     required List<String> diasVisita,
+    this.isActivo = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        nombre = Value(nombre),
@@ -661,6 +761,7 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
     Expression<String>? nombre,
     Expression<String>? telefono,
     Expression<String>? diasVisita,
+    Expression<bool>? isActivo,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -668,6 +769,7 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
       if (nombre != null) 'nombre': nombre,
       if (telefono != null) 'telefono': telefono,
       if (diasVisita != null) 'dias_visita': diasVisita,
+      if (isActivo != null) 'is_activo': isActivo,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -677,6 +779,7 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
     Value<String>? nombre,
     Value<String>? telefono,
     Value<List<String>>? diasVisita,
+    Value<bool>? isActivo,
     Value<int>? rowid,
   }) {
     return ProveedoresCompanion(
@@ -684,6 +787,7 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
       nombre: nombre ?? this.nombre,
       telefono: telefono ?? this.telefono,
       diasVisita: diasVisita ?? this.diasVisita,
+      isActivo: isActivo ?? this.isActivo,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -705,6 +809,9 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
         $ProveedoresTable.$converterdiasVisita.toSql(diasVisita.value),
       );
     }
+    if (isActivo.present) {
+      map['is_activo'] = Variable<bool>(isActivo.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -718,6 +825,7 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
           ..write('nombre: $nombre, ')
           ..write('telefono: $telefono, ')
           ..write('diasVisita: $diasVisita, ')
+          ..write('isActivo: $isActivo, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -835,6 +943,21 @@ class $ProductosTable extends Productos
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _isActivoMeta = const VerificationMeta(
+    'isActivo',
+  );
+  @override
+  late final GeneratedColumn<bool> isActivo = GeneratedColumn<bool>(
+    'is_activo',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_activo" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -847,6 +970,7 @@ class $ProductosTable extends Productos
     codigoBarras,
     codigoPersonalizado,
     proveedorNombre,
+    isActivo,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -944,6 +1068,12 @@ class $ProductosTable extends Productos
         ),
       );
     }
+    if (data.containsKey('is_activo')) {
+      context.handle(
+        _isActivoMeta,
+        isActivo.isAcceptableOrUnknown(data['is_activo']!, _isActivoMeta),
+      );
+    }
     return context;
   }
 
@@ -993,6 +1123,10 @@ class $ProductosTable extends Productos
         DriftSqlType.string,
         data['${effectivePrefix}proveedor_nombre'],
       ),
+      isActivo: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_activo'],
+      )!,
     );
   }
 
@@ -1013,6 +1147,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
   final String? codigoBarras;
   final String? codigoPersonalizado;
   final String? proveedorNombre;
+  final bool isActivo;
   const ProductoData({
     required this.id,
     required this.nombre,
@@ -1024,6 +1159,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
     this.codigoBarras,
     this.codigoPersonalizado,
     this.proveedorNombre,
+    required this.isActivo,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1044,6 +1180,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
     if (!nullToAbsent || proveedorNombre != null) {
       map['proveedor_nombre'] = Variable<String>(proveedorNombre);
     }
+    map['is_activo'] = Variable<bool>(isActivo);
     return map;
   }
 
@@ -1065,6 +1202,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
       proveedorNombre: proveedorNombre == null && nullToAbsent
           ? const Value.absent()
           : Value(proveedorNombre),
+      isActivo: Value(isActivo),
     );
   }
 
@@ -1086,6 +1224,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
         json['codigoPersonalizado'],
       ),
       proveedorNombre: serializer.fromJson<String?>(json['proveedorNombre']),
+      isActivo: serializer.fromJson<bool>(json['isActivo']),
     );
   }
   @override
@@ -1102,6 +1241,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
       'codigoBarras': serializer.toJson<String?>(codigoBarras),
       'codigoPersonalizado': serializer.toJson<String?>(codigoPersonalizado),
       'proveedorNombre': serializer.toJson<String?>(proveedorNombre),
+      'isActivo': serializer.toJson<bool>(isActivo),
     };
   }
 
@@ -1116,6 +1256,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
     Value<String?> codigoBarras = const Value.absent(),
     Value<String?> codigoPersonalizado = const Value.absent(),
     Value<String?> proveedorNombre = const Value.absent(),
+    bool? isActivo,
   }) => ProductoData(
     id: id ?? this.id,
     nombre: nombre ?? this.nombre,
@@ -1131,6 +1272,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
     proveedorNombre: proveedorNombre.present
         ? proveedorNombre.value
         : this.proveedorNombre,
+    isActivo: isActivo ?? this.isActivo,
   );
   ProductoData copyWithCompanion(ProductosCompanion data) {
     return ProductoData(
@@ -1154,6 +1296,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
       proveedorNombre: data.proveedorNombre.present
           ? data.proveedorNombre.value
           : this.proveedorNombre,
+      isActivo: data.isActivo.present ? data.isActivo.value : this.isActivo,
     );
   }
 
@@ -1169,7 +1312,8 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
           ..write('stockMinimo: $stockMinimo, ')
           ..write('codigoBarras: $codigoBarras, ')
           ..write('codigoPersonalizado: $codigoPersonalizado, ')
-          ..write('proveedorNombre: $proveedorNombre')
+          ..write('proveedorNombre: $proveedorNombre, ')
+          ..write('isActivo: $isActivo')
           ..write(')'))
         .toString();
   }
@@ -1186,6 +1330,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
     codigoBarras,
     codigoPersonalizado,
     proveedorNombre,
+    isActivo,
   );
   @override
   bool operator ==(Object other) =>
@@ -1200,7 +1345,8 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
           other.stockMinimo == this.stockMinimo &&
           other.codigoBarras == this.codigoBarras &&
           other.codigoPersonalizado == this.codigoPersonalizado &&
-          other.proveedorNombre == this.proveedorNombre);
+          other.proveedorNombre == this.proveedorNombre &&
+          other.isActivo == this.isActivo);
 }
 
 class ProductosCompanion extends UpdateCompanion<ProductoData> {
@@ -1214,6 +1360,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
   final Value<String?> codigoBarras;
   final Value<String?> codigoPersonalizado;
   final Value<String?> proveedorNombre;
+  final Value<bool> isActivo;
   final Value<int> rowid;
   const ProductosCompanion({
     this.id = const Value.absent(),
@@ -1226,6 +1373,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
     this.codigoBarras = const Value.absent(),
     this.codigoPersonalizado = const Value.absent(),
     this.proveedorNombre = const Value.absent(),
+    this.isActivo = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ProductosCompanion.insert({
@@ -1239,6 +1387,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
     this.codigoBarras = const Value.absent(),
     this.codigoPersonalizado = const Value.absent(),
     this.proveedorNombre = const Value.absent(),
+    this.isActivo = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        nombre = Value(nombre),
@@ -1257,6 +1406,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
     Expression<String>? codigoBarras,
     Expression<String>? codigoPersonalizado,
     Expression<String>? proveedorNombre,
+    Expression<bool>? isActivo,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1271,6 +1421,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
       if (codigoPersonalizado != null)
         'codigo_personalizado': codigoPersonalizado,
       if (proveedorNombre != null) 'proveedor_nombre': proveedorNombre,
+      if (isActivo != null) 'is_activo': isActivo,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1286,6 +1437,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
     Value<String?>? codigoBarras,
     Value<String?>? codigoPersonalizado,
     Value<String?>? proveedorNombre,
+    Value<bool>? isActivo,
     Value<int>? rowid,
   }) {
     return ProductosCompanion(
@@ -1299,6 +1451,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
       codigoBarras: codigoBarras ?? this.codigoBarras,
       codigoPersonalizado: codigoPersonalizado ?? this.codigoPersonalizado,
       proveedorNombre: proveedorNombre ?? this.proveedorNombre,
+      isActivo: isActivo ?? this.isActivo,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1336,6 +1489,9 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
     if (proveedorNombre.present) {
       map['proveedor_nombre'] = Variable<String>(proveedorNombre.value);
     }
+    if (isActivo.present) {
+      map['is_activo'] = Variable<bool>(isActivo.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1355,6 +1511,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
           ..write('codigoBarras: $codigoBarras, ')
           ..write('codigoPersonalizado: $codigoPersonalizado, ')
           ..write('proveedorNombre: $proveedorNombre, ')
+          ..write('isActivo: $isActivo, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2473,6 +2630,7 @@ typedef $$ClientesTableCreateCompanionBuilder =
       required String email,
       Value<bool> esFiado,
       Value<double> saldoPendiente,
+      Value<bool> isActivo,
       Value<int> rowid,
     });
 typedef $$ClientesTableUpdateCompanionBuilder =
@@ -2483,6 +2641,7 @@ typedef $$ClientesTableUpdateCompanionBuilder =
       Value<String> email,
       Value<bool> esFiado,
       Value<double> saldoPendiente,
+      Value<bool> isActivo,
       Value<int> rowid,
     });
 
@@ -2522,6 +2681,11 @@ class $$ClientesTableFilterComposer
 
   ColumnFilters<double> get saldoPendiente => $composableBuilder(
     column: $table.saldoPendiente,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isActivo => $composableBuilder(
+    column: $table.isActivo,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -2564,6 +2728,11 @@ class $$ClientesTableOrderingComposer
     column: $table.saldoPendiente,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isActivo => $composableBuilder(
+    column: $table.isActivo,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ClientesTableAnnotationComposer
@@ -2594,6 +2763,9 @@ class $$ClientesTableAnnotationComposer
     column: $table.saldoPendiente,
     builder: (column) => column,
   );
+
+  GeneratedColumn<bool> get isActivo =>
+      $composableBuilder(column: $table.isActivo, builder: (column) => column);
 }
 
 class $$ClientesTableTableManager
@@ -2633,6 +2805,7 @@ class $$ClientesTableTableManager
                 Value<String> email = const Value.absent(),
                 Value<bool> esFiado = const Value.absent(),
                 Value<double> saldoPendiente = const Value.absent(),
+                Value<bool> isActivo = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ClientesCompanion(
                 id: id,
@@ -2641,6 +2814,7 @@ class $$ClientesTableTableManager
                 email: email,
                 esFiado: esFiado,
                 saldoPendiente: saldoPendiente,
+                isActivo: isActivo,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2651,6 +2825,7 @@ class $$ClientesTableTableManager
                 required String email,
                 Value<bool> esFiado = const Value.absent(),
                 Value<double> saldoPendiente = const Value.absent(),
+                Value<bool> isActivo = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ClientesCompanion.insert(
                 id: id,
@@ -2659,6 +2834,7 @@ class $$ClientesTableTableManager
                 email: email,
                 esFiado: esFiado,
                 saldoPendiente: saldoPendiente,
+                isActivo: isActivo,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -2689,6 +2865,7 @@ typedef $$ProveedoresTableCreateCompanionBuilder =
       required String nombre,
       required String telefono,
       required List<String> diasVisita,
+      Value<bool> isActivo,
       Value<int> rowid,
     });
 typedef $$ProveedoresTableUpdateCompanionBuilder =
@@ -2697,6 +2874,7 @@ typedef $$ProveedoresTableUpdateCompanionBuilder =
       Value<String> nombre,
       Value<String> telefono,
       Value<List<String>> diasVisita,
+      Value<bool> isActivo,
       Value<int> rowid,
     });
 
@@ -2729,6 +2907,11 @@ class $$ProveedoresTableFilterComposer
     column: $table.diasVisita,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
+
+  ColumnFilters<bool> get isActivo => $composableBuilder(
+    column: $table.isActivo,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$ProveedoresTableOrderingComposer
@@ -2759,6 +2942,11 @@ class $$ProveedoresTableOrderingComposer
     column: $table.diasVisita,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isActivo => $composableBuilder(
+    column: $table.isActivo,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ProveedoresTableAnnotationComposer
@@ -2784,6 +2972,9 @@ class $$ProveedoresTableAnnotationComposer
         column: $table.diasVisita,
         builder: (column) => column,
       );
+
+  GeneratedColumn<bool> get isActivo =>
+      $composableBuilder(column: $table.isActivo, builder: (column) => column);
 }
 
 class $$ProveedoresTableTableManager
@@ -2821,12 +3012,14 @@ class $$ProveedoresTableTableManager
                 Value<String> nombre = const Value.absent(),
                 Value<String> telefono = const Value.absent(),
                 Value<List<String>> diasVisita = const Value.absent(),
+                Value<bool> isActivo = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ProveedoresCompanion(
                 id: id,
                 nombre: nombre,
                 telefono: telefono,
                 diasVisita: diasVisita,
+                isActivo: isActivo,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2835,12 +3028,14 @@ class $$ProveedoresTableTableManager
                 required String nombre,
                 required String telefono,
                 required List<String> diasVisita,
+                Value<bool> isActivo = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ProveedoresCompanion.insert(
                 id: id,
                 nombre: nombre,
                 telefono: telefono,
                 diasVisita: diasVisita,
+                isActivo: isActivo,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -2880,6 +3075,7 @@ typedef $$ProductosTableCreateCompanionBuilder =
       Value<String?> codigoBarras,
       Value<String?> codigoPersonalizado,
       Value<String?> proveedorNombre,
+      Value<bool> isActivo,
       Value<int> rowid,
     });
 typedef $$ProductosTableUpdateCompanionBuilder =
@@ -2894,6 +3090,7 @@ typedef $$ProductosTableUpdateCompanionBuilder =
       Value<String?> codigoBarras,
       Value<String?> codigoPersonalizado,
       Value<String?> proveedorNombre,
+      Value<bool> isActivo,
       Value<int> rowid,
     });
 
@@ -2953,6 +3150,11 @@ class $$ProductosTableFilterComposer
 
   ColumnFilters<String> get proveedorNombre => $composableBuilder(
     column: $table.proveedorNombre,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isActivo => $composableBuilder(
+    column: $table.isActivo,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -3015,6 +3217,11 @@ class $$ProductosTableOrderingComposer
     column: $table.proveedorNombre,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isActivo => $composableBuilder(
+    column: $table.isActivo,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ProductosTableAnnotationComposer
@@ -3065,6 +3272,9 @@ class $$ProductosTableAnnotationComposer
     column: $table.proveedorNombre,
     builder: (column) => column,
   );
+
+  GeneratedColumn<bool> get isActivo =>
+      $composableBuilder(column: $table.isActivo, builder: (column) => column);
 }
 
 class $$ProductosTableTableManager
@@ -3108,6 +3318,7 @@ class $$ProductosTableTableManager
                 Value<String?> codigoBarras = const Value.absent(),
                 Value<String?> codigoPersonalizado = const Value.absent(),
                 Value<String?> proveedorNombre = const Value.absent(),
+                Value<bool> isActivo = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ProductosCompanion(
                 id: id,
@@ -3120,6 +3331,7 @@ class $$ProductosTableTableManager
                 codigoBarras: codigoBarras,
                 codigoPersonalizado: codigoPersonalizado,
                 proveedorNombre: proveedorNombre,
+                isActivo: isActivo,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -3134,6 +3346,7 @@ class $$ProductosTableTableManager
                 Value<String?> codigoBarras = const Value.absent(),
                 Value<String?> codigoPersonalizado = const Value.absent(),
                 Value<String?> proveedorNombre = const Value.absent(),
+                Value<bool> isActivo = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ProductosCompanion.insert(
                 id: id,
@@ -3146,6 +3359,7 @@ class $$ProductosTableTableManager
                 codigoBarras: codigoBarras,
                 codigoPersonalizado: codigoPersonalizado,
                 proveedorNombre: proveedorNombre,
+                isActivo: isActivo,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

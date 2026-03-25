@@ -10,12 +10,26 @@ class DriftProductosRepository implements ProductosRepository {
 
   @override
   Future<List<Producto>> getAll() async {
+    final query = _db.select(_db.productos)
+      ..where((t) => t.isActivo.equals(true));
+    final rows = await query.get();
+    return rows.map((row) => _toModel(row)).toList();
+  }
+
+  Future<List<Producto>> getAllIncludingInactive() async {
     final rows = await _db.select(_db.productos).get();
     return rows.map((row) => _toModel(row)).toList();
   }
 
   @override
   Future<Producto?> getById(String id) async {
+    final query = _db.select(_db.productos)
+      ..where((t) => t.id.equals(id) & t.isActivo.equals(true));
+    final row = await query.getSingleOrNull();
+    return row != null ? _toModel(row) : null;
+  }
+
+  Future<Producto?> getByIdIncludingInactive(String id) async {
     final query = _db.select(_db.productos)..where((t) => t.id.equals(id));
     final row = await query.getSingleOrNull();
     return row != null ? _toModel(row) : null;
@@ -23,20 +37,23 @@ class DriftProductosRepository implements ProductosRepository {
 
   @override
   Future<void> save(Producto item) async {
-    await _db.into(_db.productos).insert(
-      ProductosCompanion.insert(
-        id: item.id,
-        nombre: item.nombre,
-        cantidad: item.cantidad,
-        precio: item.precio,
-        categoria: item.categoria,
-        proveedorId: item.proveedorId,
-        stockMinimo: Value(item.stockMinimo),
-        codigoBarras: Value(item.codigoBarras),
-        codigoPersonalizado: Value(item.codigoPersonalizado),
-        proveedorNombre: Value(item.proveedorNombre),
-      ),
-    );
+    await _db
+        .into(_db.productos)
+        .insert(
+          ProductosCompanion.insert(
+            id: item.id,
+            nombre: item.nombre,
+            cantidad: item.cantidad,
+            precio: item.precio,
+            categoria: item.categoria,
+            proveedorId: item.proveedorId,
+            stockMinimo: Value(item.stockMinimo),
+            codigoBarras: Value(item.codigoBarras),
+            codigoPersonalizado: Value(item.codigoPersonalizado),
+            proveedorNombre: Value(item.proveedorNombre),
+            isActivo: Value(item.isActivo),
+          ),
+        );
   }
 
   @override
@@ -52,7 +69,14 @@ class DriftProductosRepository implements ProductosRepository {
         codigoBarras: Value(item.codigoBarras),
         codigoPersonalizado: Value(item.codigoPersonalizado),
         proveedorNombre: Value(item.proveedorNombre),
+        isActivo: Value(item.isActivo),
       ),
+    );
+  }
+
+  Future<void> softDelete(String id) async {
+    await (_db.update(_db.productos)..where((t) => t.id.equals(id))).write(
+      const ProductosCompanion(isActivo: Value(false)),
     );
   }
 
@@ -64,6 +88,13 @@ class DriftProductosRepository implements ProductosRepository {
   @override
   Future<Producto?> getByBarcode(String barcode) async {
     final query = _db.select(_db.productos)
+      ..where((t) => t.codigoBarras.equals(barcode) & t.isActivo.equals(true));
+    final row = await query.getSingleOrNull();
+    return row != null ? _toModel(row) : null;
+  }
+
+  Future<Producto?> getByBarcodeIncludingInactive(String barcode) async {
+    final query = _db.select(_db.productos)
       ..where((t) => t.codigoBarras.equals(barcode));
     final row = await query.getSingleOrNull();
     return row != null ? _toModel(row) : null;
@@ -72,9 +103,25 @@ class DriftProductosRepository implements ProductosRepository {
   @override
   Future<Producto?> getByAnyCode(String code) async {
     final query = _db.select(_db.productos)
-      ..where((t) => t.codigoBarras.equals(code) | 
-                     t.codigoPersonalizado.equals(code) | 
-                     t.id.equals(code));
+      ..where(
+        (t) =>
+            (t.codigoBarras.equals(code) |
+                t.codigoPersonalizado.equals(code) |
+                t.id.equals(code)) &
+            t.isActivo.equals(true),
+      );
+    final row = await query.getSingleOrNull();
+    return row != null ? _toModel(row) : null;
+  }
+
+  Future<Producto?> getByAnyCodeIncludingInactive(String code) async {
+    final query = _db.select(_db.productos)
+      ..where(
+        (t) =>
+            t.codigoBarras.equals(code) |
+            t.codigoPersonalizado.equals(code) |
+            t.id.equals(code),
+      );
     final row = await query.getSingleOrNull();
     return row != null ? _toModel(row) : null;
   }
@@ -91,6 +138,7 @@ class DriftProductosRepository implements ProductosRepository {
       codigoBarras: data.codigoBarras,
       codigoPersonalizado: data.codigoPersonalizado,
       proveedorNombre: data.proveedorNombre,
+      isActivo: data.isActivo,
     );
   }
 }

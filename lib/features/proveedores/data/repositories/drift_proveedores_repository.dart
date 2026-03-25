@@ -10,12 +10,26 @@ class DriftProveedoresRepository implements ProveedoresRepository {
 
   @override
   Future<List<Proveedor>> getAll() async {
+    final query = _db.select(_db.proveedores)
+      ..where((t) => t.isActivo.equals(true));
+    final rows = await query.get();
+    return rows.map((row) => _toModel(row)).toList();
+  }
+
+  Future<List<Proveedor>> getAllIncludingInactive() async {
     final rows = await _db.select(_db.proveedores).get();
     return rows.map((row) => _toModel(row)).toList();
   }
 
   @override
   Future<Proveedor?> getById(String id) async {
+    final query = _db.select(_db.proveedores)
+      ..where((t) => t.id.equals(id) & t.isActivo.equals(true));
+    final row = await query.getSingleOrNull();
+    return row != null ? _toModel(row) : null;
+  }
+
+  Future<Proveedor?> getByIdIncludingInactive(String id) async {
     final query = _db.select(_db.proveedores)..where((t) => t.id.equals(id));
     final row = await query.getSingleOrNull();
     return row != null ? _toModel(row) : null;
@@ -23,14 +37,17 @@ class DriftProveedoresRepository implements ProveedoresRepository {
 
   @override
   Future<void> save(Proveedor item) async {
-    await _db.into(_db.proveedores).insert(
-      ProveedoresCompanion.insert(
-        id: item.id,
-        nombre: item.nombre,
-        telefono: item.telefono,
-        diasVisita: item.diasVisita,
-      ),
-    );
+    await _db
+        .into(_db.proveedores)
+        .insert(
+          ProveedoresCompanion.insert(
+            id: item.id,
+            nombre: item.nombre,
+            telefono: item.telefono,
+            diasVisita: item.diasVisita,
+            isActivo: Value(item.isActivo),
+          ),
+        );
   }
 
   @override
@@ -40,7 +57,14 @@ class DriftProveedoresRepository implements ProveedoresRepository {
         nombre: Value(item.nombre),
         telefono: Value(item.telefono),
         diasVisita: Value(item.diasVisita),
+        isActivo: Value(item.isActivo),
       ),
+    );
+  }
+
+  Future<void> softDelete(String id) async {
+    await (_db.update(_db.proveedores)..where((t) => t.id.equals(id))).write(
+      const ProveedoresCompanion(isActivo: Value(false)),
     );
   }
 
@@ -55,6 +79,7 @@ class DriftProveedoresRepository implements ProveedoresRepository {
       nombre: data.nombre,
       telefono: data.telefono,
       diasVisita: data.diasVisita,
+      isActivo: data.isActivo,
     );
   }
 }

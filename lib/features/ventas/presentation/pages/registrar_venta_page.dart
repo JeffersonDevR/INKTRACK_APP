@@ -8,6 +8,7 @@ import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimiento
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/core/input_formatters.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
+import 'package:InkTrack/core/utils/number_formatter.dart';
 import 'package:image_picker/image_picker.dart';
 
 class RegistrarVentaPage extends StatefulWidget {
@@ -63,11 +64,11 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
     );
 
     context.read<VentasViewModel>().guardar(
-          venta,
-          movimientosVM: context.read<MovimientosViewModel>(),
-          clientesVM: context.read<ClientesViewModel>(),
-          inventarioVM: context.read<InventarioViewModel>(),
-        );
+      venta,
+      movimientosVM: context.read<MovimientosViewModel>(),
+      clientesVM: context.read<ClientesViewModel>(),
+      inventarioVM: context.read<InventarioViewModel>(),
+    );
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -90,18 +91,21 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
       bool foundSomething = false;
 
       if (result.amount != null) {
-        _montoController.text = result.amount!.toStringAsFixed(2);
+        _montoController.text = NumberFormatter.formatCurrency(
+          result.amount!,
+        ).replaceAll('\$', '');
         foundSomething = true;
       }
 
       if (result.clientName != null) {
         final clientName = result.clientName!;
         final clientesVM = context.read<ClientesViewModel>();
-        
+
         // Try to find a match in existing clients
         final match = clientesVM.clientes.firstWhere(
-          (c) => c.nombre.toLowerCase().contains(clientName.toLowerCase()) || 
-                 clientName.toLowerCase().contains(c.nombre.toLowerCase()),
+          (c) =>
+              c.nombre.toLowerCase().contains(clientName.toLowerCase()) ||
+              clientName.toLowerCase().contains(c.nombre.toLowerCase()),
           orElse: () => Cliente(id: '', nombre: '', telefono: '', email: ''),
         );
 
@@ -119,8 +123,11 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
 
       if (foundSomething) {
         String message = 'Datos detectados:';
-        if (result.amount != null) message += '\n- Monto: \$${result.amount!.toStringAsFixed(2)}';
-        if (result.clientName != null) message += '\n- Cliente: ${result.clientName}';
+        if (result.amount != null)
+          message +=
+              '\n- Monto: ${NumberFormatter.formatCurrency(result.amount!)}';
+        if (result.clientName != null)
+          message += '\n- Cliente: ${result.clientName}';
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -150,7 +157,10 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Escanear Nota / Recibo', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              'Escanear Nota / Recibo',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -225,7 +235,10 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                       }
                       return TextButton.icon(
                         onPressed: _showScanMenu,
-                        icon: const Icon(Icons.document_scanner_rounded, size: 18),
+                        icon: const Icon(
+                          Icons.document_scanner_rounded,
+                          size: 18,
+                        ),
                         label: const Text('Escanear'),
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -334,10 +347,12 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                         value: null,
                         child: Text('Sin producto vinculado'),
                       ),
-                      ...inventarioVM.productos.map((p) => DropdownMenuItem(
-                            value: p.id,
-                            child: Text('${p.nombre} (${p.cantidad} en stock)'),
-                          )),
+                      ...inventarioVM.productos.map(
+                        (p) => DropdownMenuItem(
+                          value: p.id,
+                          child: Text('${p.nombre} (${p.cantidad} en stock)'),
+                        ),
+                      ),
                     ],
                     onChanged: (value) {
                       setState(() {
@@ -347,10 +362,14 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                           final prod = inventarioVM.getById(value);
                           if (prod != null) {
                             if (_montoController.text.isEmpty) {
-                              _montoController.text = prod.precio.toStringAsFixed(2);
+                              _montoController.text =
+                                  NumberFormatter.formatCurrency(
+                                    prod.precio,
+                                  ).replaceAll('\$', '');
                             }
                             if (_conceptoController.text.isEmpty) {
-                              _conceptoController.text = 'Venta: ${prod.nombre}';
+                              _conceptoController.text =
+                                  'Venta: ${prod.nombre}';
                             }
                           }
                         }
@@ -368,7 +387,8 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                   ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
-                    if (_productoId != null && (value == null || value.isEmpty)) {
+                    if (_productoId != null &&
+                        (value == null || value.isEmpty)) {
                       return 'Ingrese la cantidad';
                     }
                     final n = int.tryParse(value!);
@@ -381,7 +401,9 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
               if (_clienteId != null) ...[
                 SwitchListTile(
                   title: const Text('Venta a crédito (Fiado)'),
-                  subtitle: const Text('Aumentará el saldo pendiente del cliente'),
+                  subtitle: const Text(
+                    'Aumentará el saldo pendiente del cliente',
+                  ),
                   value: _esFiado,
                   onChanged: (value) {
                     setState(() => _esFiado = value);

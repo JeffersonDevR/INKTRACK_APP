@@ -48,11 +48,12 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
           widget.cliente == null ? 'Nuevo Cliente' : 'Editar Cliente',
         ),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TextFormField(
                 controller: _nombreController,
@@ -109,21 +110,20 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
               const SizedBox(height: 16),
               SwitchListTile(
                 title: const Text('¿Es Fiado?'),
-                subtitle: const Text('Activar si este cliente tiene deudas pendientes'),
+                subtitle: const Text(
+                  'Activar si este cliente tiene deudas pendientes',
+                ),
                 value: _esFiado,
                 onChanged: (value) => setState(() => _esFiado = value),
                 tileColor: Colors.grey.withValues(alpha: 0.05),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _saveCliente,
-                  child: Text(
-                    widget.cliente == null ? 'Guardar' : 'Actualizar',
-                  ),
-                ),
+              ElevatedButton(
+                onPressed: _saveCliente,
+                child: Text(widget.cliente == null ? 'Guardar' : 'Actualizar'),
               ),
             ],
           ),

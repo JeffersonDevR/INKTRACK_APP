@@ -4,7 +4,7 @@ import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_
 import 'package:InkTrack/features/inventario/data/models/producto.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
-import 'package:InkTrack/features/inventario/presentation/widgets/barcode_viewer_dialog.dart';
+import 'package:InkTrack/core/utils/number_formatter.dart';
 import 'producto_form_page.dart';
 
 class InventarioPage extends StatelessWidget {
@@ -12,72 +12,113 @@ class InventarioPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Inventario')),
-      body: Consumer<InventarioViewModel>(
-        builder: (context, viewModel, child) {
-          if (viewModel.productos.isEmpty) {
-            return _EmptyInventario();
-          }
+    return Consumer<InventarioViewModel>(
+      builder: (context, viewModel, child) {
+        final showInactive = viewModel.showInactive;
 
-          return CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
-                sliver: SliverToBoxAdapter(
-                  child: FinancialSummaryHeader(
-                    title: 'Resumen\nInventario',
-                    totalIngresos: viewModel.totalProductos.toDouble(),
-                    totalEgresos: viewModel.productosConStockBajo.length.toDouble(),
-                    balance: viewModel.valorTotalInventario,
-                    label1: 'Stock Total',
-                    label2: 'Bajo Stock',
-                    label3: 'Valor Total',
-                    icon1: Icons.inventory_2_rounded,
-                    icon2: Icons.warning_amber_rounded,
-                    icon3: Icons.account_balance_wallet_rounded,
-                    isCurrency1: false,
-                    isCurrency2: false,
-                    isCurrency3: true,
-                  ),
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Inventario'),
+            actions: [
+              IconButton(
+                onPressed: () => viewModel.toggleShowInactive(),
+                icon: Icon(
+                  showInactive ? Icons.visibility_off : Icons.visibility,
+                  color: showInactive ? AppTheme.secondaryColor : null,
                 ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                sliver: SliverToBoxAdapter(
-                  child: Text(
-                    'Catálogo de Productos',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final producto = viewModel.productos[index];
-                      return _ProductoCard(
-                        producto: producto,
-                        onEdit: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProductoFormPage(producto: producto),
-                            ),
-                          );
-                        },
-                        onDelete: () => _showDeleteDialog(context, producto),
-                      );
-                    },
-                    childCount: viewModel.productos.length,
-                  ),
-                ),
+                tooltip: showInactive ? 'Ocultar inactivos' : 'Ver inactivos',
               ),
             ],
-          );
-        },
-      ),
+          ),
+          body: viewModel.productos.isEmpty && !showInactive
+              ? _EmptyInventario()
+              : CustomScrollView(
+                  slivers: [
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+                      sliver: SliverToBoxAdapter(
+                        child: FinancialSummaryHeader(
+                          title: 'Resumen\nInventario',
+                          totalIngresos: viewModel.totalProductos.toDouble(),
+                          totalEgresos: viewModel.productosConStockBajo.length
+                              .toDouble(),
+                          balance: viewModel.valorTotalInventario,
+                          label1: 'Stock Total',
+                          label2: 'Bajo Stock',
+                          label3: 'Valor Total',
+                          icon1: Icons.inventory_2_rounded,
+                          icon2: Icons.warning_amber_rounded,
+                          icon3: Icons.account_balance_wallet_rounded,
+                          isCurrency1: false,
+                          isCurrency2: false,
+                          isCurrency3: true,
+                        ),
+                      ),
+                    ),
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      sliver: SliverToBoxAdapter(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Catálogo de Productos',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            if (showInactive &&
+                                viewModel.productos
+                                    .where((p) => !p.isActivo)
+                                    .isNotEmpty)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  '${viewModel.productos.where((p) => !p.isActivo).length} inactivo(s)',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final producto = viewModel.productos[index];
+                          return _ProductoCard(
+                            producto: producto,
+                            onEdit: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      ProductoFormPage(producto: producto),
+                                ),
+                              );
+                            },
+                            onDelete: () =>
+                                _showDeleteDialog(context, producto),
+                            onReactivate: () =>
+                                _showReactivateDialog(context, producto),
+                          );
+                        }, childCount: viewModel.productos.length),
+                      ),
+                    ),
+                  ],
+                ),
+        );
+      },
     );
   }
 
@@ -86,7 +127,51 @@ class InventarioPage extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Eliminar producto'),
-        content: Text('¿Eliminar "${producto.nombre}" del inventario?'),
+        content: Text(
+          producto.isActivo
+              ? '¿Eliminar "${producto.nombre}" del inventario?\n\nEl producto se desactivará y no aparecerá en la lista, pero sus datos se mantendrán para auditoría.'
+              : '"${producto.nombre}" ya está desactivado.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          if (producto.isActivo)
+            TextButton(
+              onPressed: () {
+                context.read<InventarioViewModel>().eliminar(producto.id);
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('${producto.nombre} desactivado'),
+                    action: SnackBarAction(
+                      label: 'Deshacer',
+                      onPressed: () {
+                        context.read<InventarioViewModel>().reactivar(
+                          producto.id,
+                        );
+                      },
+                    ),
+                  ),
+                );
+              },
+              style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
+              child: const Text('Desactivar'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showReactivateDialog(BuildContext context, Producto producto) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Reactivar producto'),
+        content: Text(
+          '¿Reactivar "${producto.nombre}"?\n\nEl producto volverá a aparecer en el inventario.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -94,11 +179,13 @@ class InventarioPage extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
-              context.read<InventarioViewModel>().eliminar(producto.id);
+              context.read<InventarioViewModel>().reactivar(producto.id);
               Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('${producto.nombre} reactivado')),
+              );
             },
-            style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
-            child: const Text('Eliminar'),
+            child: const Text('Reactivar'),
           ),
         ],
       ),
@@ -138,24 +225,28 @@ class _EmptyInventario extends StatelessWidget {
   }
 }
 
-
 class _ProductoCard extends StatelessWidget {
   final Producto producto;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback onReactivate;
 
   const _ProductoCard({
     required this.producto,
     required this.onEdit,
     required this.onDelete,
+    required this.onReactivate,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isInactive = !producto.isActivo;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      color: isInactive ? Colors.grey.shade100 : null,
       child: InkWell(
-        onTap: onEdit,
+        onTap: isInactive ? null : onEdit,
         borderRadius: BorderRadius.circular(20),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -168,13 +259,26 @@ class _ProductoCard extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: (producto.stockBajo ? AppTheme.errorColor : AppTheme.primaryColor)
-                          .withValues(alpha: 0.1),
+                      color:
+                          (isInactive
+                                  ? Colors.grey
+                                  : (producto.stockBajo
+                                        ? AppTheme.errorColor
+                                        : AppTheme.primaryColor))
+                              .withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
-                      producto.stockBajo ? Icons.warning_amber_rounded : Icons.inventory_2_rounded,
-                      color: producto.stockBajo ? AppTheme.errorColor : AppTheme.primaryColor,
+                      isInactive
+                          ? Icons.block_rounded
+                          : (producto.stockBajo
+                                ? Icons.warning_amber_rounded
+                                : Icons.inventory_2_rounded),
+                      color: isInactive
+                          ? Colors.grey
+                          : (producto.stockBajo
+                                ? AppTheme.errorColor
+                                : AppTheme.primaryColor),
                       size: 24,
                     ),
                   ),
@@ -183,41 +287,108 @@ class _ProductoCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          producto.nombre,
-                          style: Theme.of(context).textTheme.labelLarge,
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                producto.nombre,
+                                style: Theme.of(context).textTheme.labelLarge
+                                    ?.copyWith(
+                                      color: isInactive ? Colors.grey : null,
+                                    ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (isInactive) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade400,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  'INACTIVO',
+                                  style: TextStyle(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                         Text(
                           producto.categoria,
-                          style: Theme.of(context).textTheme.bodySmall,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: isInactive ? Colors.grey : null,
+                              ),
                         ),
                       ],
                     ),
                   ),
                   PopupMenuButton<String>(
                     onSelected: (value) {
-                      if (value == 'edit') onEdit();
+                      if (value == 'edit' && !isInactive) onEdit();
                       if (value == 'delete') onDelete();
-                      if (value == 'view_code') {
-                        final code = producto.codigoBarras ?? producto.codigoPersonalizado ?? producto.id;
-                        final isCustom = producto.codigoPersonalizado != null && producto.codigoPersonalizado == code;
-                        showDialog(
-                          context: context,
-                          builder: (context) => BarcodeViewerDialog(
-                            code: code,
-                            productName: producto.nombre,
-                            isCustom: isCustom,
-                          ),
-                        );
-                      }
+                      if (value == 'reactivate' && isInactive) onReactivate();
                     },
                     itemBuilder: (context) => [
-                      const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit_outlined, size: 20), SizedBox(width: 8), Text('Editar')])),
-                      const PopupMenuItem(value: 'view_code', child: Row(children: [Icon(Icons.qr_code_2_rounded, size: 20), SizedBox(width: 8), Text('Ver Código')])),
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Row(children: [Icon(Icons.delete_outline_rounded, color: AppTheme.errorColor, size: 20), const SizedBox(width: 8), Text('Eliminar', style: TextStyle(color: AppTheme.errorColor))]),
-                      ),
+                      if (!isInactive)
+                        const PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit_outlined, size: 20),
+                              SizedBox(width: 8),
+                              Text('Editar'),
+                            ],
+                          ),
+                        ),
+                      if (isInactive)
+                        PopupMenuItem(
+                          value: 'reactivate',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.restore,
+                                color: AppTheme.secondaryColor,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Reactivar',
+                                style: TextStyle(
+                                  color: AppTheme.secondaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      if (!isInactive)
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.delete_outline_rounded,
+                                color: AppTheme.errorColor,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Desactivar',
+                                style: TextStyle(color: AppTheme.errorColor),
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                 ],
@@ -229,20 +400,37 @@ class _ProductoCard extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Precio Unitario', style: Theme.of(context).textTheme.labelSmall),
                       Text(
-                        '\$${producto.precio.toStringAsFixed(2)}',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: AppTheme.secondaryColor,
+                        'Precio Unitario',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: isInactive ? Colors.grey : null,
+                        ),
+                      ),
+                      Text(
+                        NumberFormatter.formatCurrency(producto.precio),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: isInactive
+                                  ? Colors.grey
+                                  : AppTheme.secondaryColor,
                               fontWeight: FontWeight.w900,
                             ),
                       ),
                     ],
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
-                      color: (producto.stockBajo ? AppTheme.errorColor : AppTheme.secondaryColor).withValues(alpha: 0.1),
+                      color:
+                          (isInactive
+                                  ? Colors.grey
+                                  : (producto.stockBajo
+                                        ? AppTheme.errorColor
+                                        : AppTheme.secondaryColor))
+                              .withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -250,13 +438,22 @@ class _ProductoCard extends StatelessWidget {
                         Icon(
                           Icons.warehouse_rounded,
                           size: 16,
-                          color: producto.stockBajo ? AppTheme.errorColor : AppTheme.secondaryColor,
+                          color: isInactive
+                              ? Colors.grey
+                              : (producto.stockBajo
+                                    ? AppTheme.errorColor
+                                    : AppTheme.secondaryColor),
                         ),
                         const SizedBox(width: 6),
                         Text(
                           'Stock: ${producto.cantidad}',
-                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                color: producto.stockBajo ? AppTheme.errorColor : AppTheme.secondaryColor,
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                                color: isInactive
+                                    ? Colors.grey
+                                    : (producto.stockBajo
+                                          ? AppTheme.errorColor
+                                          : AppTheme.secondaryColor),
                                 fontWeight: FontWeight.bold,
                               ),
                         ),

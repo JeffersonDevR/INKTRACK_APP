@@ -8,6 +8,7 @@ class Cliente implements HasId {
   final String email;
   final bool esFiado;
   final double saldoPendiente;
+  final bool isActivo;
 
   Cliente({
     required this.id,
@@ -16,6 +17,7 @@ class Cliente implements HasId {
     required this.email,
     this.esFiado = false,
     this.saldoPendiente = 0.0,
+    this.isActivo = true,
   });
 
   Cliente copyWith({
@@ -25,6 +27,7 @@ class Cliente implements HasId {
     String? email,
     bool? esFiado,
     double? saldoPendiente,
+    bool? isActivo,
   }) {
     return Cliente(
       id: id ?? this.id,
@@ -33,6 +36,7 @@ class Cliente implements HasId {
       email: email ?? this.email,
       esFiado: esFiado ?? this.esFiado,
       saldoPendiente: saldoPendiente ?? this.saldoPendiente,
+      isActivo: isActivo ?? this.isActivo,
     );
   }
 }

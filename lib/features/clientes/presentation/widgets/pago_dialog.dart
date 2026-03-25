@@ -5,6 +5,7 @@ import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_view
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/input_formatters.dart';
+import 'package:InkTrack/core/utils/number_formatter.dart';
 
 class PagoDialog extends StatefulWidget {
   final Cliente cliente;
@@ -23,7 +24,9 @@ class _PagoDialogState extends State<PagoDialog> {
   void initState() {
     super.initState();
     _montoController = TextEditingController(
-      text: widget.cliente.saldoPendiente.toStringAsFixed(2),
+      text: NumberFormatter.formatCurrency(
+        widget.cliente.saldoPendiente,
+      ).replaceAll('\$', ''),
     );
   }
 
@@ -37,18 +40,20 @@ class _PagoDialogState extends State<PagoDialog> {
     if (!_formKey.currentState!.validate()) return;
 
     final monto = double.parse(_montoController.text.replaceAll(',', '.'));
-    
+
     context.read<ClientesViewModel>().registrarPago(
-          widget.cliente.id,
-          monto,
-          context.read<MovimientosViewModel>(),
-        );
+      widget.cliente.id,
+      monto,
+      context.read<MovimientosViewModel>(),
+    );
 
     Navigator.pop(context);
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Pago de \$${monto.toStringAsFixed(2)} registrado'),
+        content: Text(
+          'Pago de ${NumberFormatter.formatCurrency(monto)} registrado',
+        ),
         backgroundColor: AppTheme.successColor,
       ),
     );
@@ -65,7 +70,7 @@ class _PagoDialogState extends State<PagoDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Saldo pendiente: \$${widget.cliente.saldoPendiente.toStringAsFixed(2)}',
+              'Saldo pendiente: ${NumberFormatter.formatCurrency(widget.cliente.saldoPendiente)}',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
@@ -75,7 +80,9 @@ class _PagoDialogState extends State<PagoDialog> {
                 labelText: 'Monto a pagar',
                 prefixText: '\$ ',
               ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [InputFormatters.decimal],
               autofocus: true,
               validator: (value) {

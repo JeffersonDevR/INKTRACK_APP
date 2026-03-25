@@ -6,15 +6,17 @@ import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimiento
 import 'movimiento_form_page.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
+import 'package:InkTrack/core/utils/number_formatter.dart';
 
 class MovimientosPage extends StatelessWidget {
   const MovimientosPage({super.key});
 
   Future<void> _selectDateRange(BuildContext context) async {
     final viewModel = context.read<MovimientosViewModel>();
+    final now = DateTime.now();
     final initialRange = DateTimeRange(
-      start: viewModel.startDateFilter ?? DateTime.now().subtract(const Duration(days: 7)),
-      end: viewModel.endDateFilter ?? DateTime.now(),
+      start: viewModel.startDateFilter ?? now.subtract(const Duration(days: 7)),
+      end: viewModel.endDateFilter ?? now,
     );
 
     final DateTimeRange? picked = await showDateRangePicker(
@@ -55,7 +57,11 @@ class MovimientosPage extends StatelessWidget {
       ),
       body: Consumer<MovimientosViewModel>(
         builder: (context, viewModel, child) {
-          final items = viewModel.startDateFilter == null ? viewModel.items.reversed.toList() : viewModel.filteredItems..sort((a,b) => b.fecha.compareTo(a.fecha));
+          final items =
+              viewModel.startDateFilter == null
+                    ? viewModel.items.reversed.toList()
+                    : viewModel.filteredItems
+                ..sort((a, b) => b.fecha.compareTo(a.fecha));
 
           if (viewModel.items.isEmpty) {
             return _EmptyMovimientos();
@@ -69,9 +75,15 @@ class MovimientosPage extends StatelessWidget {
                   child: Column(
                     children: [
                       FinancialSummaryHeader(
-                        totalIngresos: viewModel.startDateFilter == null ? viewModel.totalIngresos : viewModel.totalIngresosFiltered,
-                        totalEgresos: viewModel.startDateFilter == null ? viewModel.totalEgresos : viewModel.totalEgresosFiltered,
-                        balance: viewModel.startDateFilter == null ? viewModel.balance : viewModel.balanceFiltered,
+                        totalIngresos: viewModel.startDateFilter == null
+                            ? viewModel.totalIngresos
+                            : viewModel.totalIngresosFiltered,
+                        totalEgresos: viewModel.startDateFilter == null
+                            ? viewModel.totalEgresos
+                            : viewModel.totalEgresosFiltered,
+                        balance: viewModel.startDateFilter == null
+                            ? viewModel.balance
+                            : viewModel.balanceFiltered,
                         startDate: viewModel.startDateFilter,
                         endDate: viewModel.endDateFilter,
                         onDateTap: () => _selectDateRange(context),
@@ -86,7 +98,9 @@ class MovimientosPage extends StatelessWidget {
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppTheme.textSecondary,
                               side: const BorderSide(color: Color(0xFFF1F5F9)),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
                           ),
                         ),
@@ -101,17 +115,17 @@ class MovimientosPage extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        viewModel.startDateFilter == null ? 'Registros Recientes' : 'Resultados del Filtro',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        viewModel.startDateFilter == null
+                            ? 'Registros Recientes'
+                            : 'Resultados del Filtro',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       if (viewModel.startDateFilter == null)
                         Text(
                           'Total: ${items.length}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppTheme.textSecondary,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppTheme.textSecondary),
                         ),
                     ],
                   ),
@@ -120,13 +134,10 @@ class MovimientosPage extends StatelessWidget {
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
                 sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final m = items[index];
-                      return _MovimientoItem(movimiento: m);
-                    },
-                    childCount: items.length,
-                  ),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final m = items[index];
+                    return _MovimientoItem(movimiento: m);
+                  }, childCount: items.length),
                 ),
               ),
             ],
@@ -146,14 +157,12 @@ class _MovimientoItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final isIngreso = movimiento.tipo == MovimientoType.ingreso;
     final isEgreso = movimiento.tipo == MovimientoType.egreso;
-    
-    final color = isIngreso 
-        ? AppTheme.secondaryColor 
-        : isEgreso 
-            ? AppTheme.errorColor 
-            : AppTheme.primaryColor;
-            
-    final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+
+    final color = isIngreso
+        ? AppTheme.secondaryColor
+        : isEgreso
+        ? AppTheme.errorColor
+        : AppTheme.primaryColor;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -163,11 +172,11 @@ class _MovimientoItem extends StatelessWidget {
           radius: 24,
           backgroundColor: color.withValues(alpha: 0.1),
           child: Icon(
-            isIngreso 
-                ? Icons.south_west_rounded 
-                : isEgreso 
-                    ? Icons.north_east_rounded 
-                    : Icons.info_outline,
+            isIngreso
+                ? Icons.south_west_rounded
+                : isEgreso
+                ? Icons.north_east_rounded
+                : Icons.info_outline,
             color: color,
             size: 20,
           ),
@@ -191,7 +200,7 @@ class _MovimientoItem extends StatelessWidget {
           children: [
             if (movimiento.tipo != MovimientoType.actividad)
               Text(
-                '${isIngreso ? '+' : '-'}${currencyFormat.format(movimiento.monto)}',
+                '${isIngreso ? '+' : '-'}${NumberFormatter.formatCurrency(movimiento.monto)}',
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   fontWeight: FontWeight.w900,
                   color: color,
@@ -204,9 +213,8 @@ class _MovimientoItem extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => MovimientoFormPage(
-                        movimiento: movimiento,
-                      ),
+                      builder: (context) =>
+                          MovimientoFormPage(movimiento: movimiento),
                     ),
                   );
                 } else if (value == 'delete') {
@@ -214,10 +222,32 @@ class _MovimientoItem extends StatelessWidget {
                 }
               },
               itemBuilder: (context) => [
-                const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit_outlined, size: 20), SizedBox(width: 8), Text('Editar')])),
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit_outlined, size: 20),
+                      SizedBox(width: 8),
+                      Text('Editar'),
+                    ],
+                  ),
+                ),
                 PopupMenuItem(
                   value: 'delete',
-                  child: Row(children: [Icon(Icons.delete_outline_rounded, color: AppTheme.errorColor, size: 20), const SizedBox(width: 8), Text('Eliminar', style: TextStyle(color: AppTheme.errorColor))]),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.delete_outline_rounded,
+                        color: AppTheme.errorColor,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Eliminar',
+                        style: TextStyle(color: AppTheme.errorColor),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -232,7 +262,9 @@ class _MovimientoItem extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Eliminar Registro'),
-        content: const Text('¿Estás seguro de que deseas eliminar este registro permanentemente?'),
+        content: const Text(
+          '¿Estás seguro de que deseas eliminar este registro permanentemente?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

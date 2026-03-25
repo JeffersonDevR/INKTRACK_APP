@@ -6,12 +6,14 @@ class BarcodeViewerDialog extends StatelessWidget {
   final String code;
   final String productName;
   final bool isCustom;
+  final String? customCode;
 
   const BarcodeViewerDialog({
     super.key,
     required this.code,
     required this.productName,
     this.isCustom = false,
+    this.customCode,
   });
 
   @override
@@ -36,9 +38,8 @@ class BarcodeViewerDialog extends StatelessWidget {
                       ),
                       Text(
                         productName,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -57,7 +58,9 @@ class BarcodeViewerDialog extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.1)),
+                border: Border.all(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.05),
@@ -67,60 +70,93 @@ class BarcodeViewerDialog extends StatelessWidget {
                 ],
               ),
               child: BarcodeWidget(
-                barcode: code.length <= 13 && _isNumeric(code) 
-                    ? Barcode.ean13() 
-                    : Barcode.qrCode(),
+                barcode: Barcode.ean13(),
                 data: code,
-                width: 200,
-                height: 200,
+                width: 220,
+                height: 100,
                 drawText: true,
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 14,
+                    color: Colors.grey.shade600,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'EAN-13 Colombia',
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 24),
+            if (customCode != null && isCustom) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.secondaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.label_outline,
+                      size: 16,
+                      color: AppTheme.secondaryColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      customCode!,
+                      style: const TextStyle(
+                        color: AppTheme.secondaryColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
             Text(
               'Escanea este código para identificar el producto',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall,
             ),
-            const SizedBox(height: 8),
-            if (isCustom)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppTheme.secondaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Text(
-                  'Código Personalizado',
-                  style: TextStyle(
-                    color: AppTheme.secondaryColor,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  // TODO: Implement share functionality if needed
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Funcionalidad de compartir no implementada')),
-                  );
-                },
-                icon: const Icon(Icons.share_outlined),
-                label: const Text('Compartir'),
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cerrar'),
               ),
             ),
           ],
         ),
       ),
     );
-  }
-
-  bool _isNumeric(String s) {
-    return double.tryParse(s) != null;
   }
 }

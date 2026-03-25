@@ -26,7 +26,10 @@ class ProveedoresPage extends StatelessWidget {
                   child: FinancialSummaryHeader(
                     title: 'Resumen\nProveedores',
                     totalIngresos: viewModel.proveedores.length.toDouble(),
-                    totalEgresos: viewModel.proveedores.where((p) => p.diasVisita.isNotEmpty).length.toDouble(),
+                    totalEgresos: viewModel.proveedores
+                        .where((p) => p.diasVisita.isNotEmpty)
+                        .length
+                        .toDouble(),
                     balance: 0,
                     label1: 'Total',
                     label2: 'Con Ruta',
@@ -52,74 +55,114 @@ class ProveedoresPage extends StatelessWidget {
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
                 sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final proveedor = viewModel.proveedores[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(16),
-                          leading: CircleAvatar(
-                            radius: 24,
-                            backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-                            child: const Icon(Icons.local_shipping_outlined, color: AppTheme.primaryColor),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final proveedor = viewModel.proveedores[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(16),
+                        leading: CircleAvatar(
+                          radius: 24,
+                          backgroundColor: AppTheme.primaryColor.withValues(
+                            alpha: 0.1,
                           ),
-                          title: Text(
-                            proveedor.nombre,
-                            style: Theme.of(context).textTheme.labelLarge,
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 4),
-                              Text(
-                                proveedor.telefono,
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                              if (proveedor.diasVisita.isNotEmpty) ...[
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.calendar_today_rounded, size: 14, color: AppTheme.secondaryColor),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      'Visita: ${proveedor.diasVisita.join(", ")}',
-                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                            color: AppTheme.secondaryColor,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ],
-                          ),
-                          trailing: PopupMenuButton<String>(
-                            onSelected: (value) {
-                              if (value == 'edit') {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ProveedorFormPage(proveedor: proveedor),
-                                  ),
-                                );
-                              } else if (value == 'delete') {
-                                _showDeleteDialog(context, proveedor);
-                              }
-                            },
-                            itemBuilder: (context) => [
-                              const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit_outlined, size: 20), SizedBox(width: 8), Text('Editar')])),
-                              PopupMenuItem(
-                                value: 'delete',
-                                child: Row(children: [Icon(Icons.delete_outline_rounded, color: AppTheme.errorColor, size: 20), const SizedBox(width: 8), Text('Eliminar', style: TextStyle(color: AppTheme.errorColor))]),
-                              ),
-                            ],
+                          child: const Icon(
+                            Icons.local_shipping_outlined,
+                            color: AppTheme.primaryColor,
                           ),
                         ),
-                      );
-                    },
-                    childCount: viewModel.proveedores.length,
-                  ),
+                        title: Text(
+                          proveedor.nombre,
+                          style: Theme.of(context).textTheme.labelLarge,
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 4),
+                            Text(
+                              proveedor.telefono,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            if (proveedor.diasVisita.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.calendar_today_rounded,
+                                    size: 14,
+                                    color: AppTheme.secondaryColor,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        'Visita: ${proveedor.diasVisitaShort}',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: AppTheme.secondaryColor,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                        trailing: PopupMenuButton<String>(
+                          onSelected: (value) {
+                            if (value == 'edit') {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      ProveedorFormPage(proveedor: proveedor),
+                                ),
+                              );
+                            } else if (value == 'delete') {
+                              _showDeleteDialog(context, proveedor);
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit_outlined, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Editar'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.delete_outline_rounded,
+                                    color: AppTheme.errorColor,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Eliminar',
+                                    style: TextStyle(
+                                      color: AppTheme.errorColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }, childCount: viewModel.proveedores.length),
                 ),
               ),
             ],

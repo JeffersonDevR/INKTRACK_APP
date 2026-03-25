@@ -2,21 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
-import 'package:InkTrack/features/movimientos/data/models/movimiento.dart' as mov_model;
+import 'package:InkTrack/features/movimientos/data/models/movimiento.dart'
+    as mov_model;
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
-import 'package:InkTrack/core/widgets/stat_card.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
 import 'package:InkTrack/core/widgets/trend_chart.dart';
+import 'package:InkTrack/core/utils/number_formatter.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   Future<void> _selectDateRange(BuildContext context) async {
     final viewModel = context.read<MovimientosViewModel>();
+    final now = DateTime.now();
     final initialRange = DateTimeRange(
-      start: viewModel.startDateFilter ?? DateTime.now().subtract(const Duration(days: 7)),
-      end: viewModel.endDateFilter ?? DateTime.now(),
+      start: viewModel.startDateFilter ?? now.subtract(const Duration(days: 7)),
+      end: viewModel.endDateFilter ?? now,
     );
 
     final DateTimeRange? picked = await showDateRangePicker(
@@ -75,14 +77,14 @@ class HomePage extends StatelessWidget {
             _DetailRow(label: 'Concepto', value: mov.concepto),
             _DetailRow(
               label: 'Monto',
-              value: NumberFormat.currency(symbol: '\$').format(mov.monto),
+              value: NumberFormatter.formatCurrency(mov.monto),
               valueStyle: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: mov.tipo == mov_model.MovimientoType.ingreso
                     ? Colors.green
                     : mov.tipo == mov_model.MovimientoType.egreso
-                        ? Colors.red
-                        : null,
+                    ? Colors.red
+                    : null,
               ),
             ),
             _DetailRow(
@@ -96,8 +98,8 @@ class HomePage extends StatelessWidget {
               value: mov.tipo == mov_model.MovimientoType.ingreso
                   ? 'Ingreso'
                   : mov.tipo == mov_model.MovimientoType.egreso
-                      ? 'Egreso'
-                      : 'Actividad',
+                  ? 'Egreso'
+                  : 'Actividad',
             ),
             const SizedBox(height: 16),
           ],
@@ -112,24 +114,36 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('InkTrack'),
         actions: [
-          IconButton(
-            onPressed: () => _selectDateRange(context),
-            icon: const Icon(Icons.date_range_rounded),
+          Builder(
+            builder: (ctx) => IconButton(
+              onPressed: () => _selectDateRange(ctx),
+              icon: const Icon(Icons.date_range_rounded),
+            ),
           ),
         ],
       ),
       body: Consumer2<MovimientosViewModel, InventarioViewModel>(
         builder: (context, movVM, invVM, child) {
           final summary = FinancialSummaryHeader(
-            totalIngresos: movVM.startDateFilter == null ? movVM.totalIngresosHoy : movVM.totalIngresosFiltered,
-            totalEgresos: movVM.startDateFilter == null ? movVM.totalEgresosHoy : movVM.totalEgresosFiltered,
-            balance: movVM.startDateFilter == null ? movVM.balanceHoy : movVM.balanceFiltered,
+            totalIngresos: movVM.startDateFilter == null
+                ? movVM.totalIngresosHoy
+                : movVM.totalIngresosFiltered,
+            totalEgresos: movVM.startDateFilter == null
+                ? movVM.totalEgresosHoy
+                : movVM.totalEgresosFiltered,
+            balance: movVM.startDateFilter == null
+                ? movVM.balanceHoy
+                : movVM.balanceFiltered,
             startDate: movVM.startDateFilter,
             endDate: movVM.endDateFilter,
             onDateTap: () => _selectDateRange(context),
           );
 
-          final historial = movVM.startDateFilter == null ? movVM.historialCompleto : movVM.filteredItems..sort((a,b) => b.fecha.compareTo(a.fecha));
+          final historial =
+              movVM.startDateFilter == null
+                    ? movVM.historialCompleto
+                    : movVM.filteredItems
+                ..sort((a, b) => b.fecha.compareTo(a.fecha));
 
           return CustomScrollView(
             slivers: [
@@ -141,37 +155,16 @@ class HomePage extends StatelessWidget {
                       summary,
                       const SizedBox(height: 24),
                       TrendChart(movimientos: movVM.items),
-                      const SizedBox(height: 24),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: StatCard(
-                              label: 'Valor Inventario',
-                              value: NumberFormat.currency(symbol: '\$').format(invVM.valorTotalInventario),
-                              color: AppTheme.secondaryColor,
-                              icon: Icons.storefront_rounded,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: StatCard(
-                              label: 'Stock Total',
-                              value: invVM.totalProductos.toString(),
-                              color: invVM.hayStockBajo ? AppTheme.errorColor : AppTheme.primaryColor,
-                              icon: invVM.hayStockBajo ? Icons.warning_amber_rounded : Icons.inventory_2_rounded,
-                            ),
-                          ),
-                        ],
-                      ),
                       const SizedBox(height: 32),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            movVM.startDateFilter == null ? 'Actividad de Hoy' : 'Resultados del Filtro',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            movVM.startDateFilter == null
+                                ? 'Actividad de Hoy'
+                                : 'Resultados del Filtro',
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           if (movVM.startDateFilter != null)
                             TextButton(
@@ -186,10 +179,7 @@ class HomePage extends StatelessWidget {
                 ),
               ),
               if (historial.isEmpty)
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: _EmptyState(),
-                )
+                SliverFillRemaining(hasScrollBody: false, child: _EmptyState())
               else
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
@@ -202,7 +192,10 @@ class HomePage extends StatelessWidget {
                           onTap: () => _showMovimientoDetalle(context, mov),
                         );
                       },
-                      childCount: historial.length > 10 && movVM.startDateFilter == null ? 10 : historial.length,
+                      childCount:
+                          historial.length > 10 && movVM.startDateFilter == null
+                          ? 10
+                          : historial.length,
                     ),
                   ),
                 ),
@@ -222,7 +215,11 @@ class _EmptyState extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 40),
         child: Column(
           children: [
-            Icon(Icons.history_toggle_off, size: 64, color: AppTheme.textSecondary.withValues(alpha: 0.2)),
+            Icon(
+              Icons.history_toggle_off,
+              size: 64,
+              color: AppTheme.textSecondary.withValues(alpha: 0.2),
+            ),
             const SizedBox(height: 16),
             Text(
               'No hay actividad registrada.',
@@ -247,8 +244,8 @@ class _MovimientoItem extends StatelessWidget {
     final color = mov.tipo == mov_model.MovimientoType.ingreso
         ? AppTheme.successColor
         : mov.tipo == mov_model.MovimientoType.egreso
-            ? AppTheme.errorColor
-            : AppTheme.primaryColor;
+        ? AppTheme.errorColor
+        : AppTheme.primaryColor;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -270,8 +267,8 @@ class _MovimientoItem extends StatelessWidget {
             mov.tipo == mov_model.MovimientoType.ingreso
                 ? Icons.add_rounded
                 : mov.tipo == mov_model.MovimientoType.egreso
-                    ? Icons.remove_rounded
-                    : Icons.info_outline_rounded,
+                ? Icons.remove_rounded
+                : Icons.info_outline_rounded,
             color: color,
             size: 20,
           ),
@@ -284,34 +281,35 @@ class _MovimientoItem extends StatelessWidget {
         ),
         subtitle: Text(
           '${DateFormat('HH:mm').format(mov.fecha)}${mov.categoria != null ? ' • ${mov.categoria}' : ''}',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: AppTheme.textSecondary,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
         ),
-        trailing: isMonetary 
-          ? Text(
-              (mov.tipo == mov_model.MovimientoType.ingreso ? '+ ' : '- ') + 
-              NumberFormat.currency(symbol: '\$').format(mov.monto),
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
+        trailing: isMonetary
+            ? Text(
+                (mov.tipo == mov_model.MovimientoType.ingreso ? '+ ' : '- ') +
+                    NumberFormatter.formatCurrency(mov.monto),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              )
+            : const Icon(
+                Icons.chevron_right_rounded,
+                color: AppTheme.textSecondary,
+                size: 20,
               ),
-            )
-          : const Icon(Icons.chevron_right_rounded, color: AppTheme.textSecondary, size: 20),
       ),
     );
   }
 }
+
 class _DetailRow extends StatelessWidget {
   final String label;
   final String value;
   final TextStyle? valueStyle;
 
-  const _DetailRow({
-    required this.label,
-    required this.value,
-    this.valueStyle,
-  });
+  const _DetailRow({required this.label, required this.value, this.valueStyle});
 
   @override
   Widget build(BuildContext context) {
@@ -320,10 +318,16 @@ class _DetailRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppTheme.textSecondary,
-          )),
-          Text(value, style: valueStyle ?? Theme.of(context).textTheme.bodyLarge),
+          Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
+          ),
+          Text(
+            value,
+            style: valueStyle ?? Theme.of(context).textTheme.bodyLarge,
+          ),
         ],
       ),
     );

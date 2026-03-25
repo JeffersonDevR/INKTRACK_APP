@@ -53,3 +53,4 @@ shorebird.yaml
 android/app/src/main/AndroidManifest.xml
 macos/Runner/Release.entitlements
 docs/DEEP_DIVE.md
+LEARNING.md

@@ -13,8 +13,8 @@ class Producto implements HasId {
   final String? codigoBarras;
   final String? codigoPersonalizado;
 
-  /// When no provider is selected, optional name.
   final String? proveedorNombre;
+  final bool isActivo;
 
   bool get stockBajo {
     return cantidad <= stockMinimo;
@@ -31,6 +31,7 @@ class Producto implements HasId {
     this.codigoBarras,
     this.codigoPersonalizado,
     this.proveedorNombre,
+    this.isActivo = true,
   });
 
   Producto copyWith({
@@ -44,6 +45,7 @@ class Producto implements HasId {
     String? codigoBarras,
     String? codigoPersonalizado,
     String? proveedorNombre,
+    bool? isActivo,
   }) {
     return Producto(
       id: id ?? this.id,
@@ -56,6 +58,7 @@ class Producto implements HasId {
       codigoBarras: codigoBarras ?? this.codigoBarras,
       codigoPersonalizado: codigoPersonalizado ?? this.codigoPersonalizado,
       proveedorNombre: proveedorNombre ?? this.proveedorNombre,
+      isActivo: isActivo ?? this.isActivo,
     );
   }
 }

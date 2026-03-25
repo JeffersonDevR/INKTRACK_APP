@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
+import '../utils/number_formatter.dart';
 
 class FinancialSummaryHeader extends StatelessWidget {
   final double totalIngresos;
@@ -40,13 +41,26 @@ class FinancialSummaryHeader extends StatelessWidget {
     this.isCurrency3 = true,
   });
 
+  String _formatValue(double val, bool isCurrency) {
+    if (isCurrency) {
+      return NumberFormatter.formatCurrency(val);
+    }
+    return NumberFormatter.formatNumber(val.toInt());
+  }
+
+  String _formatDateRange() {
+    if (startDate == null || endDate == null) return 'Hoy';
+    final df = DateFormat('dd MMM');
+    if (startDate!.year == endDate!.year &&
+        startDate!.month == endDate!.month &&
+        startDate!.day == endDate!.day) {
+      return df.format(startDate!);
+    }
+    return '${df.format(startDate!)} - ${df.format(endDate!)}';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
-    final numberFormat = NumberFormat.decimalPattern();
-    
-    String format(double val, bool isCurr) => isCurr ? currencyFormat.format(val) : numberFormat.format(val);
-
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -82,23 +96,33 @@ class FinancialSummaryHeader extends StatelessWidget {
                   onTap: onDateTap,
                   borderRadius: BorderRadius.circular(12),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.primaryColor.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.1)),
+                      border: Border.all(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.calendar_today_rounded, size: 12, color: AppTheme.primaryColor),
+                        const Icon(
+                          Icons.calendar_today_rounded,
+                          size: 12,
+                          color: AppTheme.primaryColor,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           _formatDateRange(),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppTheme.primaryColor,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                       ],
                     ),
@@ -113,20 +137,16 @@ class FinancialSummaryHeader extends StatelessWidget {
               Expanded(
                 child: _StatItem(
                   label: label1 ?? 'Ingresos',
-                  value: format(totalIngresos, isCurrency1),
+                  value: _formatValue(totalIngresos, isCurrency1),
                   color: AppTheme.secondaryColor,
                   icon: icon1 ?? Icons.south_west_rounded,
                 ),
               ),
-              Container(
-                width: 1,
-                height: 40,
-                color: const Color(0xFFF1F5F9),
-              ),
+              Container(width: 1, height: 40, color: const Color(0xFFF1F5F9)),
               Expanded(
                 child: _StatItem(
                   label: label2 ?? 'Egresos',
-                  value: format(totalEgresos, isCurrency2),
+                  value: _formatValue(totalEgresos, isCurrency2),
                   color: AppTheme.errorColor,
                   icon: icon2 ?? Icons.north_east_rounded,
                 ),
@@ -153,12 +173,15 @@ class FinancialSummaryHeader extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      format(balance, isCurrency3),
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -1,
-                        color: balance >= 0 || !isCurrency3 ? AppTheme.primaryColor : AppTheme.errorColor,
-                      ),
+                      _formatValue(balance, isCurrency3),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -1,
+                            color: balance >= 0 || !isCurrency3
+                                ? AppTheme.primaryColor
+                                : AppTheme.errorColor,
+                          ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
@@ -166,27 +189,23 @@ class FinancialSummaryHeader extends StatelessWidget {
               ),
               if (isCurrency3)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: (balance >= 0 ? AppTheme.primaryColor : AppTheme.errorColor).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(16),
+                    color:
+                        (balance >= 0
+                                ? AppTheme.primaryColor
+                                : AppTheme.errorColor)
+                            .withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
                   ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        balance >= 0 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
-                        size: 14,
-                        color: balance >= 0 ? AppTheme.primaryColor : AppTheme.errorColor,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        balance >= 0 ? 'Positivo' : 'Déficit',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: balance >= 0 ? AppTheme.primaryColor : AppTheme.errorColor,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ],
+                  child: Icon(
+                    balance >= 0
+                        ? Icons.trending_up_rounded
+                        : Icons.trending_down_rounded,
+                    size: 18,
+                    color: balance >= 0
+                        ? AppTheme.primaryColor
+                        : AppTheme.errorColor,
                   ),
                 ),
             ],
@@ -194,15 +213,6 @@ class FinancialSummaryHeader extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatDateRange() {
-    if (startDate == null || endDate == null) return 'Hoy';
-    final df = DateFormat('dd MMM');
-    if (startDate!.year == endDate!.year && startDate!.month == endDate!.month && startDate!.day == endDate!.day) {
-       return df.format(startDate!);
-    }
-    return '${df.format(startDate!)} - ${df.format(endDate!)}';
   }
 }
 
@@ -240,7 +250,7 @@ class _StatItem extends StatelessWidget {
               child: Text(
                 label,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: color, 
+                  color: color,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 0.5,
                 ),

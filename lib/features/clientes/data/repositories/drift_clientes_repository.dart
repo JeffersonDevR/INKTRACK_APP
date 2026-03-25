@@ -10,12 +10,26 @@ class DriftClientesRepository implements ClientesRepository {
 
   @override
   Future<List<Cliente>> getAll() async {
+    final query = _db.select(_db.clientes)
+      ..where((t) => t.isActivo.equals(true));
+    final rows = await query.get();
+    return rows.map((row) => _toModel(row)).toList();
+  }
+
+  Future<List<Cliente>> getAllIncludingInactive() async {
     final rows = await _db.select(_db.clientes).get();
     return rows.map((row) => _toModel(row)).toList();
   }
 
   @override
   Future<Cliente?> getById(String id) async {
+    final query = _db.select(_db.clientes)
+      ..where((t) => t.id.equals(id) & t.isActivo.equals(true));
+    final row = await query.getSingleOrNull();
+    return row != null ? _toModel(row) : null;
+  }
+
+  Future<Cliente?> getByIdIncludingInactive(String id) async {
     final query = _db.select(_db.clientes)..where((t) => t.id.equals(id));
     final row = await query.getSingleOrNull();
     return row != null ? _toModel(row) : null;
@@ -23,16 +37,19 @@ class DriftClientesRepository implements ClientesRepository {
 
   @override
   Future<void> save(Cliente item) async {
-    await _db.into(_db.clientes).insert(
-      ClientesCompanion.insert(
-        id: item.id,
-        nombre: item.nombre,
-        telefono: item.telefono,
-        email: item.email,
-        esFiado: Value(item.esFiado),
-        saldoPendiente: Value(item.saldoPendiente),
-      ),
-    );
+    await _db
+        .into(_db.clientes)
+        .insert(
+          ClientesCompanion.insert(
+            id: item.id,
+            nombre: item.nombre,
+            telefono: item.telefono,
+            email: item.email,
+            esFiado: Value(item.esFiado),
+            saldoPendiente: Value(item.saldoPendiente),
+            isActivo: Value(item.isActivo),
+          ),
+        );
   }
 
   @override
@@ -44,7 +61,14 @@ class DriftClientesRepository implements ClientesRepository {
         email: Value(item.email),
         esFiado: Value(item.esFiado),
         saldoPendiente: Value(item.saldoPendiente),
+        isActivo: Value(item.isActivo),
       ),
+    );
+  }
+
+  Future<void> softDelete(String id) async {
+    await (_db.update(_db.clientes)..where((t) => t.id.equals(id))).write(
+      const ClientesCompanion(isActivo: Value(false)),
     );
   }
 
@@ -61,6 +85,7 @@ class DriftClientesRepository implements ClientesRepository {
       email: data.email,
       esFiado: data.esFiado,
       saldoPendiente: data.saldoPendiente,
+      isActivo: data.isActivo,
     );
   }
 }

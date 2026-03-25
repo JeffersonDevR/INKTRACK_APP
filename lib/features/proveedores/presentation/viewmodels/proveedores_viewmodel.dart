@@ -63,14 +63,38 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
         telefono: telefono,
         diasVisita: diasVisita,
       );
-      
+
       await _repository.update(id, actualizado);
       update(id, actualizado);
     }
   }
 
   Future<void> eliminar(String id) async {
-    await _repository.delete(id);
-    delete(id);
+    await _repository.softDelete(id);
+    final proveedor = getById(id);
+    if (proveedor != null) {
+      update(id, proveedor.copyWith(isActivo: false));
+    }
+  }
+
+  Future<void> reactivar(String id) async {
+    final proveedor = await _repository.getByIdIncludingInactive(id);
+    if (proveedor != null) {
+      final activated = proveedor.copyWith(isActivo: true);
+      await _repository.update(id, activated);
+      if (getById(id) == null) {
+        add(activated);
+      } else {
+        update(id, activated);
+      }
+    }
+  }
+
+  Proveedor? getByIdIncludingInactive(String id) {
+    try {
+      return items.firstWhere((p) => p.id == id);
+    } catch (_) {
+      return null;
+    }
   }
 }

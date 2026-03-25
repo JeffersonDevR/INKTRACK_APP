@@ -14,7 +14,8 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
 
   List<Cliente> get clientes => items;
 
-  double get totalDeuda => items.fold(0.0, (sum, item) => sum + item.saldoPendiente);
+  double get totalDeuda =>
+      items.fold(0.0, (sum, item) => sum + item.saldoPendiente);
   int get totalClientes => items.length;
   int get clientesConDeuda => items.where((c) => c.saldoPendiente > 0).length;
 
@@ -52,10 +53,9 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
         concepto: 'Nuevo cliente: $nombre',
         categoria: 'Clientes',
       );
-      // Note: MovimientosViewModel will also be refactored similarly
       movimientosVM.guardar(movimiento);
     }
-    
+
     return nuevoCliente.id;
   }
 
@@ -74,7 +74,7 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
         email: email,
         esFiado: esFiado,
       );
-      
+
       await _repository.update(id, actualizado);
       update(id, actualizado);
     }
@@ -83,18 +83,46 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
   Future<void> actualizarSaldo(String id, double delta) async {
     final c = getById(id);
     if (c != null) {
+      final newSaldo = c.saldoPendiente + delta;
+      final shouldBeFiado = newSaldo > 0;
+
       final actualizado = c.copyWith(
-        saldoPendiente: c.saldoPendiente + delta,
+        saldoPendiente: newSaldo,
+        esFiado: shouldBeFiado || c.esFiado,
       );
-      
+
       await _repository.update(id, actualizado);
       update(id, actualizado);
     }
   }
 
   Future<void> eliminar(String id) async {
-    await _repository.delete(id);
-    delete(id);
+    await _repository.softDelete(id);
+    final cliente = getById(id);
+    if (cliente != null) {
+      update(id, cliente.copyWith(isActivo: false));
+    }
+  }
+
+  Future<void> reactivar(String id) async {
+    final cliente = await _repository.getByIdIncludingInactive(id);
+    if (cliente != null) {
+      final activated = cliente.copyWith(isActivo: true);
+      await _repository.update(id, activated);
+      if (getById(id) == null) {
+        add(activated);
+      } else {
+        update(id, activated);
+      }
+    }
+  }
+
+  Cliente? getByIdIncludingInactive(String id) {
+    try {
+      return items.firstWhere((c) => c.id == id);
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> registrarPago(
@@ -105,10 +133,8 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
     final cliente = getById(clienteId);
     if (cliente == null || monto <= 0) return;
 
-    // 1. Reduce debt
     await actualizarSaldo(clienteId, -monto);
 
-    // 2. Register income movement
     final movimiento = Movimiento(
       id: IdUtils.generateId(),
       monto: monto,

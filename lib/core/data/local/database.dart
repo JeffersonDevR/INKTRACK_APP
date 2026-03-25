@@ -16,6 +16,7 @@ class Clientes extends Table {
   TextColumn get email => text()();
   BoolColumn get esFiado => boolean().withDefault(const Constant(false))();
   RealColumn get saldoPendiente => real().withDefault(const Constant(0.0))();
+  BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -27,6 +28,7 @@ class Proveedores extends Table {
   TextColumn get nombre => text()();
   TextColumn get telefono => text()();
   TextColumn get diasVisita => text().map(const StringListConverter())();
+  BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -44,6 +46,7 @@ class Productos extends Table {
   TextColumn get codigoBarras => text().nullable()();
   TextColumn get codigoPersonalizado => text().nullable()();
   TextColumn get proveedorNombre => text().nullable()();
+  BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -98,7 +101,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -106,6 +109,11 @@ class AppDatabase extends _$AppDatabase {
     onUpgrade: (m, from, to) async {
       if (from < 2) {
         await m.addColumn(productos, productos.codigoPersonalizado);
+      }
+      if (from < 3) {
+        await m.addColumn(productos, productos.isActivo);
+        await m.addColumn(clientes, clientes.isActivo);
+        await m.addColumn(proveedores, proveedores.isActivo);
       }
     },
   );
