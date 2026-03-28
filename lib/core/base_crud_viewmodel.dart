@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 abstract class BaseCrudViewModel<T> extends ChangeNotifier {
+  
   final List<T> _items = [];
   List<T>? _cachedItems;
 

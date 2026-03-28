@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/inventario/data/models/producto.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
 import 'package:InkTrack/core/input_formatters.dart';
-import 'package:InkTrack/features/movimientos/presentation/pages/movimiento_form_page.dart';
-import 'package:InkTrack/features/movimientos/data/models/movimiento.dart' as mov_model;
+import 'package:InkTrack/core/utils/ean13_generator.dart';
 
 const String _kCustomProveedorValue = '__custom__';
 const String _kNewCategoryValue = '__new_category__';
@@ -25,7 +25,6 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
   final _nombreController = TextEditingController();
   final _cantidadController = TextEditingController();
   final _precioController = TextEditingController();
-  final _categoriaController = TextEditingController();
   final _stockMinimoController = TextEditingController(text: '5');
   final _codigoBarrasController = TextEditingController();
   final _proveedorNombreController = TextEditingController();
@@ -53,42 +52,13 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
     } else if (widget.initialCodigoBarras != null) {
       _codigoBarrasController.text = widget.initialCodigoBarras!;
     }
-
-    _codigoBarrasController.addListener(_checkBarcodeExistence);
   }
 
-  void _checkBarcodeExistence() {
-    if (widget.producto != null) return; // Only for new products
-    final code = _codigoBarrasController.text.trim();
-    if (code.isEmpty) return;
-
-    final viewModel = context.read<InventarioViewModel>();
-    final existing = viewModel.findProductoByCodigo(code);
-
-    if (existing != null) {
-      // If found, redirect to update stock
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        // Only if still mounted and we haven't already popped
-        if (mounted) {
-           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => MovimientoFormPage(
-                initialType: mov_model.MovimientoType.egreso,
-                movimiento: mov_model.Movimiento(
-                  id: '',
-                  monto: 0,
-                  fecha: DateTime.now(),
-                  tipo: mov_model.MovimientoType.egreso,
-                  concepto: 'Restock: ${existing.nombre}',
-                  productoId: existing.id,
-                  categoria: existing.categoria,
-                ),
-              ),
-            ),
-          );
-        }
-      });
-    }
+  void _generateBarcode() {
+    final barcode = Ean13Generator.generate();
+    setState(() {
+      _codigoBarrasController.text = barcode;
+    });
   }
 
   @override
@@ -96,7 +66,7 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
     _nombreController.dispose();
     _cantidadController.dispose();
     _precioController.dispose();
-    _categoriaController.dispose();
+    _stockMinimoController.dispose();
     _codigoBarrasController.dispose();
     _proveedorNombreController.dispose();
     super.dispose();
@@ -134,22 +104,42 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                 },
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _codigoBarrasController,
-                decoration: const InputDecoration(
-                  labelText: 'Código de barras / QR (opcional)',
-                  hintText: 'O escanear con el botón',
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _codigoBarrasController,
+                      decoration: const InputDecoration(
+                        labelText: 'Código de barras (EAN-13)',
+                        hintText: 'Se genera automáticamente',
+                      ),
+                      readOnly: true,
+                    ),
+                  ),
+                  if (widget.producto == null) ...[
+                    const SizedBox(width: 8),
+                    FilledButton.icon(
+                      onPressed: _generateBarcode,
+                      icon: const Icon(Icons.qr_code),
+                      label: const Text('Generar'),
+                    ),
+                  ],
+                ],
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _cantidadController,
                 decoration: const InputDecoration(
                   labelText: 'Cantidad',
-                  hintText: '0',
+                  hintText: '0 - 99',
+                  helperText: 'Máximo 99 unidades',
                 ),
                 keyboardType: TextInputType.number,
-                inputFormatters: [InputFormatters.digitsOnly],
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(2),
+                ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Ingrese la cantidad';
@@ -157,6 +147,9 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                   final cantidad = int.tryParse(value);
                   if (cantidad == null || cantidad < 0) {
                     return 'Cantidad inválida';
+                  }
+                  if (cantidad > 99) {
+                    return 'Máximo 99 unidades';
                   }
                   return null;
                 },
@@ -168,11 +161,16 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                   labelText: 'Precio',
                   hintText: '0.00',
                   prefixText: '\$ ',
+                  helperText: 'Máximo 9,999,999',
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                inputFormatters: [InputFormatters.decimal],
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'^\d{0,7}(\.\d{0,2})?$'),
+                  ),
+                ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Ingrese el precio';
@@ -180,6 +178,9 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                   final precio = double.tryParse(value.replaceAll(',', '.'));
                   if (precio == null || precio < 0) {
                     return 'Precio inválido';
+                  }
+                  if (precio > 9999999) {
+                    return 'Máximo 9,999,999';
                   }
                   return null;
                 },
@@ -189,11 +190,14 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                 builder: (context, ivm, child) {
                   final categories = ivm.categorias;
                   return DropdownButtonFormField<String>(
-                    initialValue: categories.contains(_categoria) ? _categoria : (categories.isNotEmpty ? null : null),
+                    initialValue: categories.contains(_categoria)
+                        ? _categoria
+                        : (categories.isNotEmpty ? null : null),
                     decoration: const InputDecoration(
                       labelText: 'Categoría',
                       hintText: 'Seleccione una categoría',
                     ),
+                    isExpanded: true,
                     items: [
                       ...categories.map(
                         (c) => DropdownMenuItem(value: c, child: Text(c)),
@@ -229,10 +233,13 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                 decoration: const InputDecoration(
                   labelText: 'Stock Mínimo',
                   hintText: '5',
-                  helperText: 'Alerta cuando la cantidad es menor o igual a este valor',
+                  helperText: 'Alerta cuando la cantidad baje de este nivel',
                 ),
                 keyboardType: TextInputType.number,
-                inputFormatters: [InputFormatters.digitsOnly],
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(4),
+                ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Ingrese el stock mínimo';
@@ -240,6 +247,9 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                   final stock = int.tryParse(value);
                   if (stock == null || stock < 0) {
                     return 'Stock mínimo inválido';
+                  }
+                  if (stock > 9999) {
+                    return 'Máximo 9999';
                   }
                   return null;
                 },
@@ -250,7 +260,7 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                   final items = <DropdownMenuItem<String>>[
                     const DropdownMenuItem(
                       value: null,
-                      child: Text('-- Seleccionar proveedor --'),
+                      child: Text('Seleccionar proveedor'),
                     ),
                     ...pvm.proveedores.map(
                       (p) =>
@@ -264,6 +274,7 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                   return DropdownButtonFormField<String>(
                     initialValue: _proveedorId,
                     decoration: const InputDecoration(labelText: 'Proveedor'),
+                    isExpanded: true,
                     items: items,
                     onChanged: (value) {
                       setState(() {
@@ -362,7 +373,7 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
     final precio = double.parse(_precioController.text.replaceAll(',', '.'));
 
     final producto = Producto(
-      id: widget.producto?.id ?? '', // Empty ID means new (or barcode will take precedence in VM)
+      id: widget.producto?.id ?? '',
       nombre: _nombreController.text.trim(),
       cantidad: int.parse(_cantidadController.text),
       precio: precio,
@@ -371,10 +382,11 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
       proveedorId: proveedorId.isEmpty ? '' : proveedorId,
       codigoBarras: codigoBarras,
       proveedorNombre: proveedorNombre,
+      isActivo: widget.producto?.isActivo ?? true,
     );
 
     viewModel.guardar(producto);
-    
+
     if (mounted) {
       Navigator.pop(context);
     }

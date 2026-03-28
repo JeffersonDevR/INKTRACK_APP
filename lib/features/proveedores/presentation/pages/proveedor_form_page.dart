@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
@@ -55,7 +56,7 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
           widget.proveedor == null ? 'Nuevo Proveedor' : 'Editar Proveedor',
         ),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
@@ -83,13 +84,20 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
                 decoration: const InputDecoration(
                   labelText: 'Teléfono',
                   border: OutlineInputBorder(),
-                  hintText: 'Ej. 1234567890',
+                  hintText: 'Ej. 3001234567',
+                  helperText: '10 dígitos sin espacios',
                 ),
                 keyboardType: TextInputType.phone,
-                inputFormatters: [InputFormatters.phone],
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(10),
+                ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor ingrese el teléfono';
+                  }
+                  if (value.length != 10) {
+                    return 'El teléfono debe tener exactamente 10 dígitos';
                   }
                   return null;
                 },

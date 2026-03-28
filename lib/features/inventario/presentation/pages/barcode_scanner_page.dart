@@ -3,7 +3,8 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
 import 'package:InkTrack/features/inventario/presentation/pages/producto_form_page.dart';
 import 'package:InkTrack/features/movimientos/presentation/pages/movimiento_form_page.dart';
-import 'package:InkTrack/features/movimientos/data/models/movimiento.dart' as mov_model;
+import 'package:InkTrack/features/movimientos/data/models/movimiento.dart'
+    as mov_model;
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 
 class BarcodeScannerPage extends StatefulWidget {
@@ -38,15 +39,15 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
     final viewModel = context.read<InventarioViewModel>();
     final productoExistente = viewModel.findProductoByCodigo(code);
 
-    Navigator.of(context).pop(); // Close scanner
-    
+    Navigator.of(context).pop();
+
     if (productoExistente != null) {
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => MovimientoFormPage(
             initialType: mov_model.MovimientoType.egreso,
             movimiento: mov_model.Movimiento(
-              id: '', // New movement
+              id: '',
               monto: 0,
               fecha: DateTime.now(),
               tipo: mov_model.MovimientoType.egreso,
@@ -70,20 +71,17 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Escanear código'),
+        title: const Text('Escanear Código'),
         actions: [
           IconButton(
             icon: ValueListenableBuilder(
               valueListenable: _controller,
               builder: (context, state, child) {
-                switch (state.torchState) {
-                  case TorchState.off:
-                    return const Icon(Icons.flash_off);
-                  case TorchState.on:
-                    return const Icon(Icons.flash_on);
-                  default:
-                    return const Icon(Icons.flash_auto);
-                }
+                return Icon(
+                  state.torchState == TorchState.on
+                      ? Icons.flash_on
+                      : Icons.flash_off,
+                );
               },
             ),
             onPressed: () => _controller.toggleTorch(),
@@ -92,39 +90,53 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
       ),
       body: Stack(
         children: [
-          MobileScanner(
-            controller: _controller,
-            onDetect: _onDetect,
-          ),
-          Center(
-            child: Container(
-              width: 280,
-              height: 280,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.white54, width: 2),
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 32,
-            left: 24,
-            right: 24,
-            child: Text(
-              'Apunta al código de barras o QR del producto',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                shadows: [
-                  Shadow(color: Colors.black87, blurRadius: 8),
-                  Shadow(color: Colors.black54, blurRadius: 4),
-                ],
-              ),
-            ),
+          MobileScanner(controller: _controller, onDetect: _onDetect),
+          CustomPaint(
+            painter: ScannerOverlayPainter(),
+            child: const SizedBox.expand(),
           ),
         ],
       ),
     );
   }
+}
+
+class ScannerOverlayPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black54
+      ..style = PaintingStyle.fill;
+
+    final scanAreaSize = size.width * 0.7;
+    final scanAreaLeft = (size.width - scanAreaSize) / 2;
+    final scanAreaTop = (size.height - scanAreaSize) / 2;
+
+    final scanRect = Rect.fromLTWH(
+      scanAreaLeft,
+      scanAreaTop,
+      scanAreaSize,
+      scanAreaSize,
+    );
+
+    final path = Path()
+      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..addRRect(RRect.fromRectAndRadius(scanRect, const Radius.circular(12)))
+      ..fillType = PathFillType.evenOdd;
+
+    canvas.drawPath(path, paint);
+
+    final borderPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(scanRect, const Radius.circular(12)),
+      borderPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

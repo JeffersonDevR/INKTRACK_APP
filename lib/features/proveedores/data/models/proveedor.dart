@@ -8,11 +8,27 @@ class Proveedor implements HasId {
   final List<String> _diasVisita;
   List<String> get diasVisita => List.unmodifiable(_diasVisita);
 
+  String get diasVisitaShort {
+    const dayMap = {
+      'Lunes': 'Lun',
+      'Martes': 'Mar',
+      'Miércoles': 'Mié',
+      'Jueves': 'Jue',
+      'Viernes': 'Vie',
+      'Sábado': 'Sáb',
+      'Domingo': 'Dom',
+    };
+    return _diasVisita.map((d) => dayMap[d] ?? d).join(', ');
+  }
+
+  final bool isActivo;
+
   Proveedor({
     required this.id,
     required this.nombre,
     required this.telefono,
     required List<String> diasVisita,
+    this.isActivo = true,
   }) : _diasVisita = diasVisita;
 
   Proveedor copyWith({
@@ -20,12 +36,14 @@ class Proveedor implements HasId {
     String? nombre,
     String? telefono,
     List<String>? diasVisita,
+    bool? isActivo,
   }) {
     return Proveedor(
       id: id ?? this.id,
       nombre: nombre ?? this.nombre,
       telefono: telefono ?? this.telefono,
       diasVisita: diasVisita ?? _diasVisita,
+      isActivo: isActivo ?? this.isActivo,
     );
   }
 }

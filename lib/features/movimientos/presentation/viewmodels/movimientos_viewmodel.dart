@@ -12,6 +12,44 @@ class MovimientosViewModel extends BaseCrudViewModel<Movimiento> {
   final List<String> _categorias = ['Ventas', 'Servicios', 'Sueldos', 'Alquiler', 'Otros'];
   List<String> get categorias => List.unmodifiable(_categorias);
 
+  DateTime? _startDateFilter;
+  DateTime? _endDateFilter;
+
+  DateTime? get startDateFilter => _startDateFilter;
+  DateTime? get endDateFilter => _endDateFilter;
+
+  void setDateFilter(DateTime start, DateTime end) {
+    _startDateFilter = start;
+    _endDateFilter = end;
+    notifyListeners();
+  }
+
+  void clearDateFilter() {
+    _startDateFilter = null;
+    _endDateFilter = null;
+    notifyListeners();
+  }
+
+  List<Movimiento> get filteredItems {
+    if (_startDateFilter == null || _endDateFilter == null) {
+      return items.toList();
+    }
+    return items.where((m) {
+      return m.fecha.isAfter(_startDateFilter!.subtract(const Duration(milliseconds: 1))) &&
+          m.fecha.isBefore(_endDateFilter!.add(const Duration(milliseconds: 1)));
+    }).toList();
+  }
+
+  double get totalIngresosFiltered => filteredItems
+      .where((m) => m.tipo == MovimientoType.ingreso)
+      .fold(0.0, (sum, m) => sum + m.monto);
+
+  double get totalEgresosFiltered => filteredItems
+      .where((m) => m.tipo == MovimientoType.egreso)
+      .fold(0.0, (sum, m) => sum + m.monto);
+
+  double get balanceFiltered => totalIngresosFiltered - totalEgresosFiltered;
+
   Future<void> _loadMovimientos() async {
     final loaded = await _repository.getAll();
     for (var movimiento in loaded) {
@@ -71,10 +109,6 @@ class MovimientosViewModel extends BaseCrudViewModel<Movimiento> {
 
   @override
   void add(Movimiento item) {
-    // Note: In a real app, we would await _repository.save(item) here
-    // but BaseCrudViewModel.add is synchronous. 
-    // We expect the caller to have already saved to the repository or we handle it here.
-    // For now, we'll keep it consistent with other VMs.
     super.add(item);
   }
 

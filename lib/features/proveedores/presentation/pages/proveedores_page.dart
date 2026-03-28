@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
 import 'package:InkTrack/features/proveedores/data/models/proveedor.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
+import 'package:InkTrack/core/widgets/financial_summary_header.dart';
 import 'proveedor_form_page.dart';
 
 class ProveedoresPage extends StatelessWidget {
@@ -17,59 +18,154 @@ class ProveedoresPage extends StatelessWidget {
           if (viewModel.proveedores.isEmpty) {
             return _EmptyProveedores();
           }
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            itemCount: viewModel.proveedores.length,
-            itemBuilder: (context, index) {
-              final proveedor = viewModel.proveedores[index];
-              return Card(
-                child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  leading: CircleAvatar(
-                    backgroundColor: AppTheme.primaryColor.withValues(
-                      alpha: 0.12,
-                    ),
-                    child: const Icon(
-                      Icons.local_shipping,
-                      color: AppTheme.primaryColor,
-                    ),
-                  ),
-                  title: Text(
-                    proveedor.nombre,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  subtitle: Text(
-                    '${proveedor.telefono} • ${proveedor.diasVisita.isNotEmpty ? proveedor.diasVisita.join(", ") : "Sin días"}',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  trailing: PopupMenuButton<String>(
-                    onSelected: (value) {
-                      if (value == 'edit') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ProveedorFormPage(proveedor: proveedor),
-                          ),
-                        );
-                      } else if (value == 'delete') {
-                        _showDeleteDialog(context, proveedor);
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(value: 'edit', child: Text('Editar')),
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Text('Eliminar'),
-                      ),
-                    ],
+          return CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+                sliver: SliverToBoxAdapter(
+                  child: FinancialSummaryHeader(
+                    title: 'Resumen\nProveedores',
+                    totalIngresos: viewModel.proveedores.length.toDouble(),
+                    totalEgresos: viewModel.proveedores
+                        .where((p) => p.diasVisita.isNotEmpty)
+                        .length
+                        .toDouble(),
+                    balance: 0,
+                    label1: 'Total',
+                    label2: 'Con Ruta',
+                    label3: 'Estadísticas',
+                    icon1: Icons.local_shipping_rounded,
+                    icon2: Icons.route_rounded,
+                    icon3: Icons.bar_chart_rounded,
+                    isCurrency1: false,
+                    isCurrency2: false,
+                    isCurrency3: false,
                   ),
                 ),
-              );
-            },
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                sliver: SliverToBoxAdapter(
+                  child: Text(
+                    'Listado de Proveedores',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final proveedor = viewModel.proveedores[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(16),
+                        leading: CircleAvatar(
+                          radius: 24,
+                          backgroundColor: AppTheme.primaryColor.withValues(
+                            alpha: 0.1,
+                          ),
+                          child: const Icon(
+                            Icons.local_shipping_outlined,
+                            color: AppTheme.primaryColor,
+                          ),
+                        ),
+                        title: Text(
+                          proveedor.nombre,
+                          style: Theme.of(context).textTheme.labelLarge,
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 4),
+                            Text(
+                              proveedor.telefono,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            if (proveedor.diasVisita.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.calendar_today_rounded,
+                                    size: 14,
+                                    color: AppTheme.secondaryColor,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        'Visita: ${proveedor.diasVisitaShort}',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: AppTheme.secondaryColor,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                        trailing: PopupMenuButton<String>(
+                          onSelected: (value) {
+                            if (value == 'edit') {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      ProveedorFormPage(proveedor: proveedor),
+                                ),
+                              );
+                            } else if (value == 'delete') {
+                              _showDeleteDialog(context, proveedor);
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit_outlined, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Editar'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.delete_outline_rounded,
+                                    color: AppTheme.errorColor,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Eliminar',
+                                    style: TextStyle(
+                                      color: AppTheme.errorColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }, childCount: viewModel.proveedores.length),
+                ),
+              ),
+            ],
           );
         },
       ),

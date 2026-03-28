@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:InkTrack/features/ventas/presentation/viewmodels/ventas_viewmodel.dart';
 import 'package:InkTrack/features/ventas/data/models/venta.dart';
+import 'package:InkTrack/features/clientes/data/models/cliente.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
+import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/core/input_formatters.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
+import 'package:InkTrack/core/utils/number_formatter.dart';
+import 'package:image_picker/image_picker.dart';
 
 class RegistrarVentaPage extends StatefulWidget {
   const RegistrarVentaPage({super.key});
@@ -19,7 +23,10 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
   final _montoController = TextEditingController();
   final _clienteNombreController = TextEditingController();
   final _conceptoController = TextEditingController();
+  final _cantidadController = TextEditingController(text: '1');
   String? _clienteId;
+  String? _productoId;
+  bool _esFiado = false;
   static const String _kWriteNameValue = '__write_name__';
 
   @override
@@ -27,6 +34,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
     _montoController.dispose();
     _clienteNombreController.dispose();
     _conceptoController.dispose();
+    _cantidadController.dispose();
     super.dispose();
   }
 
@@ -48,14 +56,19 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
       monto: monto,
       fecha: DateTime.now(),
       clienteId: _clienteId == _kWriteNameValue ? null : _clienteId,
+      productoId: _productoId,
+      cantidad: int.tryParse(_cantidadController.text) ?? 0,
+      esFiado: _esFiado,
       clienteNombre: clienteNombre,
       concepto: _conceptoController.text.trim(),
     );
 
     context.read<VentasViewModel>().guardar(
-          venta,
-          movimientosVM: context.read<MovimientosViewModel>(),
-        );
+      venta,
+      movimientosVM: context.read<MovimientosViewModel>(),
+      clientesVM: context.read<ClientesViewModel>(),
+      inventarioVM: context.read<InventarioViewModel>(),
+    );
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -64,6 +77,116 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
       ),
     );
     Navigator.pop(context);
+  }
+
+  Future<void> _pickAndScanImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: source);
+    if (image == null) return;
+
+    final viewModel = context.read<VentasViewModel>();
+    final result = await viewModel.procesarImagenOCR(image);
+
+    if (result != null) {
+      bool foundSomething = false;
+
+      if (result.amount != null) {
+        _montoController.text = NumberFormatter.formatCurrency(
+          result.amount!,
+        ).replaceAll('\$', '');
+        foundSomething = true;
+      }
+
+      if (result.clientName != null) {
+        final clientName = result.clientName!;
+        final clientesVM = context.read<ClientesViewModel>();
+
+        // Try to find a match in existing clients
+        final match = clientesVM.clientes.firstWhere(
+          (c) =>
+              c.nombre.toLowerCase().contains(clientName.toLowerCase()) ||
+              clientName.toLowerCase().contains(c.nombre.toLowerCase()),
+          orElse: () => Cliente(id: '', nombre: '', telefono: '', email: ''),
+        );
+
+        setState(() {
+          if (match.id.isNotEmpty) {
+            _clienteId = match.id;
+            _clienteNombreController.clear();
+          } else {
+            _clienteId = _kWriteNameValue;
+            _clienteNombreController.text = clientName;
+          }
+        });
+        foundSomething = true;
+      }
+
+      if (foundSomething) {
+        String message = 'Datos detectados:';
+        if (result.amount != null)
+          message +=
+              '\n- Monto: ${NumberFormatter.formatCurrency(result.amount!)}';
+        if (result.clientName != null)
+          message += '\n- Cliente: ${result.clientName}';
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: AppTheme.primaryColor,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No se detectaron datos claros. Intente de nuevo.'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showScanMenu() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Escanear Nota / Recibo',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _ScanOption(
+                  icon: Icons.camera_alt_rounded,
+                  label: 'Cámara',
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _pickAndScanImage(ImageSource.camera);
+                  },
+                ),
+                _ScanOption(
+                  icon: Icons.photo_library_rounded,
+                  label: 'Galería',
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _pickAndScanImage(ImageSource.gallery);
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -94,9 +217,37 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                 },
               ),
               const SizedBox(height: 24),
-              Text(
-                'Monto de la venta',
-                style: Theme.of(context).textTheme.titleMedium,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Monto de la venta',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  Consumer<VentasViewModel>(
+                    builder: (context, vm, _) {
+                      if (vm.isScanning) {
+                        return const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        );
+                      }
+                      return TextButton.icon(
+                        onPressed: _showScanMenu,
+                        icon: const Icon(
+                          Icons.document_scanner_rounded,
+                          size: 18,
+                        ),
+                        label: const Text('Escanear'),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -180,6 +331,85 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                   },
                 ),
               ],
+              const SizedBox(height: 24),
+              Text(
+                'Producto (opcional para stock)',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 12),
+              Consumer<InventarioViewModel>(
+                builder: (context, inventarioVM, child) {
+                  return DropdownButtonFormField<String>(
+                    initialValue: _productoId,
+                    decoration: const InputDecoration(labelText: 'Producto'),
+                    items: [
+                      const DropdownMenuItem(
+                        value: null,
+                        child: Text('Sin producto vinculado'),
+                      ),
+                      ...inventarioVM.productos.map(
+                        (p) => DropdownMenuItem(
+                          value: p.id,
+                          child: Text('${p.nombre} (${p.cantidad} en stock)'),
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _productoId = value;
+                        // Pre-fill price and concept if product selected
+                        if (value != null) {
+                          final prod = inventarioVM.getById(value);
+                          if (prod != null) {
+                            if (_montoController.text.isEmpty) {
+                              _montoController.text =
+                                  NumberFormatter.formatCurrency(
+                                    prod.precio,
+                                  ).replaceAll('\$', '');
+                            }
+                            if (_conceptoController.text.isEmpty) {
+                              _conceptoController.text =
+                                  'Venta: ${prod.nombre}';
+                            }
+                          }
+                        }
+                      });
+                    },
+                  );
+                },
+              ),
+              if (_productoId != null) ...[
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _cantidadController,
+                  decoration: const InputDecoration(
+                    labelText: 'Cantidad vendida',
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (_productoId != null &&
+                        (value == null || value.isEmpty)) {
+                      return 'Ingrese la cantidad';
+                    }
+                    final n = int.tryParse(value!);
+                    if (n == null || n <= 0) return 'Cantidad inválida';
+                    return null;
+                  },
+                ),
+              ],
+              const SizedBox(height: 24),
+              if (_clienteId != null) ...[
+                SwitchListTile(
+                  title: const Text('Venta a crédito (Fiado)'),
+                  subtitle: const Text(
+                    'Aumentará el saldo pendiente del cliente',
+                  ),
+                  value: _esFiado,
+                  onChanged: (value) {
+                    setState(() => _esFiado = value);
+                  },
+                ),
+              ],
               const SizedBox(height: 32),
               SizedBox(
                 height: 52,
@@ -190,6 +420,36 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ScanOption extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _ScanOption({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Icon(icon, size: 40, color: AppTheme.primaryColor),
+            const SizedBox(height: 8),
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+          ],
         ),
       ),
     );

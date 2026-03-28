@@ -8,6 +8,7 @@ import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedore
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/input_formatters.dart';
+import 'package:InkTrack/core/utils/number_formatter.dart';
 
 const String _kNewCategoryValue = '__new_category__';
 
@@ -67,13 +68,15 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
 
   void _updateMontoAuto() {
     if (_productoId == null) return;
-    
+
     final ivm = context.read<InventarioViewModel>();
     final producto = ivm.productos.firstWhere((p) => p.id == _productoId);
     final cantidad = int.tryParse(_cantidadController.text) ?? 0;
-    
+
     setState(() {
-      _montoController.text = (producto.precio * cantidad).toStringAsFixed(2);
+      _montoController.text = NumberFormatter.formatCurrency(
+        producto.precio * cantidad,
+      ).replaceAll('\$', '');
     });
   }
 
@@ -81,7 +84,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
     if (_formKey.currentState!.validate()) {
       final monto = double.parse(_montoController.text);
       final cantidad = int.tryParse(_cantidadController.text);
-      
+
       final mov = Movimiento(
         id: widget.movimiento?.id ?? IdUtils.generateId(),
         monto: monto,
@@ -101,35 +104,41 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
       final cvm = context.read<ClientesViewModel>();
 
       if (widget.movimiento == null) {
-        viewModel.add(mov);
-        
+        viewModel.guardar(mov);
+
         // Post-save hooks for NEW movements
         if (_productoId != null && cantidad != null) {
           final delta = _tipo == MovimientoType.ingreso ? -cantidad : cantidad;
           ivm.actualizarStock(_productoId!, delta);
         }
-        
+
         if (_tipo == MovimientoType.ingreso && _esFiado && _clienteId != null) {
           cvm.actualizarSaldo(_clienteId!, monto);
         }
       } else {
         // REVERSAL Logic for existing movements
         final old = widget.movimiento!;
-        
+
         // 1. Revert Old Stock
         if (old.productoId != null && old.cantidad != null) {
-          final deltaRevert = old.tipo == MovimientoType.ingreso ? old.cantidad! : -old.cantidad!;
+          final deltaRevert = old.tipo == MovimientoType.ingreso
+              ? old.cantidad!
+              : -old.cantidad!;
           ivm.actualizarStock(old.productoId!, deltaRevert);
         }
-        
+
         // 2. Revert Old Debt (Saldo)
-        if (old.tipo == MovimientoType.ingreso && old.esFiado && old.clienteId != null) {
+        if (old.tipo == MovimientoType.ingreso &&
+            old.esFiado &&
+            old.clienteId != null) {
           cvm.actualizarSaldo(old.clienteId!, -old.monto);
         }
 
         // 3. Apply New Stock
         if (_productoId != null && cantidad != null) {
-          final deltaApply = _tipo == MovimientoType.ingreso ? -cantidad : cantidad;
+          final deltaApply = _tipo == MovimientoType.ingreso
+              ? -cantidad
+              : cantidad;
           ivm.actualizarStock(_productoId!, deltaApply);
         }
 
@@ -173,7 +182,9 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_tipo == MovimientoType.ingreso ? 'Nuevo Ingreso' : 'Nuevo Egreso'),
+        title: Text(
+          _tipo == MovimientoType.ingreso ? 'Nuevo Ingreso' : 'Nuevo Egreso',
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -202,7 +213,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                   });
                 },
               ),
-               const SizedBox(height: 24),
+              const SizedBox(height: 24),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -215,11 +226,15 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                         prefixText: '\$ ',
                         hintText: '0.00',
                       ),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       inputFormatters: [InputFormatters.decimal],
                       validator: (value) {
-                        if (value == null || value.isEmpty) return 'Ingrese un monto';
-                        if (double.tryParse(value) == null) return 'Monto inválido';
+                        if (value == null || value.isEmpty)
+                          return 'Ingrese un monto';
+                        if (double.tryParse(value) == null)
+                          return 'Monto inválido';
                         return null;
                       },
                     ),
@@ -228,16 +243,17 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                   Expanded(
                     child: TextFormField(
                       controller: _cantidadController,
-                      decoration: const InputDecoration(
-                        labelText: 'Cantidad',
-                      ),
+                      decoration: const InputDecoration(labelText: 'Cantidad'),
                       keyboardType: TextInputType.number,
                       inputFormatters: [InputFormatters.digitsOnly],
                       onChanged: (value) => _updateMontoAuto(),
                       validator: (value) {
                         if (_productoId != null) {
-                          if (value == null || value.isEmpty) return 'Requerido';
-                          if (int.tryParse(value) == null || int.parse(value) <= 0) return '> 0';
+                          if (value == null || value.isEmpty)
+                            return 'Requerido';
+                          if (int.tryParse(value) == null ||
+                              int.parse(value) <= 0)
+                            return '> 0';
                         }
                         return null;
                       },
@@ -255,7 +271,8 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                 textCapitalization: TextCapitalization.sentences,
                 inputFormatters: [InputFormatters.textOnly],
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'Ingrese un concepto';
+                  if (value == null || value.isEmpty)
+                    return 'Ingrese un concepto';
                   return null;
                 },
               ),
@@ -265,7 +282,9 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                   final categories = mvm.categorias;
                   return DropdownButtonFormField<String>(
                     isExpanded: true,
-                    initialValue: categories.contains(_categoria) ? _categoria : null,
+                    initialValue: categories.contains(_categoria)
+                        ? _categoria
+                        : null,
                     decoration: const InputDecoration(
                       labelText: 'Categoría',
                       prefixIcon: Icon(Icons.category_outlined),
@@ -303,8 +322,9 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
               const SizedBox(height: 16),
               Consumer<ClientesViewModel>(
                 builder: (context, cvm, child) {
-                  if (_tipo == MovimientoType.egreso) return const SizedBox.shrink();
-                  
+                  if (_tipo == MovimientoType.egreso)
+                    return const SizedBox.shrink();
+
                   final clientes = cvm.items;
                   return DropdownButtonFormField<String?>(
                     isExpanded: true,
@@ -315,11 +335,16 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                       hintText: 'Seleccione un cliente',
                     ),
                     items: [
-                      const DropdownMenuItem(value: null, child: Text('Ninguno')),
+                      const DropdownMenuItem(
+                        value: null,
+                        child: Text('Ninguno'),
+                      ),
                       ...clientes.map(
                         (c) => DropdownMenuItem(
-                          value: c.id, 
-                          child: Text('${c.nombre}${c.saldoPendiente > 0 ? " (\$${c.saldoPendiente.toStringAsFixed(0)})" : ""}'),
+                          value: c.id,
+                          child: Text(
+                            '${c.nombre}${c.saldoPendiente > 0 ? " (${NumberFormatter.formatCurrency(c.saldoPendiente)})" : ""}',
+                          ),
                         ),
                       ),
                     ],
@@ -332,7 +357,8 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
               ),
               Consumer<ProveedoresViewModel>(
                 builder: (context, pvm, child) {
-                  if (_tipo == MovimientoType.ingreso) return const SizedBox.shrink();
+                  if (_tipo == MovimientoType.ingreso)
+                    return const SizedBox.shrink();
 
                   final proveedores = pvm.proveedores;
                   return DropdownButtonFormField<String?>(
@@ -344,10 +370,13 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                       hintText: 'Seleccione un proveedor',
                     ),
                     items: [
-                      const DropdownMenuItem(value: null, child: Text('Ninguno')),
+                      const DropdownMenuItem(
+                        value: null,
+                        child: Text('Ninguno'),
+                      ),
                       ...proveedores.map(
                         (p) => DropdownMenuItem(
-                          value: p.id, 
+                          value: p.id,
                           child: Text(p.nombre),
                         ),
                       ),
@@ -382,9 +411,15 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                       hintText: 'Seleccione un producto',
                     ),
                     items: [
-                      const DropdownMenuItem(value: null, child: Text('Ninguno')),
+                      const DropdownMenuItem(
+                        value: null,
+                        child: Text('Ninguno'),
+                      ),
                       ...productos.map(
-                        (p) => DropdownMenuItem(value: p.id, child: Text('${p.nombre} (\$${p.precio})')),
+                        (p) => DropdownMenuItem(
+                          value: p.id,
+                          child: Text('${p.nombre} (\$${p.precio})'),
+                        ),
                       ),
                     ],
                     onChanged: (value) {
@@ -408,7 +443,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                   final picked = await showDatePicker(
                     context: context,
                     initialDate: _fecha,
-                    firstDate: DateTime(2020),
+                    firstDate: DateTime.now(),
                     lastDate: DateTime(2101),
                   );
                   if (picked != null) {
@@ -424,12 +459,15 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                 onPressed: _save,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: _tipo == MovimientoType.ingreso 
-                      ? Colors.green.shade600 
+                  backgroundColor: _tipo == MovimientoType.ingreso
+                      ? Colors.green.shade600
                       : AppTheme.errorColor,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('GUARDAR', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'GUARDAR',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           ),

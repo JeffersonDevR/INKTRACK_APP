@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
@@ -19,7 +20,6 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
   final _nombreController = TextEditingController();
   final _telefonoController = TextEditingController();
   final _emailController = TextEditingController();
-  bool _esFiado = false;
 
   @override
   void initState() {
@@ -28,7 +28,6 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
       _nombreController.text = widget.cliente!.nombre;
       _telefonoController.text = widget.cliente!.telefono;
       _emailController.text = widget.cliente!.email;
-      _esFiado = widget.cliente!.esFiado;
     }
   }
 
@@ -48,11 +47,12 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
           widget.cliente == null ? 'Nuevo Cliente' : 'Editar Cliente',
         ),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TextFormField(
                 controller: _nombreController,
@@ -76,13 +76,20 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
                 decoration: const InputDecoration(
                   labelText: 'Teléfono',
                   border: OutlineInputBorder(),
-                  hintText: 'Ej. 1234567890',
+                  hintText: 'Ej. 3001234567',
+                  helperText: '10 dígitos sin espacios',
                 ),
                 keyboardType: TextInputType.phone,
-                inputFormatters: [InputFormatters.phone],
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(10),
+                ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor ingrese el teléfono';
+                  }
+                  if (value.length != 10) {
+                    return 'El teléfono debe tener exactamente 10 dígitos';
                   }
                   return null;
                 },
@@ -106,24 +113,10 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
-              SwitchListTile(
-                title: const Text('¿Es Fiado?'),
-                subtitle: const Text('Activar si este cliente tiene deudas pendientes'),
-                value: _esFiado,
-                onChanged: (value) => setState(() => _esFiado = value),
-                tileColor: Colors.grey.withValues(alpha: 0.05),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
               const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _saveCliente,
-                  child: Text(
-                    widget.cliente == null ? 'Guardar' : 'Actualizar',
-                  ),
-                ),
+              ElevatedButton(
+                onPressed: _saveCliente,
+                child: Text(widget.cliente == null ? 'Guardar' : 'Actualizar'),
               ),
             ],
           ),
@@ -141,7 +134,7 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
           nombre: _nombreController.text,
           telefono: _telefonoController.text,
           email: _emailController.text,
-          esFiado: _esFiado,
+          esFiado: false,
           movimientosVM: context.read<MovimientosViewModel>(),
         );
       } else {
@@ -150,7 +143,7 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
           nombre: _nombreController.text,
           telefono: _telefonoController.text,
           email: _emailController.text,
-          esFiado: _esFiado,
+          esFiado: widget.cliente!.esFiado,
         );
       }
 

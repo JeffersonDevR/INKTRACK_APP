@@ -8,7 +8,7 @@ void main() {
   late VentasViewModel viewModel;
 
   setUp(() {
-    viewModel = VentasViewModel(VentasRepository());
+    viewModel = VentasViewModel(InMemoryVentasRepository());
   });
 
   group('VentasViewModel Business Logic Requirements', () {

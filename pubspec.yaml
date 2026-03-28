@@ -2,7 +2,7 @@ name: InkTrack
 description: "A POS app for a local store."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -38,11 +38,29 @@ dependencies:
   http: ^1.6.0
   uuid: ^4.5.3
   google_fonts: ^8.0.2
+  drift: ^2.23.0
+  sqlite3_flutter_libs: ^0.5.25
+  path_provider: ^2.1.5
+  path: ^1.9.0
+  google_mlkit_text_recognition: ^0.13.0
+  image_picker: ^1.1.2
+  fl_chart: ^0.70.2
+  barcode_widget: ^2.0.4
+  barcode: ^2.2.6
+  excel: ^4.0.3
+  pdf: ^3.11.1
+  printing: ^5.13.3
+  share_plus: ^10.1.4
+  supabase_flutter: ^2.0.0
+  flutter_dotenv: ^5.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_launcher_icons: "^0.13.1"
+  drift_dev: ^2.23.0
+  build_runner: ^2.4.14
+  mockito: ^5.4.5
 
 flutter_launcher_icons:
   android: "launcher_icon"
@@ -50,7 +68,7 @@ flutter_launcher_icons:
   image_path: "assets/icon/inktrack_logo.png"
   min_sdk_android: 21
   adaptive_icon_background: "#0F172A"
-  
+
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
@@ -63,11 +81,12 @@ flutter_launcher_icons:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  assets:
+    - shorebird.yaml
 
   # To add assets to your application, add an assets section, like this:
   # assets:

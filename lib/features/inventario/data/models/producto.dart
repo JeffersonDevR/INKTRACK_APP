@@ -10,11 +10,11 @@ class Producto implements HasId {
   final String proveedorId;
   final int stockMinimo;
 
-  /// Optional barcode/QR code.
   final String? codigoBarras;
+  final String? codigoPersonalizado;
 
-  /// When no provider is selected, optional name.
   final String? proveedorNombre;
+  final bool isActivo;
 
   bool get stockBajo {
     return cantidad <= stockMinimo;
@@ -29,7 +29,9 @@ class Producto implements HasId {
     required this.proveedorId,
     this.stockMinimo = 5,
     this.codigoBarras,
+    this.codigoPersonalizado,
     this.proveedorNombre,
+    this.isActivo = true,
   });
 
   Producto copyWith({
@@ -41,7 +43,9 @@ class Producto implements HasId {
     String? proveedorId,
     int? stockMinimo,
     String? codigoBarras,
+    String? codigoPersonalizado,
     String? proveedorNombre,
+    bool? isActivo,
   }) {
     return Producto(
       id: id ?? this.id,
@@ -52,7 +56,9 @@ class Producto implements HasId {
       proveedorId: proveedorId ?? this.proveedorId,
       stockMinimo: stockMinimo ?? this.stockMinimo,
       codigoBarras: codigoBarras ?? this.codigoBarras,
+      codigoPersonalizado: codigoPersonalizado ?? this.codigoPersonalizado,
       proveedorNombre: proveedorNombre ?? this.proveedorNombre,
+      isActivo: isActivo ?? this.isActivo,
     );
   }
 }

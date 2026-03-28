@@ -1,19 +1,36 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:printing/printing.dart';
+import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/features/clientes/presentation/pages/clientes_page.dart';
-import 'package:InkTrack/features/clientes/presentation/pages/cliente_form_page.dart';
 import 'package:InkTrack/features/proveedores/presentation/pages/proveedores_page.dart';
-import 'package:InkTrack/features/proveedores/presentation/pages/proveedor_form_page.dart';
 import 'package:InkTrack/features/ventas/presentation/pages/home_page.dart';
 import 'package:InkTrack/features/inventario/presentation/pages/inventario_page.dart';
-import 'package:InkTrack/features/inventario/presentation/pages/producto_form_page.dart';
-import 'package:InkTrack/features/inventario/presentation/pages/barcode_scanner_page.dart';
-import 'package:InkTrack/features/movimientos/presentation/pages/movimientos_page.dart';
 import 'package:InkTrack/features/movimientos/presentation/pages/movimiento_form_page.dart';
-import 'package:InkTrack/features/movimientos/data/models/movimiento.dart' as mov_model;
-import 'package:InkTrack/core/theme/app_theme.dart';
+import 'package:InkTrack/features/movimientos/data/models/movimiento.dart'
+    as mov_model;
+import 'package:InkTrack/features/ventas/presentation/pages/registrar_venta_page.dart';
+import 'package:InkTrack/features/clientes/presentation/pages/cliente_form_page.dart';
+import 'package:InkTrack/features/proveedores/presentation/pages/proveedor_form_page.dart';
+import 'package:InkTrack/features/inventario/presentation/pages/barcode_scanner_page.dart';
+import 'package:InkTrack/features/inventario/presentation/pages/producto_form_page.dart';
+import 'package:InkTrack/features/reportes/presentation/pages/reportes_page.dart';
+import 'package:InkTrack/features/home/presentation/widgets/speed_dial_fab.dart';
+import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
+import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
+import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
+import 'package:InkTrack/core/services/pdf_export_service.dart';
+import 'package:InkTrack/core/services/excel_export_service.dart';
+import 'package:InkTrack/core/services/auth_service.dart';
+import 'package:InkTrack/features/auth/presentation/pages/profile_page.dart';
 
 class MainLayoutPage extends StatefulWidget {
-  const MainLayoutPage({super.key});
+  final AuthService? authService;
+
+  const MainLayoutPage({super.key, this.authService});
 
   @override
   State<MainLayoutPage> createState() => _MainLayoutPageState();
@@ -27,161 +44,257 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
     ClientesPage(),
     ProveedoresPage(),
     InventarioPage(),
-    MovimientosPage(),
+    ReportesPage(),
   ];
 
-  void _onFabPressed(BuildContext context) {
+  FabTab get _currentFabTab {
     switch (_currentIndex) {
       case 0:
-        _showHomeFabOptions(context);
-        break;
+        return FabTab.home;
       case 1:
-        _showClientesFabOptions(context);
-        break;
+        return FabTab.clientes;
       case 2:
-        _showProveedoresFabOptions(context);
-        break;
+        return FabTab.proveedores;
       case 3:
-        _showInventarioFabOptions(context);
-        break;
+        return FabTab.inventario;
       case 4:
-        _showMovimientosFabOptions(context);
-        break;
+        return FabTab.reportes;
+      default:
+        return FabTab.home;
     }
   }
 
-  List<_FabOption> get _globalOptions => [
-        _FabOption(
-          icon: Icons.add_circle_outline,
-          title: 'Nuevo ingreso',
-          subtitle: 'Entrada de dinero casual o venta',
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const MovimientoFormPage(
-                initialType: mov_model.MovimientoType.ingreso,
-              ),
-            ),
-          ),
+  void _navigateToReports() {
+    setState(() {
+      _currentIndex = 4;
+    });
+  }
+
+  Future<void> _exportPdf(String type) async {
+    try {
+      final movVM = context.read<MovimientosViewModel>();
+      final invVM = context.read<InventarioViewModel>();
+      final cliVM = context.read<ClientesViewModel>();
+
+      Uint8List pdfData;
+      String filename;
+
+      switch (type) {
+        case 'movimientos':
+          pdfData = await PdfExportService.generateMovementsReport(movVM.items);
+          filename =
+              'reporte_movimientos_${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf';
+          break;
+        case 'inventario':
+          pdfData = await PdfExportService.generateInventoryReport(
+            invVM.productos,
+          );
+          filename =
+              'reporte_inventario_${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf';
+          break;
+        case 'clientes':
+          pdfData = await PdfExportService.generateClientDebtReport(
+            cliVM.clientes,
+          );
+          filename =
+              'reporte_clientes_${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf';
+          break;
+        default:
+          return;
+      }
+
+      await Printing.sharePdf(bytes: pdfData, filename: filename);
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('PDF exportado: $filename')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error al exportar PDF: $e')));
+      }
+    }
+  }
+
+  Future<void> _exportExcel(String type) async {
+    try {
+      final movVM = context.read<MovimientosViewModel>();
+      final invVM = context.read<InventarioViewModel>();
+      final cliVM = context.read<ClientesViewModel>();
+
+      Uint8List excelData;
+      String filename;
+
+      switch (type) {
+        case 'movimientos':
+          excelData = await ExcelExportService.generateMovementsReport(
+            movVM.items,
+          );
+          filename =
+              'reporte_movimientos_${DateFormat('yyyyMMdd').format(DateTime.now())}.xlsx';
+          break;
+        case 'inventario':
+          excelData = await ExcelExportService.generateInventoryReport(
+            invVM.productos,
+          );
+          filename =
+              'reporte_inventario_${DateFormat('yyyyMMdd').format(DateTime.now())}.xlsx';
+          break;
+        case 'clientes':
+          excelData = await ExcelExportService.generateClientDebtReport(
+            cliVM.clientes,
+          );
+          filename =
+              'reporte_clientes_${DateFormat('yyyyMMdd').format(DateTime.now())}.xlsx';
+          break;
+        default:
+          return;
+      }
+
+      await Share.shareXFiles([
+        XFile.fromData(
+          excelData,
+          name: filename,
+          mimeType:
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ),
-        _FabOption(
-          icon: Icons.remove_circle_outline,
-          title: 'Nuevo egreso',
-          subtitle: 'Gasto o pago realizado',
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const MovimientoFormPage(
-                initialType: mov_model.MovimientoType.egreso,
-              ),
+      ], text: 'Reporte InkTrack');
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Excel exportado: $filename')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error al exportar Excel: $e')));
+      }
+    }
+  }
+
+  void _showExportOptions(String format) {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.receipt_long),
+              title: const Text('Movimientos'),
+              onTap: () {
+                Navigator.pop(ctx);
+                if (format == 'pdf') {
+                  _exportPdf('movimientos');
+                } else {
+                  _exportExcel('movimientos');
+                }
+              },
             ),
-          ),
+            ListTile(
+              leading: const Icon(Icons.inventory_2),
+              title: const Text('Inventario'),
+              onTap: () {
+                Navigator.pop(ctx);
+                if (format == 'pdf') {
+                  _exportPdf('inventario');
+                } else {
+                  _exportExcel('inventario');
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.people),
+              title: const Text('Clientes'),
+              onTap: () {
+                Navigator.pop(ctx);
+                if (format == 'pdf') {
+                  _exportPdf('clientes');
+                } else {
+                  _exportExcel('clientes');
+                }
+              },
+            ),
+          ],
         ),
-      ];
-
-  void _showHomeFabOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _FabOptionsSheet(
-        title: 'Acciones globales',
-        options: _globalOptions,
-      ),
-    );
-  }
-
-  void _showClientesFabOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _FabOptionsSheet(
-        title: 'Acciones de clientes',
-        options: [
-          _FabOption(
-            icon: Icons.person_add,
-            title: 'Nuevo cliente',
-            subtitle: 'Registrar nuevo contacto',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ClienteFormPage()),
-            ),
-          ),
-          ..._globalOptions,
-        ],
-      ),
-    );
-  }
-
-  void _showProveedoresFabOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _FabOptionsSheet(
-        title: 'Acciones de proveedores',
-        options: [
-          _FabOption(
-            icon: Icons.local_shipping,
-            title: 'Nuevo proveedor',
-            subtitle: 'Registrar nueva fuente',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ProveedorFormPage()),
-            ),
-          ),
-          ..._globalOptions,
-        ],
-      ),
-    );
-  }
-
-  void _showMovimientosFabOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _FabOptionsSheet(
-        title: 'Nuevo registro',
-        options: _globalOptions,
-      ),
-    );
-  }
-
-  void _showInventarioFabOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _FabOptionsSheet(
-        title: 'Gestión de inventario',
-        options: [
-          _FabOption(
-            icon: Icons.edit,
-            title: 'Añadir manualmente',
-            subtitle: 'Completar formulario',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ProductoFormPage()),
-            ),
-          ),
-          _FabOption(
-            icon: Icons.qr_code_scanner,
-            title: 'Escanear código',
-            subtitle: 'Código de barras o QR',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const BarcodeScannerPage()),
-            ),
-          ),
-          ..._globalOptions,
-        ],
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final authService = widget.authService;
+    final user = authService?.currentUser;
+
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _pages),
+      body: Column(
+        children: [
+          Container(
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 8,
+              left: 16,
+              right: 16,
+              bottom: 8,
+            ),
+            color: AppTheme.primaryColor,
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.white,
+                  child: Text(
+                    user?.email?.substring(0, 1).toUpperCase() ?? 'U',
+                    style: const TextStyle(
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        user?.email?.split('@').first ?? 'Usuario',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const Text(
+                        'Admin',
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.person, color: Colors.white),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ProfilePage()),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: IndexedStack(index: _currentIndex, children: _pages),
+          ),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
+        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         onDestinationSelected: (int index) {
           setState(() {
             _currentIndex = index;
@@ -194,127 +307,78 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
             label: 'Inicio',
           ),
           NavigationDestination(
-            icon: Icon(Icons.attach_money_outlined),
-            selectedIcon: Icon(Icons.attach_money),
+            icon: Icon(Icons.people_alt_outlined),
+            selectedIcon: Icon(Icons.people_alt),
             label: 'Clientes',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.inventory_2_outlined),
-            selectedIcon: Icon(Icons.inventory_2),
-            label: 'Proveedores',
           ),
           NavigationDestination(
             icon: Icon(Icons.local_shipping_outlined),
             selectedIcon: Icon(Icons.local_shipping),
+            label: 'Proveedor',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.inventory_2_outlined),
+            selectedIcon: Icon(Icons.inventory_2),
             label: 'Inventario',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.bar_chart_outlined),
+            selectedIcon: Icon(Icons.bar_chart),
+            label: 'Reportes',
           ),
         ],
       ),
-      floatingActionButton: _buildFab(context),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-    );
-  }
-
-  Widget _buildFab(BuildContext context) {
-    return FloatingActionButton(
-      onPressed: () => _onFabPressed(context),
-      elevation: 4,
-      highlightElevation: 0,
-      backgroundColor: AppTheme.primaryColor,
-      foregroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: const Icon(Icons.add_rounded, size: 32),
-    );
-  }
-}
-
-class _FabOptionsSheet extends StatelessWidget {
-  final String title;
-  final List<_FabOption> options;
-
-  const _FabOptionsSheet({required this.title, required this.options});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-      ),
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-      child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: AppTheme.textSecondary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            Flexible(
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: options
-                      .map((option) => Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: AppTheme.backgroundColor.withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: ListTile(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                              leading: Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Icon(option.icon, color: AppTheme.primaryColor, size: 22),
-                              ),
-                              title: Text(option.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Text(option.subtitle, style: const TextStyle(fontSize: 12)),
-                              trailing: const Icon(Icons.chevron_right_rounded, size: 20, color: AppTheme.textSecondary),
-                              onTap: () {
-                                Navigator.pop(context);
-                                option.onTap();
-                              },
-                            ),
-                      ))
-                      .toList(),
-                ),
-              ),
-            ),
-          ],
+      floatingActionButton: SpeedDialFab(
+        currentTab: _currentFabTab,
+        onExportPdfPressed: () => _showExportOptions('pdf'),
+        onExportExcelPressed: () => _showExportOptions('excel'),
+        onScanBarcodePressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const BarcodeScannerPage()),
         ),
+        onOcrScanPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const RegistrarVentaPage()),
+        ),
+        onVentaPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const RegistrarVentaPage()),
+        ),
+        onIngresoPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MovimientoFormPage(
+              initialType: mov_model.MovimientoType.ingreso,
+            ),
+          ),
+        ),
+        onEgresoPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MovimientoFormPage(
+              initialType: mov_model.MovimientoType.egreso,
+            ),
+          ),
+        ),
+        onRestockPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const BarcodeScannerPage()),
+        ),
+        onClientePressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ClienteFormPage()),
+        ),
+        onProveedorPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ProveedorFormPage()),
+        ),
+        onProductoPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ProductoFormPage()),
+        ),
+        onReportesPressed: _navigateToReports,
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
-}
-
-class _FabOption {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  _FabOption({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
 }

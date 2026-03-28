@@ -1,0 +1,159 @@
+import 'dart:io';
+
+import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
+import 'package:drift/native.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
+
+part 'database.g.dart';
+
+@DataClassName('ClienteData')
+class Clientes extends Table {
+  TextColumn get id => text()();
+  TextColumn get nombre => text()();
+  TextColumn get telefono => text()();
+  TextColumn get email => text()();
+  BoolColumn get esFiado => boolean().withDefault(const Constant(false))();
+  RealColumn get saldoPendiente => real().withDefault(const Constant(0.0))();
+  BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
+  DateTimeColumn get lastSyncedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('ProveedorData')
+class Proveedores extends Table {
+  TextColumn get id => text()();
+  TextColumn get nombre => text()();
+  TextColumn get telefono => text()();
+  TextColumn get diasVisita => text().map(const StringListConverter())();
+  BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
+  DateTimeColumn get lastSyncedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('ProductoData')
+class Productos extends Table {
+  TextColumn get id => text()();
+  TextColumn get nombre => text()();
+  IntColumn get cantidad => integer()();
+  RealColumn get precio => real()();
+  TextColumn get categoria => text()();
+  TextColumn get proveedorId => text()();
+  IntColumn get stockMinimo => integer().withDefault(const Constant(5))();
+  TextColumn get codigoBarras => text().nullable()();
+  TextColumn get codigoPersonalizado => text().nullable()();
+  TextColumn get proveedorNombre => text().nullable()();
+  BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
+  DateTimeColumn get lastSyncedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('MovimientoData')
+class Movimientos extends Table {
+  TextColumn get id => text()();
+  RealColumn get monto => real()();
+  DateTimeColumn get fecha => dateTime()();
+  IntColumn get tipo => intEnum<MovimientoType>()();
+  TextColumn get concepto => text()();
+  TextColumn get categoria => text().nullable()();
+  TextColumn get productoId => text().nullable()();
+  TextColumn get clienteId => text().nullable()();
+  TextColumn get proveedorId => text().nullable()();
+  IntColumn get cantidad => integer().nullable()();
+  BoolColumn get esFiado => boolean().withDefault(const Constant(false))();
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
+  DateTimeColumn get lastSyncedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('VentaData')
+class Ventas extends Table {
+  TextColumn get id => text()();
+  RealColumn get monto => real()();
+  DateTimeColumn get fecha => dateTime()();
+  TextColumn get clienteId => text().nullable()();
+  TextColumn get clienteNombre => text().nullable()();
+  TextColumn get concepto => text().nullable()();
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
+  DateTimeColumn get lastSyncedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class StringListConverter extends TypeConverter<List<String>, String> {
+  const StringListConverter();
+  @override
+  List<String> fromSql(String fromDb) {
+    return fromDb.isEmpty ? [] : fromDb.split(',');
+  }
+
+  @override
+  String toSql(List<String> value) {
+    return value.join(',');
+  }
+}
+
+@DriftDatabase(tables: [Clientes, Proveedores, Productos, Movimientos, Ventas])
+class AppDatabase extends _$AppDatabase {
+  AppDatabase() : super(_openConnection());
+
+  @override
+  int get schemaVersion => 1; // TEMPORARY: Force fresh database for testing sync
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) async {
+      await m.createAll();
+    },
+    onUpgrade: (m, from, to) async {
+      debugPrint("Migrating from $from to $to");
+      if (from < 2) {
+        await m.addColumn(productos, productos.codigoPersonalizado);
+      }
+      if (from < 3) {
+        await m.addColumn(productos, productos.isActivo);
+        await m.addColumn(clientes, clientes.isActivo);
+        await m.addColumn(proveedores, proveedores.isActivo);
+      }
+      if (from < 4) {
+        await m.addColumn(productos, productos.syncStatus);
+        await m.addColumn(productos, productos.lastSyncedAt);
+        await m.addColumn(clientes, clientes.syncStatus);
+        await m.addColumn(clientes, clientes.lastSyncedAt);
+        await m.addColumn(proveedores, proveedores.syncStatus);
+        await m.addColumn(proveedores, proveedores.lastSyncedAt);
+        await m.addColumn(movimientos, movimientos.syncStatus);
+        await m.addColumn(movimientos, movimientos.lastSyncedAt);
+        await m.addColumn(ventas, ventas.syncStatus);
+        await m.addColumn(ventas, ventas.lastSyncedAt);
+      }
+    },
+    beforeOpen: (details) async {
+      debugPrint(
+        "Database opened: ${details.versionBefore} -> ${details.versionNow}",
+      );
+    },
+  );
+}
+
+LazyDatabase _openConnection() {
+  return LazyDatabase(() async {
+    final dbFolder = await getApplicationDocumentsDirectory();
+    final file = File(p.join(dbFolder.path, 'db.sqlite'));
+    return NativeDatabase(file);
+  });
+}

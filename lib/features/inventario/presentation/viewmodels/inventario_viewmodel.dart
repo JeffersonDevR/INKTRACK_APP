@@ -2,6 +2,7 @@ import 'package:InkTrack/core/base_crud_viewmodel.dart';
 import 'package:InkTrack/core/utils/id_utils.dart';
 import 'package:InkTrack/features/inventario/data/models/producto.dart';
 import 'package:InkTrack/features/inventario/data/repositories/productos_repository.dart';
+import 'package:InkTrack/features/inventario/data/repositories/drift_productos_repository.dart';
 
 class InventarioViewModel extends BaseCrudViewModel<Producto> {
   final ProductosRepository _repository;
@@ -10,9 +11,27 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
     _loadProductos();
   }
 
-  List<Producto> get productos => items;
+  List<Producto> get productos {
+    if (_showInactive) {
+      return items;
+    }
+    return items.where((p) => p.isActivo).toList();
+  }
 
-  final List<String> _categorias = ['Papeleria', 'Comestibles', 'Bebidas', 'Otros'];
+  bool _showInactive = false;
+  bool get showInactive => _showInactive;
+
+  void toggleShowInactive() {
+    _showInactive = !_showInactive;
+    notifyListeners();
+  }
+
+  final List<String> _categorias = [
+    'Papeleria',
+    'Comestibles',
+    'Bebidas',
+    'Otros',
+  ];
   List<String> get categorias => List.unmodifiable(_categorias);
 
   Future<void> _loadProductos() async {
@@ -32,8 +51,7 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
   Future<void> guardar(Producto producto) async {
     String finalId = producto.id;
     bool isNew = finalId.isEmpty;
-    
-    // If we have a barcode, it should be the ID
+
     if (producto.codigoBarras != null && producto.codigoBarras!.isNotEmpty) {
       finalId = producto.codigoBarras!;
     } else if (isNew) {
@@ -41,17 +59,13 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
     }
 
     final productoAGuardar = producto.copyWith(id: finalId);
-    
-    // If it's an update where the ID might have changed
+
     if (!isNew && producto.id != finalId) {
-      // Delete old one from repo and local list
       await _repository.delete(producto.id);
       delete(producto.id);
-      // Save as new with finalId
       await _repository.save(productoAGuardar);
       add(productoAGuardar);
     } else {
-      // Normal save or update with same ID
       final existingIndex = items.indexWhere((p) => p.id == finalId);
       if (existingIndex != -1) {
         await _repository.update(finalId, productoAGuardar);
@@ -64,8 +78,32 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
   }
 
   Future<void> eliminar(String id) async {
-    await _repository.delete(id);
-    delete(id);
+    await _repository.softDelete(id);
+    final producto = getById(id);
+    if (producto != null) {
+      update(id, producto.copyWith(isActivo: false));
+    }
+  }
+
+  Future<void> reactivar(String id) async {
+    final producto = await _repository.getByIdIncludingInactive(id);
+    if (producto != null) {
+      final activated = producto.copyWith(isActivo: true);
+      await _repository.update(id, activated);
+      if (getById(id) == null) {
+        add(activated);
+      } else {
+        update(id, activated);
+      }
+    }
+  }
+
+  Producto? getByIdIncludingInactive(String id) {
+    try {
+      return items.firstWhere((p) => p.id == id);
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> actualizarStock(String id, int delta) async {
@@ -76,6 +114,19 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
       );
       await _repository.update(id, actualizado);
       update(id, actualizado);
+    }
+  }
+
+  Future<void> restockWithReactivation(String codigo, int cantidad) async {
+    Producto? producto = findProductoByCodigoIncludingInactive(codigo);
+
+    if (producto != null && !producto.isActivo) {
+      await reactivar(producto.id);
+      producto = findProductoByCodigo(codigo);
+    }
+
+    if (producto != null) {
+      await actualizarStock(producto.id, cantidad);
     }
   }
 
@@ -98,13 +149,32 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
 
   bool get hayStockBajo => items.any((p) => p.stockBajo);
 
+  int get totalInactivos {
+    if (_repository is DriftProductosRepository) {
+      return items.where((p) => !p.isActivo).length;
+    }
+    return 0;
+  }
+
   Producto? findProductoByCodigo(String codigo) {
     try {
       return items.firstWhere(
-        (p) => p.codigoBarras == codigo || p.id == codigo,
+        (p) =>
+            p.codigoBarras == codigo ||
+            p.codigoPersonalizado == codigo ||
+            p.id == codigo,
       );
     } catch (_) {
       return null;
     }
+  }
+
+  Producto? findProductoByCodigoIncludingInactive(String codigo) {
+    if (_repository is DriftProductosRepository) {
+      // ignore: unnecessary_cast
+      final repo = _repository as DriftProductosRepository;
+      return repo.getByAnyCodeIncludingInactive(codigo) as Producto?;
+    }
+    return findProductoByCodigo(codigo);
   }
 }

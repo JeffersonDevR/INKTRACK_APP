@@ -1,0 +1,13 @@
+## Bitácora diaria – Plantilla
+
+- Fecha: YYYY-MM-DD
+- Especificaciones tocadas (IDs): SPEC-XXX, SPEC-YYY
+- Objetivo de la sesión:
+  - …
+- Qué se hizo hoy:
+  - …
+- Decisiones clave (si aplica):
+  - …
+- Próximos pasos:
+  - …
+
