@@ -23,16 +23,19 @@ class DriftVentasRepository implements VentasRepository {
 
   @override
   Future<void> save(Venta item) async {
-    await _db.into(_db.ventas).insert(
-      VentasCompanion.insert(
-        id: item.id,
-        monto: item.monto,
-        fecha: item.fecha,
-        clienteId: Value(item.clienteId),
-        clienteNombre: Value(item.clienteNombre),
-        concepto: Value(item.concepto),
-      ),
-    );
+    await _db
+        .into(_db.ventas)
+        .insert(
+          VentasCompanion.insert(
+            id: item.id,
+            monto: item.monto,
+            fecha: item.fecha,
+            clienteId: Value(item.clienteId),
+            clienteNombre: Value(item.clienteNombre),
+            concepto: Value(item.concepto),
+            syncStatus: const Value('pending_upload'),
+          ),
+        );
   }
 
   @override
@@ -44,6 +47,7 @@ class DriftVentasRepository implements VentasRepository {
         clienteId: Value(item.clienteId),
         clienteNombre: Value(item.clienteNombre),
         concepto: Value(item.concepto),
+        syncStatus: const Value('pending_upload'),
       ),
     );
   }

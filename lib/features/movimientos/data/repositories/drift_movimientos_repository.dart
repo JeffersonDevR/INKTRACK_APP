@@ -23,21 +23,24 @@ class DriftMovimientosRepository implements MovimientosRepository {
 
   @override
   Future<void> save(Movimiento item) async {
-    await _db.into(_db.movimientos).insert(
-      MovimientosCompanion.insert(
-        id: item.id,
-        monto: item.monto,
-        fecha: item.fecha,
-        tipo: item.tipo,
-        concepto: item.concepto,
-        categoria: Value(item.categoria),
-        productoId: Value(item.productoId),
-        clienteId: Value(item.clienteId),
-        proveedorId: Value(item.proveedorId),
-        cantidad: Value(item.cantidad),
-        esFiado: Value(item.esFiado),
-      ),
-    );
+    await _db
+        .into(_db.movimientos)
+        .insert(
+          MovimientosCompanion.insert(
+            id: item.id,
+            monto: item.monto,
+            fecha: item.fecha,
+            tipo: item.tipo,
+            concepto: item.concepto,
+            categoria: Value(item.categoria),
+            productoId: Value(item.productoId),
+            clienteId: Value(item.clienteId),
+            proveedorId: Value(item.proveedorId),
+            cantidad: Value(item.cantidad),
+            esFiado: Value(item.esFiado),
+            syncStatus: const Value('pending_upload'),
+          ),
+        );
   }
 
   @override
@@ -54,6 +57,7 @@ class DriftMovimientosRepository implements MovimientosRepository {
         proveedorId: Value(item.proveedorId),
         cantidad: Value(item.cantidad),
         esFiado: Value(item.esFiado),
+        syncStatus: const Value('pending_upload'),
       ),
     );
   }

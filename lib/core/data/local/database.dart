@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -17,6 +18,8 @@ class Clientes extends Table {
   BoolColumn get esFiado => boolean().withDefault(const Constant(false))();
   RealColumn get saldoPendiente => real().withDefault(const Constant(0.0))();
   BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
+  DateTimeColumn get lastSyncedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -29,6 +32,8 @@ class Proveedores extends Table {
   TextColumn get telefono => text()();
   TextColumn get diasVisita => text().map(const StringListConverter())();
   BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
+  DateTimeColumn get lastSyncedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -47,6 +52,8 @@ class Productos extends Table {
   TextColumn get codigoPersonalizado => text().nullable()();
   TextColumn get proveedorNombre => text().nullable()();
   BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
+  DateTimeColumn get lastSyncedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -65,6 +72,8 @@ class Movimientos extends Table {
   TextColumn get proveedorId => text().nullable()();
   IntColumn get cantidad => integer().nullable()();
   BoolColumn get esFiado => boolean().withDefault(const Constant(false))();
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
+  DateTimeColumn get lastSyncedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -78,6 +87,8 @@ class Ventas extends Table {
   TextColumn get clienteId => text().nullable()();
   TextColumn get clienteNombre => text().nullable()();
   TextColumn get concepto => text().nullable()();
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
+  DateTimeColumn get lastSyncedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -101,12 +112,15 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 1; // TEMPORARY: Force fresh database for testing sync
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-    onCreate: (m) => m.createAll(),
+    onCreate: (m) async {
+      await m.createAll();
+    },
     onUpgrade: (m, from, to) async {
+      debugPrint("Migrating from $from to $to");
       if (from < 2) {
         await m.addColumn(productos, productos.codigoPersonalizado);
       }
@@ -115,6 +129,23 @@ class AppDatabase extends _$AppDatabase {
         await m.addColumn(clientes, clientes.isActivo);
         await m.addColumn(proveedores, proveedores.isActivo);
       }
+      if (from < 4) {
+        await m.addColumn(productos, productos.syncStatus);
+        await m.addColumn(productos, productos.lastSyncedAt);
+        await m.addColumn(clientes, clientes.syncStatus);
+        await m.addColumn(clientes, clientes.lastSyncedAt);
+        await m.addColumn(proveedores, proveedores.syncStatus);
+        await m.addColumn(proveedores, proveedores.lastSyncedAt);
+        await m.addColumn(movimientos, movimientos.syncStatus);
+        await m.addColumn(movimientos, movimientos.lastSyncedAt);
+        await m.addColumn(ventas, ventas.syncStatus);
+        await m.addColumn(ventas, ventas.lastSyncedAt);
+      }
+    },
+    beforeOpen: (details) async {
+      debugPrint(
+        "Database opened: ${details.versionBefore} -> ${details.versionNow}",
+      );
     },
   );
 }

@@ -52,6 +52,7 @@ class DriftProductosRepository implements ProductosRepository {
             codigoPersonalizado: Value(item.codigoPersonalizado),
             proveedorNombre: Value(item.proveedorNombre),
             isActivo: Value(item.isActivo),
+            syncStatus: const Value('pending_upload'),
           ),
         );
   }
@@ -70,13 +71,17 @@ class DriftProductosRepository implements ProductosRepository {
         codigoPersonalizado: Value(item.codigoPersonalizado),
         proveedorNombre: Value(item.proveedorNombre),
         isActivo: Value(item.isActivo),
+        syncStatus: const Value('pending_upload'),
       ),
     );
   }
 
   Future<void> softDelete(String id) async {
     await (_db.update(_db.productos)..where((t) => t.id.equals(id))).write(
-      const ProductosCompanion(isActivo: Value(false)),
+      const ProductosCompanion(
+        isActivo: Value(false),
+        syncStatus: Value('pending_upload'),
+      ),
     );
   }
 

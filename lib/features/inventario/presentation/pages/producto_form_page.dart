@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/inventario/data/models/producto.dart';
@@ -131,10 +132,14 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                 controller: _cantidadController,
                 decoration: const InputDecoration(
                   labelText: 'Cantidad',
-                  hintText: '0',
+                  hintText: '0 - 99',
+                  helperText: 'Máximo 99 unidades',
                 ),
                 keyboardType: TextInputType.number,
-                inputFormatters: [InputFormatters.digitsOnly],
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(2),
+                ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Ingrese la cantidad';
@@ -142,6 +147,9 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                   final cantidad = int.tryParse(value);
                   if (cantidad == null || cantidad < 0) {
                     return 'Cantidad inválida';
+                  }
+                  if (cantidad > 99) {
+                    return 'Máximo 99 unidades';
                   }
                   return null;
                 },
@@ -153,11 +161,16 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                   labelText: 'Precio',
                   hintText: '0.00',
                   prefixText: '\$ ',
+                  helperText: 'Máximo 9,999,999',
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                inputFormatters: [InputFormatters.decimal],
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'^\d{0,7}(\.\d{0,2})?$'),
+                  ),
+                ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Ingrese el precio';
@@ -165,6 +178,9 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                   final precio = double.tryParse(value.replaceAll(',', '.'));
                   if (precio == null || precio < 0) {
                     return 'Precio inválido';
+                  }
+                  if (precio > 9999999) {
+                    return 'Máximo 9,999,999';
                   }
                   return null;
                 },
@@ -217,10 +233,13 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                 decoration: const InputDecoration(
                   labelText: 'Stock Mínimo',
                   hintText: '5',
-                  helperText: 'Alerta cuando la cantidad.',
+                  helperText: 'Alerta cuando la cantidad baje de este nivel',
                 ),
                 keyboardType: TextInputType.number,
-                inputFormatters: [InputFormatters.digitsOnly],
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(4),
+                ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Ingrese el stock mínimo';
@@ -228,6 +247,9 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                   final stock = int.tryParse(value);
                   if (stock == null || stock < 0) {
                     return 'Stock mínimo inválido';
+                  }
+                  if (stock > 9999) {
+                    return 'Máximo 9999';
                   }
                   return null;
                 },

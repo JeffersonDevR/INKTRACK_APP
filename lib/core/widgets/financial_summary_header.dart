@@ -43,7 +43,7 @@ class FinancialSummaryHeader extends StatelessWidget {
 
   String _formatValue(double val, bool isCurrency) {
     if (isCurrency) {
-      return NumberFormatter.formatCurrency(val);
+      return NumberFormatter.formatCompactWithDecimals(val);
     }
     return NumberFormatter.formatNumber(val.toInt());
   }

@@ -5,6 +5,7 @@ import 'package:InkTrack/features/inventario/data/models/producto.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
+import 'package:InkTrack/core/services/supabase_sync_service.dart';
 import 'producto_form_page.dart';
 
 class InventarioPage extends StatelessWidget {
@@ -20,6 +21,32 @@ class InventarioPage extends StatelessWidget {
           appBar: AppBar(
             title: const Text('Inventario'),
             actions: [
+              IconButton(
+                onPressed: () async {
+                  final syncService = context.read<SupabaseSyncService>();
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Sincronizando con la nube...'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+
+                  final result = await syncService.syncAll();
+
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text(result.message),
+                      backgroundColor: result.isSuccess
+                          ? Colors.green
+                          : Colors.red,
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.cloud_sync),
+                tooltip: 'Sincronizar con la nube',
+              ),
               IconButton(
                 onPressed: () => viewModel.toggleShowInactive(),
                 icon: Icon(

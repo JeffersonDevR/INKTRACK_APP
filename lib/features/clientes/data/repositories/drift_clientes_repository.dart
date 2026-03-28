@@ -48,6 +48,7 @@ class DriftClientesRepository implements ClientesRepository {
             esFiado: Value(item.esFiado),
             saldoPendiente: Value(item.saldoPendiente),
             isActivo: Value(item.isActivo),
+            syncStatus: const Value('pending_upload'),
           ),
         );
   }
@@ -62,13 +63,17 @@ class DriftClientesRepository implements ClientesRepository {
         esFiado: Value(item.esFiado),
         saldoPendiente: Value(item.saldoPendiente),
         isActivo: Value(item.isActivo),
+        syncStatus: const Value('pending_upload'),
       ),
     );
   }
 
   Future<void> softDelete(String id) async {
     await (_db.update(_db.clientes)..where((t) => t.id.equals(id))).write(
-      const ClientesCompanion(isActivo: Value(false)),
+      const ClientesCompanion(
+        isActivo: Value(false),
+        syncStatus: Value('pending_upload'),
+      ),
     );
   }
 

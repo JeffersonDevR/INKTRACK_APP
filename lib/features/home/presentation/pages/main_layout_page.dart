@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:printing/printing.dart';
+import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/features/clientes/presentation/pages/clientes_page.dart';
 import 'package:InkTrack/features/proveedores/presentation/pages/proveedores_page.dart';
 import 'package:InkTrack/features/ventas/presentation/pages/home_page.dart';
@@ -23,9 +24,13 @@ import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/core/services/pdf_export_service.dart';
 import 'package:InkTrack/core/services/excel_export_service.dart';
+import 'package:InkTrack/core/services/auth_service.dart';
+import 'package:InkTrack/features/auth/presentation/pages/profile_page.dart';
 
 class MainLayoutPage extends StatefulWidget {
-  const MainLayoutPage({super.key});
+  final AuthService? authService;
+
+  const MainLayoutPage({super.key, this.authService});
 
   @override
   State<MainLayoutPage> createState() => _MainLayoutPageState();
@@ -223,8 +228,70 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
 
   @override
   Widget build(BuildContext context) {
+    final authService = widget.authService;
+    final user = authService?.currentUser;
+
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _pages),
+      body: Column(
+        children: [
+          Container(
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 8,
+              left: 16,
+              right: 16,
+              bottom: 8,
+            ),
+            color: AppTheme.primaryColor,
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.white,
+                  child: Text(
+                    user?.email?.substring(0, 1).toUpperCase() ?? 'U',
+                    style: const TextStyle(
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        user?.email?.split('@').first ?? 'Usuario',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const Text(
+                        'Admin',
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.person, color: Colors.white),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ProfilePage()),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: IndexedStack(index: _currentIndex, children: _pages),
+          ),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,

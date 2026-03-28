@@ -46,6 +46,7 @@ class DriftProveedoresRepository implements ProveedoresRepository {
             telefono: item.telefono,
             diasVisita: item.diasVisita,
             isActivo: Value(item.isActivo),
+            syncStatus: const Value('pending_upload'),
           ),
         );
   }
@@ -58,13 +59,17 @@ class DriftProveedoresRepository implements ProveedoresRepository {
         telefono: Value(item.telefono),
         diasVisita: Value(item.diasVisita),
         isActivo: Value(item.isActivo),
+        syncStatus: const Value('pending_upload'),
       ),
     );
   }
 
   Future<void> softDelete(String id) async {
     await (_db.update(_db.proveedores)..where((t) => t.id.equals(id))).write(
-      const ProveedoresCompanion(isActivo: Value(false)),
+      const ProveedoresCompanion(
+        isActivo: Value(false),
+        syncStatus: Value('pending_upload'),
+      ),
     );
   }
 
