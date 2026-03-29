@@ -103,6 +103,11 @@ class ProfilePage extends StatelessWidget {
 
                   if (confirmed == true && context.mounted) {
                     await authService.signOut();
+                    if (context.mounted) {
+                      Navigator.of(
+                        context,
+                      ).pushNamedAndRemoveUntil('/login', (route) => false);
+                    }
                   }
                 },
                 icon: const Icon(Icons.logout),

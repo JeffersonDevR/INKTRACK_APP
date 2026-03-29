@@ -82,7 +82,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
 
   void _save() {
     if (_formKey.currentState!.validate()) {
-      final monto = double.parse(_montoController.text);
+      final monto = NumberFormatter.parseAmount(_montoController.text);
       final cantidad = int.tryParse(_cantidadController.text);
 
       final mov = Movimiento(
@@ -102,6 +102,27 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
       final viewModel = context.read<MovimientosViewModel>();
       final ivm = context.read<InventarioViewModel>();
       final cvm = context.read<ClientesViewModel>();
+
+      // Stock Validation
+      if (_productoId != null && cantidad != null) {
+        final product = ivm.getById(_productoId!);
+        if (product != null) {
+          // In this app's logic: ingreso = sale (stock decrease), egreso = restock (stock increase)
+          // Wait, let's double check line 111: delta = _tipo == MovimientoType.ingreso ? -cantidad : cantidad;
+          // Yes, Ingreso decreases stock.
+          if (_tipo == MovimientoType.ingreso && product.cantidad < cantidad) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'No hay suficiente stock. Disponible: ${product.cantidad}',
+                ),
+                backgroundColor: AppTheme.errorColor,
+              ),
+            );
+            return;
+          }
+        }
+      }
 
       if (widget.movimiento == null) {
         viewModel.guardar(mov);
@@ -218,7 +239,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    flex: 2,
+                    flex: 3,
                     child: TextFormField(
                       controller: _montoController,
                       decoration: const InputDecoration(
@@ -233,14 +254,16 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                       validator: (value) {
                         if (value == null || value.isEmpty)
                           return 'Ingrese un monto';
-                        if (double.tryParse(value) == null)
-                          return 'Monto inválido';
+                        final num = NumberFormatter.parseAmount(value);
+                        if (num <= 0) return 'Monto inválido';
+                        if (num > 999999999) return 'Máximo 999,999,999';
                         return null;
                       },
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   Expanded(
+                    flex: 2,
                     child: TextFormField(
                       controller: _cantidadController,
                       decoration: const InputDecoration(labelText: 'Cantidad'),
@@ -322,8 +345,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
               const SizedBox(height: 16),
               Consumer<ClientesViewModel>(
                 builder: (context, cvm, child) {
-                  if (_tipo == MovimientoType.egreso)
-                    return const SizedBox.shrink();
+                  // Removed type restriction as requested by user
 
                   final clientes = cvm.items;
                   return DropdownButtonFormField<String?>(
@@ -460,7 +482,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   backgroundColor: _tipo == MovimientoType.ingreso
-                      ? Colors.green.shade600
+                      ? AppTheme.successColor
                       : AppTheme.errorColor,
                   foregroundColor: Colors.white,
                 ),

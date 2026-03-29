@@ -30,14 +30,28 @@ class MovimientosViewModel extends BaseCrudViewModel<Movimiento> {
     notifyListeners();
   }
 
+  double get totalIngresos => items
+      .where((m) => m.tipo == MovimientoType.ingreso)
+      .fold(0.0, (sum, m) => sum + m.monto);
+
+  double get totalEgresos => items
+      .where((m) => m.tipo == MovimientoType.egreso)
+      .fold(0.0, (sum, m) => sum + m.monto);
+
+  double get balance => totalIngresos - totalEgresos;
+
   List<Movimiento> get filteredItems {
-    if (_startDateFilter == null || _endDateFilter == null) {
-      return items.toList();
-    }
+    if (startDateFilter == null) return historialCompleto;
+
     return items.where((m) {
-      return m.fecha.isAfter(_startDateFilter!.subtract(const Duration(milliseconds: 1))) &&
-          m.fecha.isBefore(_endDateFilter!.add(const Duration(milliseconds: 1)));
-    }).toList();
+      final isAfterStart =
+          startDateFilter == null || m.fecha.isAfter(startDateFilter!);
+      final isBeforeEnd =
+          endDateFilter == null ||
+          m.fecha.isBefore(endDateFilter!.add(const Duration(days: 1)));
+      return isAfterStart && isBeforeEnd;
+    }).toList()
+      ..sort((a, b) => b.fecha.compareTo(a.fecha));
   }
 
   double get totalIngresosFiltered => filteredItems
@@ -63,16 +77,6 @@ class MovimientosViewModel extends BaseCrudViewModel<Movimiento> {
       notifyListeners();
     }
   }
-
-  double get totalIngresos => items
-      .where((m) => m.tipo == MovimientoType.ingreso)
-      .fold(0.0, (sum, m) => sum + m.monto);
-
-  double get totalEgresos => items
-      .where((m) => m.tipo == MovimientoType.egreso)
-      .fold(0.0, (sum, m) => sum + m.monto);
-
-  double get balance => totalIngresos - totalEgresos;
 
   double get totalIngresosHoy {
     final now = DateTime.now();

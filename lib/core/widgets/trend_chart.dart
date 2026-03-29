@@ -119,7 +119,7 @@ class TrendChart extends StatelessWidget {
   Widget _buildLegend(BuildContext context) {
     return Row(
       children: [
-        _legendItem('Ingresos', AppTheme.secondaryColor),
+        _legendItem('Ingresos', AppTheme.tertiaryColor),
         const SizedBox(width: 12),
         _legendItem('Egresos', AppTheme.errorColor),
       ],
@@ -172,7 +172,7 @@ class TrendChart extends StatelessWidget {
       spots: data.asMap().entries.map((e) => FlSpot(e.key.toDouble(), isIngreso ? e.value.ingresos : e.value.egresos)).toList(),
       isCurved: true,
       curveSmoothness: 0.3,
-      color: isIngreso ? AppTheme.secondaryColor : AppTheme.errorColor,
+      color: isIngreso ? AppTheme.tertiaryColor : AppTheme.errorColor,
       barWidth: 3,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
@@ -182,8 +182,8 @@ class TrendChart extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            (isIngreso ? AppTheme.secondaryColor : AppTheme.errorColor).withValues(alpha: 0.15),
-            (isIngreso ? AppTheme.secondaryColor : AppTheme.errorColor).withValues(alpha: 0.0),
+            (isIngreso ? AppTheme.tertiaryColor : AppTheme.errorColor).withValues(alpha: 0.15),
+            (isIngreso ? AppTheme.tertiaryColor : AppTheme.errorColor).withValues(alpha: 0.0),
           ],
         ),
       ),

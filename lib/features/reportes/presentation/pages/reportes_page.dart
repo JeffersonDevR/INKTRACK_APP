@@ -8,6 +8,8 @@ import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
+import 'package:InkTrack/features/clientes/data/models/cliente.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class ReportesPage extends StatefulWidget {
   const ReportesPage({super.key});
@@ -39,11 +41,11 @@ class _ReportesPageState extends State<ReportesPage>
     super.dispose();
   }
 
-  List<Movimiento> _filterMovimientos(List<Movimiento> movements) {
+  List<Movimiento> _filterMovimientos(List<Movimiento> movements, MovimientosViewModel movVM) {
     return movements.where((m) {
-      if (_startDate != null && m.fecha.isBefore(_startDate!)) return false;
-      if (_endDate != null &&
-          m.fecha.isAfter(_endDate!.add(const Duration(days: 1))))
+      if (movVM.startDateFilter != null && m.fecha.isBefore(movVM.startDateFilter!)) return false;
+      if (movVM.endDateFilter != null &&
+          m.fecha.isAfter(movVM.endDateFilter!.add(const Duration(days: 1))))
         return false;
       return true;
     }).toList();
@@ -64,6 +66,7 @@ class _ReportesPageState extends State<ReportesPage>
     );
 
     if (picked != null) {
+      context.read<MovimientosViewModel>().setDateFilter(picked.start, picked.end);
       setState(() {
         _startDate = picked.start;
         _endDate = picked.end;
@@ -73,44 +76,7 @@ class _ReportesPageState extends State<ReportesPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Reportes'),
-        actions: [
-          IconButton(
-            onPressed: () => _selectDateRange(context),
-            icon: const Icon(Icons.date_range),
-            tooltip: 'Filtrar por fecha',
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          _buildKpiSection(),
-          TabBar(
-            controller: _tabController,
-            isScrollable: true,
-            tabs: const [
-              Tab(text: 'Resumen'),
-              Tab(text: 'Movimientos'),
-              Tab(text: 'Inventario'),
-              Tab(text: 'Clientes'),
-            ],
-          ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildResumenTab(),
-                _buildMovimientosTab(),
-                _buildInventarioTab(),
-                _buildClientesTab(),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+    return _buildKpiSection();
   }
 
   Widget _buildKpiSection() {
@@ -120,60 +86,86 @@ class _ReportesPageState extends State<ReportesPage>
       ClientesViewModel
     >(
       builder: (context, movVM, invVM, cliVM, child) {
-        final filteredMovs = _filterMovimientos(movVM.items);
+        final filteredMovs = _filterMovimientos(movVM.items, movVM);
         final totalIngresos = filteredMovs
             .where((m) => m.tipo == MovimientoType.ingreso)
             .fold(0.0, (sum, m) => sum + m.monto);
         final totalEgresos = filteredMovs
             .where((m) => m.tipo == MovimientoType.egreso)
             .fold(0.0, (sum, m) => sum + m.monto);
-        final balance = totalIngresos - totalEgresos;
-        final productosBajoStock = invVM.productosConStockBajo.length;
-
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
+        
+        final summaryHeader = FinancialSummaryHeader(
+          title: 'Resumen\nFinanciero',
+          totalIngresos: totalIngresos,
+          totalEgresos: totalEgresos,
+          balance: totalIngresos - totalEgresos,
+          startDate: movVM.startDateFilter,
+          endDate: movVM.endDateFilter,
+          onDateTap: () => _selectDateRange(context),
+        );
+        final kpiCards = SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+          child: Row(
             children: [
-              FinancialSummaryHeader(
-                totalIngresos: totalIngresos,
-                totalEgresos: totalEgresos,
-                balance: balance,
-                title: 'Resumen\nFinanciero',
-                onDateTap: () {
-                  _selectDateRange(context);
-                },
-                startDate: _startDate,
-                endDate: _endDate,
-                isCurrency3: balance >= 0,
+              _buildInsightCard(
+                label: 'Ingresos',
+                value: NumberFormatter.formatCompact(totalIngresos),
+                icon: Icons.trending_up,
+                color: AppTheme.successColor,
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildInsightCard(
-                      label: 'Stock Bajo',
-                      value: productosBajoStock.toString(),
-                      icon: Icons.warning_amber_rounded,
-                      color: productosBajoStock > 0
-                          ? AppTheme.errorColor
-                          : AppTheme.secondaryColor,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildInsightCard(
-                      label: 'Deuda Clientes',
-                      value: NumberFormatter.formatCompact(cliVM.totalDeuda),
-                      icon: Icons.people_outline,
-                      color: cliVM.totalDeuda > 0
-                          ? AppTheme.errorColor
-                          : AppTheme.secondaryColor,
-                    ),
-                  ),
-                ],
+              const SizedBox(width: 12),
+              _buildInsightCard(
+                label: 'Egresos',
+                value: NumberFormatter.formatCompact(totalEgresos),
+                icon: Icons.trending_down,
+                color: AppTheme.errorColor,
+              ),
+              const SizedBox(width: 12),
+              _buildInsightCard(
+                label: 'Balance',
+                value: NumberFormatter.formatCompact(totalIngresos - totalEgresos),
+                icon: Icons.account_balance_wallet,
+                color: AppTheme.primaryColor,
+              ),
+              const SizedBox(width: 12),
+              _buildInsightCard(
+                label: 'Bajo Stock',
+                value: invVM.productosConStockBajo.length.toString(),
+                icon: Icons.warning_amber_rounded,
+                color: Colors.orange,
               ),
             ],
           ),
+        );
+
+        return Column(
+          children: [
+            summaryHeader,
+            kpiCards,
+            const SizedBox(height: 8),
+            TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              tabs: const [
+                Tab(text: 'Resumen'),
+                Tab(text: 'Movimientos'),
+                Tab(text: 'Inventario'),
+                Tab(text: 'Clientes'),
+              ],
+            ),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildResumenTab(movVM, invVM, cliVM),
+                  _buildMovimientosTab(movVM),
+                  _buildInventarioTab(invVM),
+                  _buildClientesTab(movVM, cliVM),
+                ],
+              ),
+            ),
+          ],
         );
       },
     );
@@ -186,6 +178,7 @@ class _ReportesPageState extends State<ReportesPage>
     required Color color,
   }) {
     return Container(
+      width: 160,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -242,125 +235,150 @@ class _ReportesPageState extends State<ReportesPage>
     );
   }
 
-  Widget _buildResumenTab() {
-    return Consumer3<
-      MovimientosViewModel,
-      InventarioViewModel,
-      ClientesViewModel
-    >(
-      builder: (context, movVM, invVM, cliVM, child) {
-        final filteredMovs = _filterMovimientos(movVM.items);
+  Map<String, double> _getCategoryData(List<Movimiento> movs) {
+    final Map<String, double> data = {};
+    for (var m in movs.where((m) => m.tipo == MovimientoType.ingreso)) {
+      final cat = m.categoria ?? 'Sin Categoría';
+      data[cat] = (data[cat] ?? 0) + m.monto;
+    }
+    return data;
+  }
+
+  Map<String, double> _getCustomerData(List<Movimiento> movs) {
+    final Map<String, double> data = {};
+    for (var m in movs.where((m) => m.tipo == MovimientoType.ingreso && m.clienteId != null)) {
+      final cid = m.clienteId!;
+      data[cid] = (data[cid] ?? 0) + m.monto;
+    }
+    return data;
+  }
+
+  Widget _buildResumenTab(
+    MovimientosViewModel movVM,
+    InventarioViewModel invVM,
+    ClientesViewModel cliVM,
+  ) {
+    final filteredMovs = _filterMovimientos(movVM.items, movVM);
+        final categoryData = _getCategoryData(filteredMovs);
+        final customerData = _getCustomerData(filteredMovs);
+        
+        // Sort customers by spending
+        final sortedCustomers = customerData.entries.toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
 
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            _buildSectionTitle('Resumen del Período'),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSummaryRow(
-                      'Total Movimientos',
-                      filteredMovs.length.toString(),
-                    ),
-                    _buildSummaryRow(
-                      'Ingresos',
-                      filteredMovs
-                          .where((m) => m.tipo == MovimientoType.ingreso)
-                          .length
-                          .toString(),
-                    ),
-                    _buildSummaryRow(
-                      'Egresos',
-                      filteredMovs
-                          .where((m) => m.tipo == MovimientoType.egreso)
-                          .length
-                          .toString(),
-                    ),
-                    _buildSummaryRow(
-                      'Actividades',
-                      filteredMovs
-                          .where((m) => m.tipo == MovimientoType.actividad)
-                          .length
-                          .toString(),
-                    ),
-                  ],
+            _buildSectionTitle('Distribución por Categoría'),
+            const SizedBox(height: 12),
+            if (categoryData.isEmpty)
+              const Center(child: Text('No hay datos de ventas en este período'))
+            else
+              AspectRatio(
+                aspectRatio: 1.5,
+                child: PieChart(
+                  PieChartData(
+                    sectionsSpace: 4,
+                    centerSpaceRadius: 40,
+                    sections: categoryData.entries.map((e) {
+                      final index = categoryData.keys.toList().indexOf(e.key);
+                      final totalIncome = filteredMovs.where((m) => m.tipo == MovimientoType.ingreso).fold(0.0, (sum, m) => sum + m.monto);
+                      final percentage = totalIncome > 0 ? (e.value / totalIncome * 100) : 0.0;
+                      
+                      return PieChartSectionData(
+                        color: Colors.primaries[index % Colors.primaries.length],
+                        value: e.value,
+                        title: '${percentage.toStringAsFixed(0)}%',
+                        radius: 50,
+                        titleStyle: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: categoryData.entries.map((e) {
+                final index = categoryData.keys.toList().indexOf(e.key);
+                return _buildCategoryLegend(
+                  e.key,
+                  Colors.primaries[index % Colors.primaries.length],
+                );
+              }).toList().cast<Widget>(),
             ),
-            const SizedBox(height: 16),
-            _buildSectionTitle('Inventario'),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSummaryRow(
-                      'Total Productos',
-                      invVM.productos.length.toString(),
-                    ),
-                    _buildSummaryRow(
-                      'Stock Total',
-                      invVM.totalProductos.toString(),
-                    ),
-                    _buildSummaryRow(
-                      'Valor Inventario',
-                      NumberFormatter.formatCurrency(
-                        invVM.valorTotalInventario,
+            const SizedBox(height: 24),
+            _buildSectionTitle('Top Clientes (LTV)'),
+            const SizedBox(height: 12),
+            if (sortedCustomers.isEmpty)
+              const Text('No hay datos de clientes')
+            else
+              ...sortedCustomers.take(5).map((e) {
+                final cliente = cliVM.items.cast<Cliente?>().firstWhere(
+                  (c) => c?.id == e.key,
+                  orElse: () => null,
+                );
+                
+                final nombre = cliente?.nombre ?? 'Cliente Desconocido';
+                final idStr = cliente?.id ?? e.key;
+                
+                return ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                  leading: CircleAvatar(
+                    backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    child: Text(nombre.isNotEmpty ? nombre[0].toUpperCase() : '?',
+                      style: const TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
+                  ),
+                  title: Text(nombre, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text('ID: ${idStr.length > 8 ? idStr.substring(0, 8) : idStr}'),
+                  trailing: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 100),
+                    child: Text(
+                      NumberFormatter.formatCompact(e.value),
+                      textAlign: TextAlign.right,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.primaryColor,
+                        fontSize: 13,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    _buildSummaryRow(
-                      'Productos Bajo Stock',
-                      invVM.productosConStockBajo.length.toString(),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildSectionTitle('Clientes'),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSummaryRow(
-                      'Total Clientes',
-                      cliVM.totalClientes.toString(),
-                    ),
-                    _buildSummaryRow(
-                      'Con Deuda',
-                      cliVM.clientesConDeuda.toString(),
-                    ),
-                    _buildSummaryRow(
-                      'Deuda Total',
-                      NumberFormatter.formatCurrency(cliVM.totalDeuda),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+                  ),
+                );
+              }),
           ],
         );
-      },
-    );
   }
 
-  Widget _buildMovimientosTab() {
-    return Consumer<MovimientosViewModel>(
-      builder: (context, movVM, child) {
-        final filteredMovs = _filterMovimientos(movVM.items)
-          ..sort((a, b) => b.fecha.compareTo(a.fecha));
+  Widget _buildMovimientosTab(MovimientosViewModel movVM) {
+    final filteredMovs = movVM.filteredItems;
 
-        if (filteredMovs.isEmpty) {
-          return const Center(
-            child: Text('No hay movimientos en este período'),
-          );
-        }
+    if (filteredMovs.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.history_rounded, size: 64, color: AppTheme.textSecondary),
+            const SizedBox(height: 16),
+            const Text(
+              'No hay movimientos en este período',
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 16),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () => movVM.clearDateFilter(),
+              icon: const Icon(Icons.filter_alt_off_rounded),
+              label: const Text('Limpiar Filtros'),
+            ),
+          ],
+        ),
+      );
+    }
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
@@ -387,7 +405,7 @@ class _ReportesPageState extends State<ReportesPage>
                   DateFormat('dd/MM/yyyy HH:mm').format(mov.fecha),
                 ),
                 trailing: Text(
-                  NumberFormatter.formatCurrency(mov.monto),
+                  NumberFormatter.formatCompact(mov.monto),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: _getTipoColor(mov.tipo),
@@ -397,14 +415,10 @@ class _ReportesPageState extends State<ReportesPage>
             );
           },
         );
-      },
-    );
   }
 
-  Widget _buildInventarioTab() {
-    return Consumer<InventarioViewModel>(
-      builder: (context, invVM, child) {
-        final productos = invVM.productos;
+  Widget _buildInventarioTab(InventarioViewModel invVM) {
+    final productos = invVM.productos;
 
         if (productos.isEmpty) {
           return const Center(child: Text('No hay productos'));
@@ -437,13 +451,14 @@ class _ReportesPageState extends State<ReportesPage>
                   ),
                 ),
                 title: Text(prod.nombre),
-                subtitle: Text('Stock: ${prod.cantidad} | ${prod.categoria}'),
+                subtitle: Text('Stock: ${prod.cantidad}${prod.categoria != null ? ' | ${prod.categoria}' : ''}'),
                 trailing: Column(
+                  mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      NumberFormatter.formatCurrency(prod.precio),
+                      NumberFormatter.formatCompact(prod.precio),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     if (prod.stockBajo)
@@ -461,14 +476,10 @@ class _ReportesPageState extends State<ReportesPage>
             );
           },
         );
-      },
-    );
   }
 
-  Widget _buildClientesTab() {
-    return Consumer<ClientesViewModel>(
-      builder: (context, cliVM, child) {
-        final clientes = cliVM.clientes;
+  Widget _buildClientesTab(MovimientosViewModel movVM, ClientesViewModel cliVM) {
+    final clientes = cliVM.items;
 
         if (clientes.isEmpty) {
           return const Center(child: Text('No hay clientes'));
@@ -501,13 +512,14 @@ class _ReportesPageState extends State<ReportesPage>
                   ),
                 ),
                 title: Text(cliente.nombre),
-                subtitle: Text(cliente.telefono),
+                subtitle: Text(cliente.telefono ?? ''),
                 trailing: Column(
+                  mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      NumberFormatter.formatCurrency(cliente.saldoPendiente),
+                      NumberFormatter.formatCompact(cliente.saldoPendiente),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: cliente.saldoPendiente > 0
@@ -520,7 +532,7 @@ class _ReportesPageState extends State<ReportesPage>
                         'FIADO',
                         style: TextStyle(
                           fontSize: 10,
-                          color: Colors.orange,
+                          color: AppTheme.tertiaryColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -530,8 +542,6 @@ class _ReportesPageState extends State<ReportesPage>
             );
           },
         );
-      },
-    );
   }
 
   Widget _buildSectionTitle(String title) {
@@ -562,11 +572,11 @@ class _ReportesPageState extends State<ReportesPage>
   Color _getTipoColor(MovimientoType tipo) {
     switch (tipo) {
       case MovimientoType.ingreso:
-        return AppTheme.secondaryColor;
+        return AppTheme.successColor;
       case MovimientoType.egreso:
         return AppTheme.errorColor;
       case MovimientoType.actividad:
-        return AppTheme.primaryColor;
+        return AppTheme.tertiaryColor;
     }
   }
 
@@ -579,5 +589,20 @@ class _ReportesPageState extends State<ReportesPage>
       case MovimientoType.actividad:
         return Icons.sync;
     }
+  }
+
+  Widget _buildCategoryLegend(String label, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 4),
+        Text(label, style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+      ],
+    );
   }
 }

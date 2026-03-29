@@ -148,27 +148,37 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
     );
   }
 
-  void _saveProveedor() {
+  Future<void> _saveProveedor() async {
     if (_formKey.currentState!.validate()) {
       final viewModel = context.read<ProveedoresViewModel>();
 
-      if (widget.proveedor == null) {
-        viewModel.agregar(
-          nombre: _nombreController.text,
-          telefono: _telefonoController.text,
-          diasVisita: _diasVisita,
-          movimientosVM: context.read<MovimientosViewModel>(),
-        );
-      } else {
-        viewModel.editar(
-          id: widget.proveedor!.id,
-          nombre: _nombreController.text,
-          telefono: _telefonoController.text,
-          diasVisita: _diasVisita,
-        );
+      try {
+        if (widget.proveedor == null) {
+          await viewModel.agregar(
+            nombre: _nombreController.text,
+            telefono: _telefonoController.text,
+            diasVisita: _diasVisita,
+            movimientosVM: context.read<MovimientosViewModel>(),
+          );
+        } else {
+          await viewModel.editar(
+            id: widget.proveedor!.id,
+            nombre: _nombreController.text,
+            telefono: _telefonoController.text,
+            diasVisita: _diasVisita,
+          );
+        }
+        if (mounted) Navigator.pop(context);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString().replaceAll('Exception: ', '')),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
       }
-
-      Navigator.pop(context);
     }
   }
 }

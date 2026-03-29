@@ -57,11 +57,15 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
 
     final bool isNew = venta.id.isEmpty;
     final id = isNew ? IdUtils.generateTimestampId() : venta.id;
-    
+
     String? finalClienteId = venta.clienteId;
 
     // Auto-create client if name is provided but ID is missing
-    if (isNew && finalClienteId == null && venta.clienteNombre != null && venta.clienteNombre!.isNotEmpty && clientesVM != null) {
+    if (isNew &&
+        finalClienteId == null &&
+        venta.clienteNombre != null &&
+        venta.clienteNombre!.isNotEmpty &&
+        clientesVM != null) {
       finalClienteId = await clientesVM.agregar(
         nombre: venta.clienteNombre!,
         telefono: '',
@@ -70,10 +74,7 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
       );
     }
 
-    final ventaAGuardar = venta.copyWith(
-      id: id,
-      clienteId: finalClienteId,
-    );
+    final ventaAGuardar = venta.copyWith(id: id, clienteId: finalClienteId);
 
     if (isNew) {
       await _repository.save(ventaAGuardar);
@@ -81,12 +82,16 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
 
       // side effects for new sales
       if (movimientosVM != null) {
+        final rawConcepto = venta.concepto ?? 'Venta general';
+        final finalConcepto = rawConcepto.toLowerCase().startsWith('venta:')
+            ? rawConcepto
+            : 'Venta: $rawConcepto';
         final movimiento = Movimiento(
           id: IdUtils.generateId(),
           monto: venta.monto,
           fecha: venta.fecha,
           tipo: MovimientoType.ingreso,
-          concepto: 'Venta: ${venta.concepto ?? "Venta general"}',
+          concepto: finalConcepto,
           categoria: 'Ventas',
         );
         await movimientosVM.guardar(movimiento);

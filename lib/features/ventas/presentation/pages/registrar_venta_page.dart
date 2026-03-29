@@ -42,7 +42,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
   void _guardarVenta() {
     if (!_formKey.currentState!.validate()) return;
 
-    final monto = double.parse(_montoController.text.replaceAll(',', '.'));
+    final monto = NumberFormatter.parseAmount(_montoController.text);
     String? clienteNombre;
     if (_clienteId == _kWriteNameValue) {
       clienteNombre = _clienteNombreController.text.trim();
@@ -63,11 +63,26 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
       concepto: _conceptoController.text.trim(),
     );
 
+    final inventarioVM = context.read<InventarioViewModel>();
+    if (_productoId != null) {
+      final product = inventarioVM.getById(_productoId!);
+      final cantidad = int.tryParse(_cantidadController.text) ?? 0;
+      if (product != null && product.cantidad < cantidad) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No hay suficiente stock. Disponible: ${product.cantidad}'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+        return;
+      }
+    }
+
     context.read<VentasViewModel>().guardar(
       venta,
       movimientosVM: context.read<MovimientosViewModel>(),
       clientesVM: context.read<ClientesViewModel>(),
-      inventarioVM: context.read<InventarioViewModel>(),
+      inventarioVM: inventarioVM,
     );
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -165,21 +180,25 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _ScanOption(
-                  icon: Icons.camera_alt_rounded,
-                  label: 'Cámara',
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _pickAndScanImage(ImageSource.camera);
-                  },
+                Expanded(
+                  child: _ScanOption(
+                    icon: Icons.camera_alt_rounded,
+                    label: 'Cámara',
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      _pickAndScanImage(ImageSource.camera);
+                    },
+                  ),
                 ),
-                _ScanOption(
-                  icon: Icons.photo_library_rounded,
-                  label: 'Galería',
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _pickAndScanImage(ImageSource.gallery);
-                  },
+                Expanded(
+                  child: _ScanOption(
+                    icon: Icons.photo_library_rounded,
+                    label: 'Galería',
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      _pickAndScanImage(ImageSource.gallery);
+                    },
+                  ),
                 ),
               ],
             ),
@@ -220,9 +239,12 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Monto de la venta',
-                    style: Theme.of(context).textTheme.titleMedium,
+                  Expanded(
+                    child: Text(
+                      'Monto de la venta',
+                      style: Theme.of(context).textTheme.titleMedium,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   Consumer<VentasViewModel>(
                     builder: (context, vm, _) {
@@ -266,9 +288,12 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                   if (value == null || value.isEmpty) {
                     return 'Ingrese el monto';
                   }
-                  final number = double.tryParse(value.replaceAll(',', '.'));
-                  if (number == null || number <= 0) {
+                  final number = NumberFormatter.parseAmount(value);
+                  if (number <= 0) {
                     return 'El monto debe ser mayor a 0';
+                  }
+                  if (number > 999999999) {
+                    return 'Máximo 999,999,999';
                   }
                   return null;
                 },
@@ -350,7 +375,10 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                       ...inventarioVM.productos.map(
                         (p) => DropdownMenuItem(
                           value: p.id,
-                          child: Text('${p.nombre} (${p.cantidad} en stock)'),
+                          child: Text(
+                            '${p.nombre} (${p.cantidad} en stock)',
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ),
                     ],

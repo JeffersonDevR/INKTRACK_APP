@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import '../utils/number_formatter.dart';
 
@@ -11,6 +12,7 @@ class FinancialSummaryHeader extends StatelessWidget {
   final VoidCallback? onDateTap;
   final DateTime? startDate;
   final DateTime? endDate;
+  final List<Widget>? actions;
   final bool isCurrency1;
   final bool isCurrency2;
   final bool isCurrency3;
@@ -30,6 +32,7 @@ class FinancialSummaryHeader extends StatelessWidget {
     this.onDateTap,
     this.startDate,
     this.endDate,
+    this.actions,
     this.label1,
     this.label2,
     this.label3,
@@ -43,7 +46,7 @@ class FinancialSummaryHeader extends StatelessWidget {
 
   String _formatValue(double val, bool isCurrency) {
     if (isCurrency) {
-      return NumberFormatter.formatCompactWithDecimals(val);
+      return NumberFormatter.formatCompact(val);
     }
     return NumberFormatter.formatNumber(val.toInt());
   }
@@ -80,53 +83,69 @@ class FinancialSummaryHeader extends StatelessWidget {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
                 child: Text(
                   title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
                     color: AppTheme.textPrimary,
+                    letterSpacing: -1,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              if (onDateTap != null)
-                InkWell(
-                  onTap: onDateTap,
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.calendar_today_rounded,
-                          size: 12,
-                          color: AppTheme.primaryColor,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          _formatDateRange(),
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: AppTheme.primaryColor,
-                                fontWeight: FontWeight.bold,
+              if (onDateTap != null || (actions != null && actions!.isNotEmpty))
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (onDateTap != null)
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: onDateTap,
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: AppTheme.primaryColor.withValues(alpha: 0.15),
                               ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.calendar_month_rounded,
+                                  size: 16,
+                                  color: AppTheme.primaryColor,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _formatDateRange(),
+                                  style: GoogleFonts.plusJakartaSans(
+                                    color: AppTheme.primaryColor,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
+                    if (actions != null) ...[
+                      const SizedBox(width: 8),
+                      ...actions!,
+                    ],
+                  ],
                 ),
             ],
           ),
@@ -138,7 +157,7 @@ class FinancialSummaryHeader extends StatelessWidget {
                 child: _StatItem(
                   label: label1 ?? 'Ingresos',
                   value: _formatValue(totalIngresos, isCurrency1),
-                  color: AppTheme.secondaryColor,
+                  color: AppTheme.successColor,
                   icon: icon1 ?? Icons.south_west_rounded,
                 ),
               ),
@@ -179,7 +198,7 @@ class FinancialSummaryHeader extends StatelessWidget {
                             fontWeight: FontWeight.w900,
                             letterSpacing: -1,
                             color: balance >= 0 || !isCurrency3
-                                ? AppTheme.primaryColor
+                                ? AppTheme.successColor
                                 : AppTheme.errorColor,
                           ),
                       overflow: TextOverflow.ellipsis,
@@ -266,6 +285,8 @@ class _StatItem extends StatelessWidget {
             fontWeight: FontWeight.w900,
             letterSpacing: -0.5,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );

@@ -168,7 +168,7 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                 ),
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(
-                    RegExp(r'^\d{0,7}(\.\d{0,2})?$'),
+                    RegExp(r'^\d{0,9}$'),
                   ),
                 ],
                 validator: (value) {
@@ -179,8 +179,8 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                   if (precio == null || precio < 0) {
                     return 'Precio inválido';
                   }
-                  if (precio > 9999999) {
-                    return 'Máximo 9,999,999';
+                  if (precio > 999999999) {
+                    return 'Máximo 999,999,999';
                   }
                   return null;
                 },

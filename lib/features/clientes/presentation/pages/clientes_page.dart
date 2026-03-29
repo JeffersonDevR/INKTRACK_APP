@@ -13,192 +13,248 @@ class ClientesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Clientes')),
-      body: Consumer<ClientesViewModel>(
-        builder: (context, viewModel, child) {
-          if (viewModel.clientes.isEmpty) {
-            return _EmptyClientes();
-          }
-          return CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
-                sliver: SliverToBoxAdapter(
-                  child: FinancialSummaryHeader(
-                    title: 'Resumen\nClientes',
-                    totalIngresos: viewModel.totalClientes.toDouble(),
-                    totalEgresos: viewModel.clientesConDeuda.toDouble(),
-                    balance: viewModel.totalDeuda,
-                    label1: 'Clientes',
-                    label2: 'Con Deuda',
-                    label3: 'Deuda Total',
-                    icon1: Icons.people_rounded,
-                    icon2: Icons.assignment_late_rounded,
-                    icon3: Icons.account_balance_wallet_rounded,
-                    isCurrency1: false,
-                    isCurrency2: false,
-                    isCurrency3: true,
+    return Consumer<ClientesViewModel>(
+      builder: (context, viewModel, child) {
+        final showInactive = viewModel.showInactive;
+        return Scaffold(
+          body: _buildBody(context, viewModel, showInactive),
+        );
+      },
+    );
+  }
+
+  Widget _buildBody(
+    BuildContext context,
+    ClientesViewModel viewModel,
+    bool showInactive,
+  ) {
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+          sliver: SliverToBoxAdapter(
+            child: FinancialSummaryHeader(
+              title: 'Resumen\nClientes',
+              actions: [
+                IconButton(
+                  onPressed: () => viewModel.toggleShowInactive(),
+                  icon: Icon(
+                    showInactive ? Icons.visibility_off : Icons.visibility,
+                    color: showInactive ? AppTheme.secondaryColor : null,
                   ),
+                  tooltip: showInactive ? 'Ocultar inactivos' : 'Ver inactivos',
                 ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                sliver: SliverToBoxAdapter(
-                  child: Text(
-                    'Listado de Clientes',
-                    style: Theme.of(context).textTheme.titleMedium,
+              ],
+              totalIngresos: viewModel.totalClientes.toDouble(),
+              totalEgresos: viewModel.clientesConDeuda.toDouble(),
+              balance: viewModel.totalDeuda,
+              label1: 'Clientes',
+              label2: 'Con Deuda',
+              label3: 'Deuda Total',
+              icon1: Icons.people_rounded,
+              icon2: Icons.assignment_late_rounded,
+              icon3: Icons.account_balance_wallet_rounded,
+              isCurrency1: false,
+              isCurrency2: false,
+              isCurrency3: true,
+            ),
+          ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          sliver: SliverToBoxAdapter(
+            child: Text(
+              'Listado de Clientes',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+        ),
+        if (viewModel.clientes.isEmpty)
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: _EmptyClientes(),
+          )
+        else
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final cliente = viewModel.clientes[index];
+                final isInactive = !cliente.isActivo;
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  color: isInactive ? Colors.grey.shade100 : null,
+                  // ... rest of the card build logic ...
+                child: ListTile(
+                  contentPadding: const EdgeInsets.all(16),
+                  leading: CircleAvatar(
+                    radius: 24,
+                    backgroundColor: AppTheme.primaryColor.withValues(
+                      alpha: 0.1,
+                    ),
+                    child: const Icon(
+                      Icons.person_rounded,
+                      color: AppTheme.primaryColor,
+                    ),
                   ),
-                ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final cliente = viewModel.clientes[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(16),
-                        leading: CircleAvatar(
-                          radius: 24,
-                          backgroundColor: AppTheme.primaryColor.withValues(
-                            alpha: 0.1,
-                          ),
-                          child: const Icon(
-                            Icons.person_rounded,
-                            color: AppTheme.primaryColor,
-                          ),
-                        ),
-                        title: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    cliente.nombre,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.labelLarge,
-                                  ),
-                                ),
-                                if (cliente.esFiado) ...[
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.errorColor.withValues(
-                                        alpha: 0.1,
-                                      ),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: const Text(
-                                      'CRÉDITO',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w900,
-                                        color: AppTheme.errorColor,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ],
+                  title: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              cliente.nombre,
+                              style: Theme.of(context).textTheme.labelLarge,
                             ),
-                            const SizedBox(height: 4),
+                          ),
+                          if (isInactive) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade400,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                'INACTIVO',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ] else if (cliente.esFiado) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.errorColor.withValues(
+                                  alpha: 0.1,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                'CRÉDITO',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppTheme.errorColor,
+                                ),
+                              ),
+                            ),
                           ],
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                    ],
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${cliente.telefono} • ${cliente.email}',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (cliente.saldoPendiente > 0) ...[
+                        const SizedBox(height: 8),
+                        Row(
                           children: [
+                            const Icon(
+                              Icons.payments_outlined,
+                              size: 14,
+                              color: AppTheme.errorColor,
+                            ),
+                            const SizedBox(width: 4),
                             Text(
-                              '${cliente.telefono} • ${cliente.email}',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            if (cliente.saldoPendiente > 0) ...[
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.payments_outlined,
-                                    size: 14,
+                              'Deuda: ${NumberFormatter.formatCurrency(cliente.saldoPendiente)}',
+                              style: Theme.of(context).textTheme.labelMedium
+                                  ?.copyWith(
                                     color: AppTheme.errorColor,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'Deuda: ${NumberFormatter.formatCurrency(cliente.saldoPendiente)}',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelMedium
-                                        ?.copyWith(
-                                          color: AppTheme.errorColor,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                            ),
                           ],
                         ),
-                        trailing: PopupMenuButton<String>(
-                          onSelected: (value) =>
-                              _onMenuSelected(context, value, cliente),
-                          itemBuilder: (context) => [
-                            if (cliente.saldoPendiente > 0)
-                              const PopupMenuItem(
-                                value: 'pay',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.payments_outlined, size: 20),
-                                    SizedBox(width: 8),
-                                    Text('Registrar Pago'),
-                                  ],
-                                ),
-                              ),
-                            const PopupMenuItem(
-                              value: 'edit',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.edit_outlined, size: 20),
-                                  SizedBox(width: 8),
-                                  Text('Editar'),
-                                ],
-                              ),
-                            ),
-                            PopupMenuItem(
-                              value: 'delete',
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.delete_outline_rounded,
-                                    color: AppTheme.errorColor,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Eliminar',
-                                    style: TextStyle(
-                                      color: AppTheme.errorColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                      ],
+                    ],
+                  ),
+                  trailing: PopupMenuButton<String>(
+                    onSelected: (value) =>
+                        _onMenuSelected(context, value, cliente),
+                    itemBuilder: (context) => [
+                      if (cliente.saldoPendiente > 0)
+                        const PopupMenuItem(
+                          value: 'pay',
+                          child: Row(
+                            children: [
+                              Icon(Icons.payments_outlined, size: 20),
+                              SizedBox(width: 8),
+                              Text('Registrar Pago'),
+                            ],
+                          ),
+                        ),
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit_outlined, size: 20),
+                            SizedBox(width: 8),
+                            Text('Editar'),
                           ],
                         ),
                       ),
-                    );
-                  }, childCount: viewModel.clientes.length),
+                      if (isInactive)
+                        const PopupMenuItem(
+                          value: 'reactivate',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.refresh,
+                                size: 20,
+                                color: AppTheme.successColor,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                'Reactivar',
+                                style: TextStyle(color: AppTheme.successColor),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.delete_outline_rounded,
+                                color: AppTheme.errorColor,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Eliminar',
+                                style: TextStyle(color: AppTheme.errorColor),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          );
-        },
-      ),
+              );
+            }, childCount: viewModel.clientes.length),
+          ),
+        ),
+      ],
     );
   }
 
@@ -212,6 +268,8 @@ class ClientesPage extends StatelessWidget {
       );
     } else if (value == 'delete') {
       _showDeleteDialog(context, cliente);
+    } else if (value == 'reactivate') {
+      context.read<ClientesViewModel>().reactivar(cliente.id);
     } else if (value == 'pay') {
       showDialog(
         context: context,
@@ -225,7 +283,7 @@ class ClientesPage extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Eliminar cliente'),
-        content: Text('¿Eliminar a ${cliente.nombre}?'),
+        content: Text('¿Eliminar a ${cliente.nombre}?\n(Se marcará como inactivo para trazabilidad)'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
