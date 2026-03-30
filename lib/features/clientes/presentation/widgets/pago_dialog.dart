@@ -90,7 +90,7 @@ class _PagoDialogState extends State<PagoDialog> {
                   return 'Ingrese el monto';
                 }
                 final number = NumberFormatter.parseAmount(value);
-                if (number == null || number <= 0) {
+                if (number <= 0) {
                   return 'Monto inválido';
                 }
                 if (number > widget.cliente.saldoPendiente) {

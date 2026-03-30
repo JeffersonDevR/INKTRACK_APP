@@ -451,7 +451,7 @@ class _ReportesPageState extends State<ReportesPage>
                   ),
                 ),
                 title: Text(prod.nombre),
-                subtitle: Text('Stock: ${prod.cantidad}${prod.categoria != null ? ' | ${prod.categoria}' : ''}'),
+                subtitle: Text('Stock: ${prod.cantidad} | ${prod.categoria}'),
                 trailing: Column(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -512,7 +512,7 @@ class _ReportesPageState extends State<ReportesPage>
                   ),
                 ),
                 title: Text(cliente.nombre),
-                subtitle: Text(cliente.telefono ?? ''),
+                subtitle: Text(cliente.telefono),
                 trailing: Column(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -556,18 +556,6 @@ class _ReportesPageState extends State<ReportesPage>
     );
   }
 
-  Widget _buildSummaryRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
 
   Color _getTipoColor(MovimientoType tipo) {
     switch (tipo) {
