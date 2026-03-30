@@ -2,36 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // POS / Local store palette: Modern Fintech look
-  // Light Mode Palette: Color Psychology (Indigo/Emerald/Amber)
-  static const Color primaryColor = Color(
-    0xFF2563EB,
-  ); // Indigo (Trust, Stability, Professionalism)
-  static const Color secondaryColor = Color(
-    0xFF10B981,
-  ); // Emerald (Success, Growth, Confirmation)
-  static const Color accentColor = Color(
-    0xFFF59E0B,
-  ); // Amber (Activity, Attention, Income)
-  static const Color backgroundColor = Color(
-    0xFFF8FAFC,
-  ); // Soft Slate/White (Cleanliness)
+  // Premium Financial Palette (Indigo / Slate)
+  // Primary: Indigo 600 - Trust and professional stability
+  static const Color primaryColor = Color(0xFF4F46E5);
+  // Secondary: Slate 700 - Sophisticated structural elements
+  static const Color secondaryColor = Color(0xFF334155);
+  // Tertiary: Cyan 600 - Dynamic highlights
+  static const Color tertiaryColor = Color(0xFF0891B2);
+
+  // Semantic Colors
+  static const Color errorColor = Color(0xFFF43F5E); // Rose 500
+  static const Color successColor = Color(0xFF10B981); // Emerald 500
+
+  // UI Colors
+  static const Color accentColor = primaryColor;
+  static const Color backgroundColor = Color(0xFFF8FAFC);
   static const Color surfaceColor = Colors.white;
-  static const Color errorColor = Color(0xFFEF4444); // Modern Red
-  static const Color successColor = Color(0xFF10B981);
 
-  static const Color textPrimary = Color(
-    0xFF0F172A,
-  ); // Deep Slate (High contrast)
-  static const Color textSecondary = Color(
-    0xFF475569,
-  ); // Medium-Deep Slate (Improved contrast from 0xFF64748B)
+  // Text Colors
+  static const Color textPrimary = Color(0xFF0F172A); // Slate 900
+  static const Color textSecondary = Color(0xFF64748B); // Slate 500
 
-  // Dark palette (Reference based - Kept as fallback)
-  static const Color darkBackground = Color(0xFF4A4545);
-  static const Color darkSurface = Color(0xFF332F2F);
-  static const Color darkTextPrimary = Colors.white;
-  static const Color darkTextSecondary = Color(0xFFBDBDBD);
+  // Dark palette (Midnight)
+  static const Color darkBackground = Color(0xFF020617); // Slate 950
+  static const Color darkSurface = Color(0xFF0F172A); // Slate 900
+  static const Color darkTextPrimary = Color(0xFFF8FAFC);
+  static const Color darkTextSecondary = Color(0xFF94A3B8);
 
   static ThemeData get lightTheme {
     final base = ThemeData.light(useMaterial3: true);
@@ -42,7 +38,7 @@ class AppTheme {
       colorScheme: ColorScheme.light(
         primary: primaryColor,
         secondary: secondaryColor,
-        tertiary: accentColor,
+        tertiary: tertiaryColor,
         error: errorColor,
         surface: surfaceColor,
         onPrimary: Colors.white,
@@ -225,7 +221,7 @@ class AppTheme {
       colorScheme: ColorScheme.dark(
         primary: primaryColor,
         secondary: secondaryColor,
-        tertiary: accentColor,
+        tertiary: tertiaryColor,
         error: errorColor,
         surface: darkSurface,
         onPrimary: Colors.white,

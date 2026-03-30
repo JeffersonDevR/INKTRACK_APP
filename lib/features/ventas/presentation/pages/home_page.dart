@@ -77,13 +77,13 @@ class HomePage extends StatelessWidget {
             _DetailRow(label: 'Concepto', value: mov.concepto),
             _DetailRow(
               label: 'Monto',
-              value: NumberFormatter.formatCurrency(mov.monto),
+              value: NumberFormatter.formatCompact(mov.monto),
               valueStyle: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: mov.tipo == mov_model.MovimientoType.ingreso
-                    ? Colors.green
+                    ? AppTheme.successColor
                     : mov.tipo == mov_model.MovimientoType.egreso
-                    ? Colors.red
+                    ? AppTheme.errorColor
                     : null,
               ),
             ),
@@ -111,32 +111,30 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('InkTrack'),
-        actions: [
-          Builder(
-            builder: (ctx) => IconButton(
-              onPressed: () => _selectDateRange(ctx),
-              icon: const Icon(Icons.date_range_rounded),
-            ),
-          ),
-        ],
-      ),
       body: Consumer2<MovimientosViewModel, InventarioViewModel>(
         builder: (context, movVM, invVM, child) {
+          final isFiltered = movVM.startDateFilter != null;
           final summary = FinancialSummaryHeader(
-            totalIngresos: movVM.startDateFilter == null
-                ? movVM.totalIngresosHoy
-                : movVM.totalIngresosFiltered,
-            totalEgresos: movVM.startDateFilter == null
-                ? movVM.totalEgresosHoy
-                : movVM.totalEgresosFiltered,
-            balance: movVM.startDateFilter == null
-                ? movVM.balanceHoy
-                : movVM.balanceFiltered,
+            title: isFiltered ? 'Resultados' : 'Acumulado Total',
+            totalIngresos: isFiltered
+                ? movVM.totalIngresosFiltered
+                : movVM.totalIngresos,
+            totalEgresos: isFiltered
+                ? movVM.totalEgresosFiltered
+                : movVM.totalEgresos,
+            balance: isFiltered
+                ? movVM.balanceFiltered
+                : movVM.balance,
             startDate: movVM.startDateFilter,
             endDate: movVM.endDateFilter,
             onDateTap: () => _selectDateRange(context),
+            label1: isFiltered ? 'Ingresos' : 'Ventas Totales',
+            label2: isFiltered ? 'Egresos' : 'Gastos Totales',
+            label3: isFiltered ? 'Balance' : 'Patrimonio',
+            icon1: isFiltered ? Icons.trending_up : Icons.summarize_rounded,
+            icon2: isFiltered ? Icons.trending_down : Icons.payments_rounded,
+            icon3: Icons.account_balance_wallet_rounded,
+            isCurrency3: true,
           );
 
           final historial =
@@ -286,12 +284,17 @@ class _MovimientoItem extends StatelessWidget {
           ).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
         ),
         trailing: isMonetary
-            ? Text(
-                (mov.tipo == mov_model.MovimientoType.ingreso ? '+ ' : '- ') +
-                    NumberFormatter.formatCurrency(mov.monto),
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: color,
+            ? ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 120),
+                child: Text(
+                  (mov.tipo == mov_model.MovimientoType.ingreso ? '+ ' : '- ') +
+                      NumberFormatter.formatCompact(mov.monto),
+                  textAlign: TextAlign.right,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               )
             : const Icon(

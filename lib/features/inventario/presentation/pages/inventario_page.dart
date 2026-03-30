@@ -18,54 +18,59 @@ class InventarioPage extends StatelessWidget {
         final showInactive = viewModel.showInactive;
 
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Inventario'),
-            actions: [
-              IconButton(
-                onPressed: () async {
-                  final syncService = context.read<SupabaseSyncService>();
-                  final scaffoldMessenger = ScaffoldMessenger.of(context);
-
-                  scaffoldMessenger.showSnackBar(
-                    const SnackBar(
-                      content: Text('Sincronizando con la nube...'),
-                      duration: Duration(seconds: 1),
-                    ),
-                  );
-
-                  final result = await syncService.syncAll();
-
-                  scaffoldMessenger.showSnackBar(
-                    SnackBar(
-                      content: Text(result.message),
-                      backgroundColor: result.isSuccess
-                          ? Colors.green
-                          : Colors.red,
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.cloud_sync),
-                tooltip: 'Sincronizar con la nube',
-              ),
-              IconButton(
-                onPressed: () => viewModel.toggleShowInactive(),
-                icon: Icon(
-                  showInactive ? Icons.visibility_off : Icons.visibility,
-                  color: showInactive ? AppTheme.secondaryColor : null,
-                ),
-                tooltip: showInactive ? 'Ocultar inactivos' : 'Ver inactivos',
-              ),
-            ],
-          ),
-          body: viewModel.productos.isEmpty && !showInactive
-              ? _EmptyInventario()
-              : CustomScrollView(
-                  slivers: [
+          body: CustomScrollView(
+            slivers: [
                     SliverPadding(
                       padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
                       sliver: SliverToBoxAdapter(
                         child: FinancialSummaryHeader(
                           title: 'Resumen\nInventario',
+                          actions: [
+                            IconButton(
+                              onPressed: () => viewModel.toggleShowInactive(),
+                              icon: Icon(
+                                showInactive
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                                color: showInactive
+                                    ? AppTheme.secondaryColor
+                                    : AppTheme.primaryColor,
+                              ),
+                              tooltip: showInactive
+                                  ? 'Ocultar inactivos'
+                                  : 'Ver inactivos',
+                            ),
+                            IconButton(
+                              onPressed: () async {
+                                final syncService =
+                                    context.read<SupabaseSyncService>();
+                                final scaffoldMessenger =
+                                    ScaffoldMessenger.of(context);
+
+                                scaffoldMessenger.showSnackBar(
+                                  const SnackBar(
+                                    content:
+                                        Text('Sincronizando con la nube...'),
+                                    duration: Duration(seconds: 1),
+                                  ),
+                                );
+
+                                final result = await syncService.syncAll();
+
+                                scaffoldMessenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(result.message),
+                                    backgroundColor: result.isSuccess
+                                        ? Colors.green
+                                        : Colors.red,
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.cloud_sync,
+                                  color: AppTheme.primaryColor),
+                              tooltip: 'Sincronizar con la nube',
+                            ),
+                          ],
                           totalIngresos: viewModel.totalProductos.toDouble(),
                           totalEgresos: viewModel.productosConStockBajo.length
                               .toDouble(),
@@ -118,30 +123,36 @@ class InventarioPage extends StatelessWidget {
                         ),
                       ),
                     ),
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate((context, index) {
-                          final producto = viewModel.productos[index];
-                          return _ProductoCard(
-                            producto: producto,
-                            onEdit: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      ProductoFormPage(producto: producto),
-                                ),
-                              );
-                            },
-                            onDelete: () =>
-                                _showDeleteDialog(context, producto),
-                            onReactivate: () =>
-                                _showReactivateDialog(context, producto),
-                          );
-                        }, childCount: viewModel.productos.length),
+                    if (viewModel.productos.isEmpty)
+                      SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: _EmptyInventario(),
+                      )
+                    else
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate((context, index) {
+                            final producto = viewModel.productos[index];
+                            return _ProductoCard(
+                              producto: producto,
+                              onEdit: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        ProductoFormPage(producto: producto),
+                                  ),
+                                );
+                              },
+                              onDelete: () =>
+                                  _showDeleteDialog(context, producto),
+                              onReactivate: () =>
+                                  _showReactivateDialog(context, producto),
+                            );
+                          }, childCount: viewModel.productos.length),
+                        ),
                       ),
-                    ),
                   ],
                 ),
         );

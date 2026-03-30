@@ -39,7 +39,7 @@ class _PagoDialogState extends State<PagoDialog> {
   void _registrarPago() {
     if (!_formKey.currentState!.validate()) return;
 
-    final monto = double.parse(_montoController.text.replaceAll(',', '.'));
+    final monto = NumberFormatter.parseAmount(_montoController.text);
 
     context.read<ClientesViewModel>().registrarPago(
       widget.cliente.id,
@@ -89,8 +89,8 @@ class _PagoDialogState extends State<PagoDialog> {
                 if (value == null || value.isEmpty) {
                   return 'Ingrese el monto';
                 }
-                final number = double.tryParse(value.replaceAll(',', '.'));
-                if (number == null || number <= 0) {
+                final number = NumberFormatter.parseAmount(value);
+                if (number <= 0) {
                   return 'Monto inválido';
                 }
                 if (number > widget.cliente.saldoPendiente) {

@@ -32,10 +32,6 @@ migrate_working_dir/
 .pub/
 /build/
 /coverage/
-/docs/
-/docs/DEEP_DIVE.md
-/specs/
-/test/
 *.txt
 bitacora/
 bitacora/*
@@ -56,6 +52,10 @@ shorebird.yaml
 android/app/src/main/AndroidManifest.xml
 macos/Runner/Release.entitlements
 docs/DEEP_DIVE.md
+/docs/
+/docs/DEEP_DIVE.md
+/specs/
+/test/
 LEARNING.md
 bitacora/diaria/2026-03-15-dashboard-spec-002.md
 bitacora/diaria/2026-03-15-initial-sdd-setup.md
@@ -84,3 +84,4 @@ bitacora/diaria/2026-03-15-visual-excellence-and-charts.md
 bitacora/templates/daily-log-template.md
 docs/DEEP_DIVE.md
 idea/IDEA_GENERAL.md
+bitacora/diaria/2026-03-15-dashboard-spec-002.md

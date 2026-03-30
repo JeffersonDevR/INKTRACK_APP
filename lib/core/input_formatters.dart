@@ -5,7 +5,7 @@ class InputFormatters {
       FilteringTextInputFormatter.digitsOnly;
 
   static final TextInputFormatter decimal = FilteringTextInputFormatter.allow(
-    RegExp(r'^\d*[.,]?\d*'),
+    RegExp(r'^\d{0,9}[.,]?\d{0,2}$'),
   );
 
   static final TextInputFormatter positiveInteger =
@@ -23,10 +23,10 @@ class InputFormatters {
   );
 
   static final TextInputFormatter price = FilteringTextInputFormatter.allow(
-    RegExp(r'^\d{0,7}$'),
+    RegExp(r'^\d{0,9}$'),
   );
 
   static final TextInputFormatter stock = FilteringTextInputFormatter.allow(
-    RegExp(r'^\d{0,2}$'),
+    RegExp(r'^\d{0,6}$'),
   );
 }

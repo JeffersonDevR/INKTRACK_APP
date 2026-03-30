@@ -149,12 +149,7 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
 
   bool get hayStockBajo => items.any((p) => p.stockBajo);
 
-  int get totalInactivos {
-    if (_repository is DriftProductosRepository) {
-      return items.where((p) => !p.isActivo).length;
-    }
-    return 0;
-  }
+  int get totalInactivos => items.where((p) => !p.isActivo).length;
 
   Producto? findProductoByCodigo(String codigo) {
     try {

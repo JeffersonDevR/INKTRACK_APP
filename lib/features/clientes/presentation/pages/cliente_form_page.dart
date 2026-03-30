@@ -125,29 +125,39 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
     );
   }
 
-  void _saveCliente() {
+  Future<void> _saveCliente() async {
     if (_formKey.currentState!.validate()) {
       final viewModel = context.read<ClientesViewModel>();
 
-      if (widget.cliente == null) {
-        viewModel.agregar(
-          nombre: _nombreController.text,
-          telefono: _telefonoController.text,
-          email: _emailController.text,
-          esFiado: false,
-          movimientosVM: context.read<MovimientosViewModel>(),
-        );
-      } else {
-        viewModel.editar(
-          id: widget.cliente!.id,
-          nombre: _nombreController.text,
-          telefono: _telefonoController.text,
-          email: _emailController.text,
-          esFiado: widget.cliente!.esFiado,
-        );
+      try {
+        if (widget.cliente == null) {
+          await viewModel.agregar(
+            nombre: _nombreController.text,
+            telefono: _telefonoController.text,
+            email: _emailController.text,
+            esFiado: false,
+            movimientosVM: context.read<MovimientosViewModel>(),
+          );
+        } else {
+          await viewModel.editar(
+            id: widget.cliente!.id,
+            nombre: _nombreController.text,
+            telefono: _telefonoController.text,
+            email: _emailController.text,
+            esFiado: widget.cliente!.esFiado,
+          );
+        }
+        if (mounted) Navigator.pop(context);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString().replaceAll('Exception: ', '')),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
       }
-
-      Navigator.pop(context);
     }
   }
 }

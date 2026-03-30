@@ -12,7 +12,22 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
     _loadClientes();
   }
 
-  List<Cliente> get clientes => items;
+  bool _showInactive = false;
+  bool get showInactive => _showInactive;
+
+  void toggleShowInactive() {
+    _showInactive = !_showInactive;
+    notifyListeners();
+  }
+
+  List<Cliente> get clientes {
+    if (_showInactive) {
+      return items;
+    }
+    return items.where((c) => c.isActivo).toList();
+  }
+
+  int get totalInactivos => items.where((c) => !c.isActivo).length;
 
   double get totalDeuda =>
       items.fold(0.0, (sum, item) => sum + item.saldoPendiente);
@@ -26,6 +41,12 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
     }
   }
 
+  bool checkDuplicado(String nombre, String telefono) {
+    return items.any((c) =>
+        c.nombre.toLowerCase().trim() == nombre.toLowerCase().trim() &&
+        c.telefono.trim() == telefono.trim());
+  }
+
   Future<String> agregar({
     required String nombre,
     required String telefono,
@@ -33,6 +54,10 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
     bool esFiado = false,
     MovimientosViewModel? movimientosVM,
   }) async {
+    if (checkDuplicado(nombre, telefono)) {
+      throw Exception('El cliente ya existe (mismo nombre y teléfono)');
+    }
+
     final nuevoCliente = Cliente(
       id: IdUtils.generateTimestampId(),
       nombre: nombre,

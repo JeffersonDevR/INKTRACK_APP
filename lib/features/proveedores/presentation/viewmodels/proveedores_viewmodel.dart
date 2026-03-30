@@ -12,7 +12,22 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
     _loadProveedores();
   }
 
-  List<Proveedor> get proveedores => items;
+  bool _showInactive = false;
+  bool get showInactive => _showInactive;
+
+  void toggleShowInactive() {
+    _showInactive = !_showInactive;
+    notifyListeners();
+  }
+
+  List<Proveedor> get proveedores {
+    if (_showInactive) {
+      return items;
+    }
+    return items.where((p) => p.isActivo).toList();
+  }
+
+  int get totalInactivos => items.where((p) => !p.isActivo).length;
 
   Future<void> _loadProveedores() async {
     final loaded = await _repository.getAll();
@@ -21,12 +36,22 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
     }
   }
 
+  bool checkDuplicado(String nombre, String telefono) {
+    return items.any((p) =>
+        p.nombre.toLowerCase().trim() == nombre.toLowerCase().trim() &&
+        p.telefono.trim() == telefono.trim());
+  }
+
   Future<void> agregar({
     required String nombre,
     required String telefono,
     required List<String> diasVisita,
     MovimientosViewModel? movimientosVM,
   }) async {
+    if (checkDuplicado(nombre, telefono)) {
+      throw Exception('El proveedor ya existe (mismo nombre y teléfono)');
+    }
+
     final nuevoProveedor = Proveedor(
       id: IdUtils.generateTimestampId(),
       nombre: nombre,
