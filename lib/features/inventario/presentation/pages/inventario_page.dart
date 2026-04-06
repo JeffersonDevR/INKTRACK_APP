@@ -30,8 +30,8 @@ class InventarioPage extends StatelessWidget {
                         onPressed: () => viewModel.toggleShowInactive(),
                         icon: Icon(
                           showInactive
-                              ? Icons.visibility_off
-                              : Icons.visibility,
+                              ? Icons.visibility
+                              : Icons.visibility_off,
                           color: showInactive
                               ? AppTheme.secondaryColor
                               : AppTheme.primaryColor,
