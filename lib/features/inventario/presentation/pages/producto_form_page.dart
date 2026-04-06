@@ -93,12 +93,17 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                 decoration: const InputDecoration(
                   labelText: 'Nombre',
                   hintText: 'Ej. Tinta negra 50ml',
+                  counterText: '',
                 ),
+                maxLength: 100,
                 textCapitalization: TextCapitalization.sentences,
                 inputFormatters: [InputFormatters.textOnly],
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Ingrese el nombre del producto';
+                  }
+                  if (value.trim().length < 2) {
+                    return 'Mínimo 2 caracteres';
                   }
                   return null;
                 },
@@ -167,9 +172,7 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                   decimal: true,
                 ),
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(
-                    RegExp(r'^\d{0,9}$'),
-                  ),
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d{0,9}$')),
                 ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {

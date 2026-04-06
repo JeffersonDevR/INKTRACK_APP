@@ -25,14 +25,24 @@ class MovimientosPage extends StatelessWidget {
       firstDate: DateTime(2020),
       lastDate: DateTime(2100),
       builder: (context, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: AppTheme.primaryColor,
-              onPrimary: Colors.white,
-              onSurface: AppTheme.textPrimary,
-            ),
-          ),
+          data: isDark
+              ? Theme.of(context).copyWith(
+                  colorScheme: const ColorScheme.dark(
+                    primary: AppTheme.primaryColor,
+                    onPrimary: Colors.white,
+                    surface: AppTheme.darkSurface,
+                    onSurface: AppTheme.darkTextPrimary,
+                  ),
+                )
+              : Theme.of(context).copyWith(
+                  colorScheme: const ColorScheme.light(
+                    primary: AppTheme.primaryColor,
+                    onPrimary: Colors.white,
+                    onSurface: AppTheme.textPrimary,
+                  ),
+                ),
           child: child!,
         );
       },

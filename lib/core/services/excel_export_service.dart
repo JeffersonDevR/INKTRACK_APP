@@ -179,7 +179,7 @@ class ExcelExportService {
       sheet.appendRow([
         TextCellValue(cliente.nombre),
         TextCellValue(cliente.telefono),
-        TextCellValue(cliente.email),
+        TextCellValue(cliente.email ?? ''),
         TextCellValue(cliente.esFiado ? 'Sí' : 'No'),
         TextCellValue(_currencyFormat.format(cliente.saldoPendiente)),
       ]);

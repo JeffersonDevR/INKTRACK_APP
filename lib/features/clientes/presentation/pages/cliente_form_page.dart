@@ -27,7 +27,7 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
     if (widget.cliente != null) {
       _nombreController.text = widget.cliente!.nombre;
       _telefonoController.text = widget.cliente!.telefono;
-      _emailController.text = widget.cliente!.email;
+      _emailController.text = widget.cliente!.email ?? '';
     }
   }
 
@@ -60,12 +60,17 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
                   labelText: 'Nombre',
                   border: OutlineInputBorder(),
                   hintText: 'Ej. Juan Pérez',
+                  counterText: '',
                 ),
+                maxLength: 30,
                 textCapitalization: TextCapitalization.words,
                 inputFormatters: [InputFormatters.textOnly],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor ingrese el nombre';
+                  }
+                  if (value.length < 2) {
+                    return 'Mínimo 2 caracteres';
                   }
                   return null;
                 },

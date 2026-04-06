@@ -37,9 +37,7 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
   }
 
   bool checkDuplicado(String nombre, String telefono) {
-    return items.any((p) =>
-        p.nombre.toLowerCase().trim() == nombre.toLowerCase().trim() &&
-        p.telefono.trim() == telefono.trim());
+    return items.any((p) => p.telefono.trim() == telefono.trim());
   }
 
   Future<void> agregar({

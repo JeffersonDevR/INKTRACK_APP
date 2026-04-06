@@ -41,9 +41,14 @@ class _ReportesPageState extends State<ReportesPage>
     super.dispose();
   }
 
-  List<Movimiento> _filterMovimientos(List<Movimiento> movements, MovimientosViewModel movVM) {
+  List<Movimiento> _filterMovimientos(
+    List<Movimiento> movements,
+    MovimientosViewModel movVM,
+  ) {
     return movements.where((m) {
-      if (movVM.startDateFilter != null && m.fecha.isBefore(movVM.startDateFilter!)) return false;
+      if (movVM.startDateFilter != null &&
+          m.fecha.isBefore(movVM.startDateFilter!))
+        return false;
       if (movVM.endDateFilter != null &&
           m.fecha.isAfter(movVM.endDateFilter!.add(const Duration(days: 1))))
         return false;
@@ -61,12 +66,15 @@ class _ReportesPageState extends State<ReportesPage>
     final picked = await showDateRangePicker(
       context: ctx,
       firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
+      lastDate: now,
       initialDateRange: initialRange,
     );
 
     if (picked != null) {
-      context.read<MovimientosViewModel>().setDateFilter(picked.start, picked.end);
+      context.read<MovimientosViewModel>().setDateFilter(
+        picked.start,
+        picked.end,
+      );
       setState(() {
         _startDate = picked.start;
         _endDate = picked.end;
@@ -93,7 +101,7 @@ class _ReportesPageState extends State<ReportesPage>
         final totalEgresos = filteredMovs
             .where((m) => m.tipo == MovimientoType.egreso)
             .fold(0.0, (sum, m) => sum + m.monto);
-        
+
         final summaryHeader = FinancialSummaryHeader(
           title: 'Resumen\nFinanciero',
           totalIngresos: totalIngresos,
@@ -124,7 +132,9 @@ class _ReportesPageState extends State<ReportesPage>
               const SizedBox(width: 12),
               _buildInsightCard(
                 label: 'Balance',
-                value: NumberFormatter.formatCompact(totalIngresos - totalEgresos),
+                value: NumberFormatter.formatCompact(
+                  totalIngresos - totalEgresos,
+                ),
                 icon: Icons.account_balance_wallet,
                 color: AppTheme.primaryColor,
               ),
@@ -177,16 +187,19 @@ class _ReportesPageState extends State<ReportesPage>
     required IconData icon,
     required Color color,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: 160,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppTheme.darkCard : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
+        border: Border.all(
+          color: isDark ? AppTheme.darkBorder : const Color(0xFFF1F5F9),
+        ),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.05),
+            color: color.withValues(alpha: isDark ? 0.15 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -246,7 +259,9 @@ class _ReportesPageState extends State<ReportesPage>
 
   Map<String, double> _getCustomerData(List<Movimiento> movs) {
     final Map<String, double> data = {};
-    for (var m in movs.where((m) => m.tipo == MovimientoType.ingreso && m.clienteId != null)) {
+    for (var m in movs.where(
+      (m) => m.tipo == MovimientoType.ingreso && m.clienteId != null,
+    )) {
       final cid = m.clienteId!;
       data[cid] = (data[cid] ?? 0) + m.monto;
     }
@@ -259,100 +274,117 @@ class _ReportesPageState extends State<ReportesPage>
     ClientesViewModel cliVM,
   ) {
     final filteredMovs = _filterMovimientos(movVM.items, movVM);
-        final categoryData = _getCategoryData(filteredMovs);
-        final customerData = _getCustomerData(filteredMovs);
-        
-        // Sort customers by spending
-        final sortedCustomers = customerData.entries.toList()
-          ..sort((a, b) => b.value.compareTo(a.value));
+    final categoryData = _getCategoryData(filteredMovs);
+    final customerData = _getCustomerData(filteredMovs);
 
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _buildSectionTitle('Distribución por Categoría'),
-            const SizedBox(height: 12),
-            if (categoryData.isEmpty)
-              const Center(child: Text('No hay datos de ventas en este período'))
-            else
-              AspectRatio(
-                aspectRatio: 1.5,
-                child: PieChart(
-                  PieChartData(
-                    sectionsSpace: 4,
-                    centerSpaceRadius: 40,
-                    sections: categoryData.entries.map((e) {
-                      final index = categoryData.keys.toList().indexOf(e.key);
-                      final totalIncome = filteredMovs.where((m) => m.tipo == MovimientoType.ingreso).fold(0.0, (sum, m) => sum + m.monto);
-                      final percentage = totalIncome > 0 ? (e.value / totalIncome * 100) : 0.0;
-                      
-                      return PieChartSectionData(
-                        color: Colors.primaries[index % Colors.primaries.length],
-                        value: e.value,
-                        title: '${percentage.toStringAsFixed(0)}%',
-                        radius: 50,
-                        titleStyle: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
+    // Sort customers by spending
+    final sortedCustomers = customerData.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _buildSectionTitle('Distribución por Categoría'),
+        const SizedBox(height: 12),
+        if (categoryData.isEmpty)
+          const Center(child: Text('No hay datos de ventas en este período'))
+        else
+          AspectRatio(
+            aspectRatio: 1.5,
+            child: PieChart(
+              PieChartData(
+                sectionsSpace: 4,
+                centerSpaceRadius: 40,
+                sections: categoryData.entries.map((e) {
+                  final index = categoryData.keys.toList().indexOf(e.key);
+                  final totalIncome = filteredMovs
+                      .where((m) => m.tipo == MovimientoType.ingreso)
+                      .fold(0.0, (sum, m) => sum + m.monto);
+                  final percentage = totalIncome > 0
+                      ? (e.value / totalIncome * 100)
+                      : 0.0;
+
+                  return PieChartSectionData(
+                    color: Colors.primaries[index % Colors.primaries.length],
+                    value: e.value,
+                    title: '${percentage.toStringAsFixed(0)}%',
+                    radius: 50,
+                    titleStyle: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  );
+                }).toList(),
               ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: categoryData.entries.map((e) {
+            ),
+          ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: categoryData.entries
+              .map((e) {
                 final index = categoryData.keys.toList().indexOf(e.key);
                 return _buildCategoryLegend(
                   e.key,
                   Colors.primaries[index % Colors.primaries.length],
                 );
-              }).toList().cast<Widget>(),
-            ),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Top Clientes (LTV)'),
-            const SizedBox(height: 12),
-            if (sortedCustomers.isEmpty)
-              const Text('No hay datos de clientes')
-            else
-              ...sortedCustomers.take(5).map((e) {
-                final cliente = cliVM.items.cast<Cliente?>().firstWhere(
-                  (c) => c?.id == e.key,
-                  orElse: () => null,
-                );
-                
-                final nombre = cliente?.nombre ?? 'Cliente Desconocido';
-                final idStr = cliente?.id ?? e.key;
-                
-                return ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-                  leading: CircleAvatar(
-                    backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-                    child: Text(nombre.isNotEmpty ? nombre[0].toUpperCase() : '?',
-                      style: const TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
+              })
+              .toList()
+              .cast<Widget>(),
+        ),
+        const SizedBox(height: 24),
+        _buildSectionTitle('Top Clientes (LTV)'),
+        const SizedBox(height: 12),
+        if (sortedCustomers.isEmpty)
+          const Text('No hay datos de clientes')
+        else
+          ...sortedCustomers.take(5).map((e) {
+            final cliente = cliVM.items.cast<Cliente?>().firstWhere(
+              (c) => c?.id == e.key,
+              orElse: () => null,
+            );
+
+            final nombre = cliente?.nombre ?? 'Cliente Desconocido';
+            final idStr = cliente?.id ?? e.key;
+
+            return ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+              leading: CircleAvatar(
+                backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                child: Text(
+                  nombre.isNotEmpty ? nombre[0].toUpperCase() : '?',
+                  style: const TextStyle(
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.bold,
                   ),
-                  title: Text(nombre, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text('ID: ${idStr.length > 8 ? idStr.substring(0, 8) : idStr}'),
-                  trailing: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 100),
-                    child: Text(
-                      NumberFormatter.formatCompact(e.value),
-                      textAlign: TextAlign.right,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w900,
-                        color: AppTheme.primaryColor,
-                        fontSize: 13,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                ),
+              ),
+              title: Text(
+                nombre,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                'ID: ${idStr.length > 8 ? idStr.substring(0, 8) : idStr}',
+              ),
+              trailing: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 100),
+                child: Text(
+                  NumberFormatter.formatCompact(e.value),
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.primaryColor,
+                    fontSize: 13,
                   ),
-                );
-              }),
-          ],
-        );
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            );
+          }),
+      ],
+    );
   }
 
   Widget _buildMovimientosTab(MovimientosViewModel movVM) {
@@ -363,7 +395,11 @@ class _ReportesPageState extends State<ReportesPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.history_rounded, size: 64, color: AppTheme.textSecondary),
+            const Icon(
+              Icons.history_rounded,
+              size: 64,
+              color: AppTheme.textSecondary,
+            ),
             const SizedBox(height: 16),
             const Text(
               'No hay movimientos en este período',
@@ -380,168 +416,169 @@ class _ReportesPageState extends State<ReportesPage>
       );
     }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: filteredMovs.length,
-          itemBuilder: (context, index) {
-            final mov = filteredMovs[index];
-            return Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: _getTipoColor(mov.tipo).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    _getTipoIcon(mov.tipo),
-                    color: _getTipoColor(mov.tipo),
-                  ),
-                ),
-                title: Text(mov.concepto),
-                subtitle: Text(
-                  DateFormat('dd/MM/yyyy HH:mm').format(mov.fecha),
-                ),
-                trailing: Text(
-                  NumberFormatter.formatCompact(mov.monto),
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: _getTipoColor(mov.tipo),
-                  ),
-                ),
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: filteredMovs.length,
+      itemBuilder: (context, index) {
+        final mov = filteredMovs[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: ListTile(
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: _getTipoColor(mov.tipo).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
-            );
-          },
+              child: Icon(
+                _getTipoIcon(mov.tipo),
+                color: _getTipoColor(mov.tipo),
+              ),
+            ),
+            title: Text(mov.concepto),
+            subtitle: Text(DateFormat('dd/MM/yyyy HH:mm').format(mov.fecha)),
+            trailing: Text(
+              NumberFormatter.formatCompact(mov.monto),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: _getTipoColor(mov.tipo),
+              ),
+            ),
+          ),
         );
+      },
+    );
   }
 
   Widget _buildInventarioTab(InventarioViewModel invVM) {
     final productos = invVM.productos;
 
-        if (productos.isEmpty) {
-          return const Center(child: Text('No hay productos'));
-        }
+    if (productos.isEmpty) {
+      return const Center(child: Text('No hay productos'));
+    }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: productos.length,
-          itemBuilder: (context, index) {
-            final prod = productos[index];
-            return Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color:
-                        (prod.stockBajo
-                                ? AppTheme.errorColor
-                                : AppTheme.primaryColor)
-                            .withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    prod.stockBajo ? Icons.warning : Icons.inventory_2,
-                    color: prod.stockBajo
-                        ? AppTheme.errorColor
-                        : AppTheme.primaryColor,
-                  ),
-                ),
-                title: Text(prod.nombre),
-                subtitle: Text('Stock: ${prod.cantidad} | ${prod.categoria}'),
-                trailing: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      NumberFormatter.formatCompact(prod.precio),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    if (prod.stockBajo)
-                      const Text(
-                        'BAJO',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: AppTheme.errorColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                  ],
-                ),
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: productos.length,
+      itemBuilder: (context, index) {
+        final prod = productos[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: ListTile(
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color:
+                    (prod.stockBajo
+                            ? AppTheme.errorColor
+                            : AppTheme.primaryColor)
+                        .withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
-            );
-          },
+              child: Icon(
+                prod.stockBajo ? Icons.warning : Icons.inventory_2,
+                color: prod.stockBajo
+                    ? AppTheme.errorColor
+                    : AppTheme.primaryColor,
+              ),
+            ),
+            title: Text(prod.nombre),
+            subtitle: Text('Stock: ${prod.cantidad} | ${prod.categoria}'),
+            trailing: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  NumberFormatter.formatCompact(prod.precio),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                if (prod.stockBajo)
+                  const Text(
+                    'BAJO',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: AppTheme.errorColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+              ],
+            ),
+          ),
         );
+      },
+    );
   }
 
-  Widget _buildClientesTab(MovimientosViewModel movVM, ClientesViewModel cliVM) {
+  Widget _buildClientesTab(
+    MovimientosViewModel movVM,
+    ClientesViewModel cliVM,
+  ) {
     final clientes = cliVM.items;
 
-        if (clientes.isEmpty) {
-          return const Center(child: Text('No hay clientes'));
-        }
+    if (clientes.isEmpty) {
+      return const Center(child: Text('No hay clientes'));
+    }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: clientes.length,
-          itemBuilder: (context, index) {
-            final cliente = clientes[index];
-            return Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color:
-                        (cliente.saldoPendiente > 0
-                                ? AppTheme.errorColor
-                                : AppTheme.secondaryColor)
-                            .withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.person,
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: clientes.length,
+      itemBuilder: (context, index) {
+        final cliente = clientes[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: ListTile(
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color:
+                    (cliente.saldoPendiente > 0
+                            ? AppTheme.errorColor
+                            : AppTheme.secondaryColor)
+                        .withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.person,
+                color: cliente.saldoPendiente > 0
+                    ? AppTheme.errorColor
+                    : AppTheme.secondaryColor,
+              ),
+            ),
+            title: Text(cliente.nombre),
+            subtitle: Text(cliente.telefono),
+            trailing: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  NumberFormatter.formatCompact(cliente.saldoPendiente),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
                     color: cliente.saldoPendiente > 0
                         ? AppTheme.errorColor
                         : AppTheme.secondaryColor,
                   ),
                 ),
-                title: Text(cliente.nombre),
-                subtitle: Text(cliente.telefono),
-                trailing: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      NumberFormatter.formatCompact(cliente.saldoPendiente),
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: cliente.saldoPendiente > 0
-                            ? AppTheme.errorColor
-                            : AppTheme.secondaryColor,
-                      ),
+                if (cliente.esFiado)
+                  const Text(
+                    'FIADO',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: AppTheme.tertiaryColor,
+                      fontWeight: FontWeight.bold,
                     ),
-                    if (cliente.esFiado)
-                      const Text(
-                        'FIADO',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: AppTheme.tertiaryColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            );
-          },
+                  ),
+              ],
+            ),
+          ),
         );
+      },
+    );
   }
 
   Widget _buildSectionTitle(String title) {
@@ -555,7 +592,6 @@ class _ReportesPageState extends State<ReportesPage>
       ),
     );
   }
-
 
   Color _getTipoColor(MovimientoType tipo) {
     switch (tipo) {
@@ -589,7 +625,10 @@ class _ReportesPageState extends State<ReportesPage>
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 4),
-        Text(label, style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+        ),
       ],
     );
   }

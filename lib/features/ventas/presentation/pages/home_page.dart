@@ -122,9 +122,7 @@ class HomePage extends StatelessWidget {
             totalEgresos: isFiltered
                 ? movVM.totalEgresosFiltered
                 : movVM.totalEgresos,
-            balance: isFiltered
-                ? movVM.balanceFiltered
-                : movVM.balance,
+            balance: isFiltered ? movVM.balanceFiltered : movVM.balance,
             startDate: movVM.startDateFilter,
             endDate: movVM.endDateFilter,
             onDateTap: () => _selectDateRange(context),
@@ -238,6 +236,7 @@ class _MovimientoItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isMonetary = mov.tipo != mov_model.MovimientoType.actividad;
     final color = mov.tipo == mov_model.MovimientoType.ingreso
         ? AppTheme.successColor
@@ -248,9 +247,11 @@ class _MovimientoItem extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: isDark ? AppTheme.darkCard : AppTheme.surfaceColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
+        border: Border.all(
+          color: isDark ? AppTheme.darkBorder : const Color(0xFFF1F5F9),
+        ),
       ),
       child: ListTile(
         onTap: onTap,
@@ -273,15 +274,17 @@ class _MovimientoItem extends StatelessWidget {
         ),
         title: Text(
           mov.concepto,
-          style: Theme.of(context).textTheme.titleSmall,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            color: isDark ? AppTheme.darkTextPrimary : null,
+          ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         subtitle: Text(
           '${DateFormat('HH:mm').format(mov.fecha)}${mov.categoria != null ? ' • ${mov.categoria}' : ''}',
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
+          ),
         ),
         trailing: isMonetary
             ? ConstrainedBox(
@@ -297,10 +300,9 @@ class _MovimientoItem extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               )
-            : const Icon(
+            : Icon(
                 Icons.chevron_right_rounded,
-                color: AppTheme.textSecondary,
-                size: 20,
+                color: isDark ? AppTheme.darkTextTertiary : null,
               ),
       ),
     );

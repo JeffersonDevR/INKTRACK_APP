@@ -5,7 +5,7 @@ class Cliente implements HasId {
   final String id;
   final String nombre;
   final String telefono;
-  final String email;
+  final String? email;
   final bool esFiado;
   final double saldoPendiente;
   final bool isActivo;
@@ -14,7 +14,7 @@ class Cliente implements HasId {
     required this.id,
     required this.nombre,
     required this.telefono,
-    required this.email,
+    this.email,
     this.esFiado = false,
     this.saldoPendiente = 0.0,
     this.isActivo = true,

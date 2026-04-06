@@ -242,11 +242,22 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                     flex: 3,
                     child: TextFormField(
                       controller: _montoController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Monto Total',
                         prefixText: '\$ ',
                         hintText: '0.00',
+                        helperText:
+                            _productoId != null &&
+                                _tipo == MovimientoType.ingreso
+                            ? 'Monto calculado automáticamente'
+                            : null,
                       ),
+                      readOnly:
+                          _productoId != null &&
+                          _tipo == MovimientoType.ingreso,
+                      enabled:
+                          !(_productoId != null &&
+                              _tipo == MovimientoType.ingreso),
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
@@ -465,8 +476,8 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                   final picked = await showDatePicker(
                     context: context,
                     initialDate: _fecha,
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime(2101),
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime.now(),
                   );
                   if (picked != null) {
                     setState(() {

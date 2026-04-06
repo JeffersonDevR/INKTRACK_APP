@@ -68,6 +68,10 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
     } else {
       final existingIndex = items.indexWhere((p) => p.id == finalId);
       if (existingIndex != -1) {
+        final existing = items[existingIndex];
+        if (isNew) {
+          throw Exception('El producto ya existe (mismo código de barras)');
+        }
         await _repository.update(finalId, productoAGuardar);
         update(finalId, productoAGuardar);
       } else {

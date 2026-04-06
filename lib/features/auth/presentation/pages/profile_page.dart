@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:InkTrack/core/services/auth_service.dart';
+import 'package:InkTrack/core/services/theme_provider.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -10,13 +11,19 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final authService = context.read<AuthService>();
     final user = authService.currentUser;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: isDark
+          ? AppTheme.darkBackground
+          : AppTheme.backgroundColor,
       appBar: AppBar(
         title: const Text('Perfil'),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        foregroundColor: isDark
+            ? AppTheme.darkTextPrimary
+            : AppTheme.textPrimary,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -38,9 +45,10 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               user?.email ?? 'Usuario',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
@@ -71,6 +79,58 @@ class ProfilePage extends StatelessWidget {
               icon: Icons.fingerprint,
               title: 'ID de Usuario',
               value: user?.id.substring(0, 8) ?? 'No disponible',
+            ),
+            const SizedBox(height: 24),
+            Consumer<ThemeProvider>(
+              builder: (context, themeProvider, child) {
+                final isDark = themeProvider.isDarkMode;
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppTheme.darkSurface
+                        : AppTheme.surfaceColor,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark
+                          ? AppTheme.darkBorder
+                          : AppTheme.borderLightColor,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            isDark ? Icons.dark_mode : Icons.light_mode,
+                            color: AppTheme.primaryColor,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Modo Oscuro',
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(
+                                  color: isDark
+                                      ? AppTheme.darkTextPrimary
+                                      : null,
+                                ),
+                          ),
+                        ],
+                      ),
+                      Switch(
+                        value: isDark,
+                        onChanged: (_) => themeProvider.toggleTheme(),
+                        activeColor: AppTheme.primaryColor,
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 40),
             SizedBox(
@@ -124,9 +184,11 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: 40),
             Text(
               'InkTrack v1.0.0',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppTheme.darkTextSecondary
+                    : AppTheme.textSecondary,
+              ),
             ),
           ],
         ),
@@ -140,12 +202,15 @@ class ProfilePage extends StatelessWidget {
     required String title,
     required String value,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppTheme.darkCard : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(
+          color: isDark ? AppTheme.darkBorder : Colors.grey.shade200,
+        ),
       ),
       child: Row(
         children: [
@@ -165,15 +230,20 @@ class ProfilePage extends StatelessWidget {
                 Text(
                   title,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.textSecondary,
+                    color: isDark
+                        ? AppTheme.darkTextSecondary
+                        : AppTheme.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   value,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: isDark
+                        ? AppTheme.darkTextPrimary
+                        : AppTheme.textPrimary,
+                  ),
                 ),
               ],
             ),

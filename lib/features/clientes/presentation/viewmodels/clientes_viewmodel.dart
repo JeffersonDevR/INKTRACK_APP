@@ -42,9 +42,7 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
   }
 
   bool checkDuplicado(String nombre, String telefono) {
-    return items.any((c) =>
-        c.nombre.toLowerCase().trim() == nombre.toLowerCase().trim() &&
-        c.telefono.trim() == telefono.trim());
+    return items.any((c) => c.telefono.trim() == telefono.trim());
   }
 
   Future<String> agregar({

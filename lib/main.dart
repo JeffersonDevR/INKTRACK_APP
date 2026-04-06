@@ -8,6 +8,7 @@ import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/data/local/database.dart';
 import 'package:InkTrack/core/services/auth_service.dart';
 import 'package:InkTrack/core/services/supabase_sync_service.dart';
+import 'package:InkTrack/core/services/theme_provider.dart';
 import 'package:InkTrack/features/clientes/data/repositories/drift_clientes_repository.dart';
 import 'package:InkTrack/features/proveedores/data/repositories/drift_proveedores_repository.dart';
 import 'package:InkTrack/features/inventario/data/repositories/drift_productos_repository.dart';
@@ -170,16 +171,21 @@ class _InkTrackAppState extends State<InkTrackApp> {
         ChangeNotifierProvider(
           create: (_) => MovimientosViewModel(movimientosRepo),
         ),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: MaterialApp(
-        title: 'InkTrack',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.light,
-        home: _isLoggedIn
-            ? MainLayoutPage(authService: widget.authService)
-            : LoginPage(onLoginSuccess: _handleLoginSuccess),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: 'InkTrack',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeProvider.themeMode,
+            home: _isLoggedIn
+                ? MainLayoutPage(authService: widget.authService)
+                : LoginPage(onLoginSuccess: _handleLoginSuccess),
+          );
+        },
       ),
     );
   }

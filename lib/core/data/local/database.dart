@@ -14,7 +14,7 @@ class Clientes extends Table {
   TextColumn get id => text()();
   TextColumn get nombre => text()();
   TextColumn get telefono => text()();
-  TextColumn get email => text()();
+  TextColumn get email => text().nullable()();
   BoolColumn get esFiado => boolean().withDefault(const Constant(false))();
   RealColumn get saldoPendiente => real().withDefault(const Constant(0.0))();
   BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
@@ -77,6 +77,9 @@ class Movimientos extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+
+  @override
+  List<Set<Column>> get uniqueKeys => [];
 }
 
 @DataClassName('VentaData')

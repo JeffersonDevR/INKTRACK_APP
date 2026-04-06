@@ -9,7 +9,13 @@ class MovimientosViewModel extends BaseCrudViewModel<Movimiento> {
     _loadMovimientos();
   }
 
-  final List<String> _categorias = ['Ventas', 'Servicios', 'Sueldos', 'Alquiler', 'Otros'];
+  final List<String> _categorias = [
+    'Ventas',
+    'Servicios',
+    'Sueldos',
+    'Alquiler',
+    'Otros',
+  ];
   List<String> get categorias => List.unmodifiable(_categorias);
 
   DateTime? _startDateFilter;
@@ -44,14 +50,24 @@ class MovimientosViewModel extends BaseCrudViewModel<Movimiento> {
     if (startDateFilter == null) return historialCompleto;
 
     return items.where((m) {
-      final isAfterStart =
-          startDateFilter == null || m.fecha.isAfter(startDateFilter!);
-      final isBeforeEnd =
-          endDateFilter == null ||
-          m.fecha.isBefore(endDateFilter!.add(const Duration(days: 1)));
+      final mDate = DateTime(m.fecha.year, m.fecha.month, m.fecha.day);
+      final startDate = DateTime(
+        startDateFilter!.year,
+        startDateFilter!.month,
+        startDateFilter!.day,
+      );
+      final endDate = endDateFilter != null
+          ? DateTime(
+              endDateFilter!.year,
+              endDateFilter!.month,
+              endDateFilter!.day,
+            )
+          : null;
+
+      final isAfterStart = !mDate.isBefore(startDate);
+      final isBeforeEnd = endDate == null || !mDate.isAfter(endDate);
       return isAfterStart && isBeforeEnd;
-    }).toList()
-      ..sort((a, b) => b.fecha.compareTo(a.fecha));
+    }).toList()..sort((a, b) => b.fecha.compareTo(a.fecha));
   }
 
   double get totalIngresosFiltered => filteredItems
@@ -81,22 +97,26 @@ class MovimientosViewModel extends BaseCrudViewModel<Movimiento> {
   double get totalIngresosHoy {
     final now = DateTime.now();
     return items
-        .where((m) =>
-            m.tipo == MovimientoType.ingreso &&
-            m.fecha.day == now.day &&
-            m.fecha.month == now.month &&
-            m.fecha.year == now.year)
+        .where(
+          (m) =>
+              m.tipo == MovimientoType.ingreso &&
+              m.fecha.day == now.day &&
+              m.fecha.month == now.month &&
+              m.fecha.year == now.year,
+        )
         .fold(0.0, (sum, m) => sum + m.monto);
   }
 
   double get totalEgresosHoy {
     final now = DateTime.now();
     return items
-        .where((m) =>
-            m.tipo == MovimientoType.egreso &&
-            m.fecha.day == now.day &&
-            m.fecha.month == now.month &&
-            m.fecha.year == now.year)
+        .where(
+          (m) =>
+              m.tipo == MovimientoType.egreso &&
+              m.fecha.day == now.day &&
+              m.fecha.month == now.month &&
+              m.fecha.year == now.year,
+        )
         .fold(0.0, (sum, m) => sum + m.monto);
   }
 

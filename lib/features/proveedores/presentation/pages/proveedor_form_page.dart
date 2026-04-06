@@ -68,12 +68,17 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
                   labelText: 'Nombre',
                   border: OutlineInputBorder(),
                   hintText: 'Ej. Distribuidora Ink',
+                  counterText: '',
                 ),
+                maxLength: 50,
                 textCapitalization: TextCapitalization.words,
                 inputFormatters: [InputFormatters.textOnly],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor ingrese el nombre';
+                  }
+                  if (value.length < 2) {
+                    return 'Mínimo 2 caracteres';
                   }
                   return null;
                 },

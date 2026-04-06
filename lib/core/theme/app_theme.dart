@@ -2,32 +2,49 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // Premium Financial Palette (Indigo / Slate)
-  // Primary: Indigo 600 - Trust and professional stability
-  static const Color primaryColor = Color(0xFF4F46E5);
-  // Secondary: Slate 700 - Sophisticated structural elements
-  static const Color secondaryColor = Color(0xFF334155);
-  // Tertiary: Cyan 600 - Dynamic highlights
-  static const Color tertiaryColor = Color(0xFF0891B2);
+  // Pink/Magenta + Gold Palette (from guide)
+  // Light Theme
+  static const Color primaryColor = Color(0xFFE8185A);
+  static const Color secondaryColor = Color(0xFFE0A020);
+  static const Color accentColor = Color(0xFFE0A020);
 
-  // Semantic Colors
-  static const Color errorColor = Color(0xFFF43F5E); // Rose 500
-  static const Color successColor = Color(0xFF10B981); // Emerald 500
+  // Dark Theme variants
+  static const Color primaryColorDark = Color(0xFFE8185A);
+  static const Color secondaryColorDark = Color(0xFFE0A020);
+  static const Color accentColorDark = Color(0xFFE0A020);
 
-  // UI Colors
-  static const Color accentColor = primaryColor;
-  static const Color backgroundColor = Color(0xFFF8FAFC);
-  static const Color surfaceColor = Colors.white;
+  // Semantic Colors - Same for both modes
+  static const Color errorColor = Color(0xFFEF4444);
+  static const Color successColor = Color(0xFF22C55E);
+  static const Color warningColor = Color(0xFFEAB308);
+  static const Color infoColor = Color(0xFF3B82F6);
 
-  // Text Colors
-  static const Color textPrimary = Color(0xFF0F172A); // Slate 900
-  static const Color textSecondary = Color(0xFF64748B); // Slate 500
+  // Light UI Colors
+  static const Color backgroundColor = Color(0xFFF5F5F5);
+  static const Color surfaceColor = Color(0xFFFFFFFF);
+  static const Color cardColor = Color(0xFFFFFFFF);
 
-  // Dark palette (Midnight)
-  static const Color darkBackground = Color(0xFF020617); // Slate 950
-  static const Color darkSurface = Color(0xFF0F172A); // Slate 900
-  static const Color darkTextPrimary = Color(0xFFF8FAFC);
-  static const Color darkTextSecondary = Color(0xFF94A3B8);
+  // Light Text Colors
+  static const Color textPrimary = Color(0xFF2E2B2B);
+  static const Color textSecondary = Color(0xFF5C5956);
+  static const Color textTertiary = Color(0xFF8A8785);
+
+  // Border Colors
+  static const Color borderColor = Color(0xFFD1D5DB);
+  static const Color borderLightColor = Color(0xFFE5E7EB);
+
+  // Dark palette - Neutral colors, no green tints
+  static const Color darkBackground = Color(0xFF121212);
+  static const Color darkSurface = Color(0xFF1E1E1E);
+  static const Color darkCard = Color(0xFF2A2A2A);
+  static const Color darkTextPrimary = Color(0xFFFFFFFF);
+  static const Color darkTextSecondary = Color(0xFFB0B0B0);
+  static const Color darkTextTertiary = Color(0xFF707070);
+  static const Color darkBorder = Color(0xFF404040);
+
+  // Backwards compatibility
+  static const Color tertiaryColor = accentColor;
+  static const Color tertiaryColorDark = accentColor;
 
   static ThemeData get lightTheme {
     final base = ThemeData.light(useMaterial3: true);
@@ -38,12 +55,12 @@ class AppTheme {
       colorScheme: ColorScheme.light(
         primary: primaryColor,
         secondary: secondaryColor,
-        tertiary: tertiaryColor,
+        tertiary: accentColor,
         error: errorColor,
         surface: surfaceColor,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
-        onTertiary: Colors.white,
+        onTertiary: Colors.black,
         onSurface: textPrimary,
       ),
 
@@ -221,12 +238,12 @@ class AppTheme {
       colorScheme: ColorScheme.dark(
         primary: primaryColor,
         secondary: secondaryColor,
-        tertiary: tertiaryColor,
+        tertiary: accentColor,
         error: errorColor,
         surface: darkSurface,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
-        onTertiary: darkTextPrimary,
+        onTertiary: Colors.black,
         onSurface: darkTextPrimary,
       ),
 
@@ -243,11 +260,11 @@ class AppTheme {
       ),
 
       cardTheme: CardThemeData(
-        color: darkSurface,
+        color: darkCard,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+          side: BorderSide(color: darkBorder),
         ),
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       ),
@@ -277,11 +294,11 @@ class AppTheme {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+          borderSide: BorderSide(color: darkBorder),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+          borderSide: BorderSide(color: darkBorder),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -292,7 +309,7 @@ class AppTheme {
           borderSide: const BorderSide(color: errorColor),
         ),
         labelStyle: GoogleFonts.plusJakartaSans(color: darkTextSecondary),
-        hintStyle: GoogleFonts.plusJakartaSans(color: darkTextSecondary),
+        hintStyle: GoogleFonts.plusJakartaSans(color: darkTextTertiary),
       ),
 
       textTheme: GoogleFonts.plusJakartaSansTextTheme(base.textTheme).copyWith(

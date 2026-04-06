@@ -16,9 +16,7 @@ class ClientesPage extends StatelessWidget {
     return Consumer<ClientesViewModel>(
       builder: (context, viewModel, child) {
         final showInactive = viewModel.showInactive;
-        return Scaffold(
-          body: _buildBody(context, viewModel, showInactive),
-        );
+        return Scaffold(body: _buildBody(context, viewModel, showInactive));
       },
     );
   }
@@ -70,10 +68,7 @@ class ClientesPage extends StatelessWidget {
           ),
         ),
         if (viewModel.clientes.isEmpty)
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: _EmptyClientes(),
-          )
+          SliverFillRemaining(hasScrollBody: false, child: _EmptyClientes())
         else
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
@@ -81,179 +76,185 @@ class ClientesPage extends StatelessWidget {
               delegate: SliverChildBuilderDelegate((context, index) {
                 final cliente = viewModel.clientes[index];
                 final isInactive = !cliente.isActivo;
+                final isDark = Theme.of(context).brightness == Brightness.dark;
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
-                  color: isInactive ? Colors.grey.shade100 : null,
-                  // ... rest of the card build logic ...
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(16),
-                  leading: CircleAvatar(
-                    radius: 24,
-                    backgroundColor: AppTheme.primaryColor.withValues(
-                      alpha: 0.1,
-                    ),
-                    child: const Icon(
-                      Icons.person_rounded,
-                      color: AppTheme.primaryColor,
-                    ),
-                  ),
-                  title: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              cliente.nombre,
-                              style: Theme.of(context).textTheme.labelLarge,
-                            ),
-                          ),
-                          if (isInactive) ...[
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade400,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: const Text(
-                                'INACTIVO',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ] else if (cliente.esFiado) ...[
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppTheme.errorColor.withValues(
-                                  alpha: 0.1,
-                                ),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: const Text(
-                                'CRÉDITO',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppTheme.errorColor,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
+                  color: isInactive
+                      ? (isDark ? AppTheme.darkCard : Colors.grey.shade100)
+                      : (isDark ? AppTheme.darkCard : null),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(16),
+                    leading: CircleAvatar(
+                      radius: 24,
+                      backgroundColor: AppTheme.primaryColor.withValues(
+                        alpha: 0.1,
                       ),
-                      const SizedBox(height: 4),
-                    ],
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${cliente.telefono} • ${cliente.email}',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      child: const Icon(
+                        Icons.person_rounded,
+                        color: AppTheme.primaryColor,
                       ),
-                      if (cliente.saldoPendiente > 0) ...[
-                        const SizedBox(height: 8),
+                    ),
+                    title: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Row(
                           children: [
-                            const Icon(
-                              Icons.payments_outlined,
-                              size: 14,
-                              color: AppTheme.errorColor,
+                            Expanded(
+                              child: Text(
+                                cliente.nombre,
+                                style: Theme.of(context).textTheme.labelLarge,
+                              ),
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Deuda: ${NumberFormatter.formatCurrency(cliente.saldoPendiente)}',
-                              style: Theme.of(context).textTheme.labelMedium
-                                  ?.copyWith(
-                                    color: AppTheme.errorColor,
-                                    fontWeight: FontWeight.bold,
+                            if (isInactive) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? Colors.grey.shade700
+                                      : Colors.grey.shade400,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  'INACTIVO',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
                                   ),
-                            ),
+                                ),
+                              ),
+                            ] else if (cliente.esFiado) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.errorColor.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  'CRÉDITO',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppTheme.errorColor,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
+                        const SizedBox(height: 4),
                       ],
-                    ],
-                  ),
-                  trailing: PopupMenuButton<String>(
-                    onSelected: (value) =>
-                        _onMenuSelected(context, value, cliente),
-                    itemBuilder: (context) => [
-                      if (cliente.saldoPendiente > 0)
-                        const PopupMenuItem(
-                          value: 'pay',
-                          child: Row(
-                            children: [
-                              Icon(Icons.payments_outlined, size: 20),
-                              SizedBox(width: 8),
-                              Text('Registrar Pago'),
-                            ],
-                          ),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${cliente.telefono} • ${cliente.email}',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      const PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit_outlined, size: 20),
-                            SizedBox(width: 8),
-                            Text('Editar'),
-                          ],
-                        ),
-                      ),
-                      if (isInactive)
-                        const PopupMenuItem(
-                          value: 'reactivate',
-                          child: Row(
+                        if (cliente.saldoPendiente > 0) ...[
+                          const SizedBox(height: 8),
+                          Row(
                             children: [
-                              Icon(
-                                Icons.refresh,
-                                size: 20,
-                                color: AppTheme.successColor,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Reactivar',
-                                style: TextStyle(color: AppTheme.successColor),
-                              ),
-                            ],
-                          ),
-                        )
-                      else
-                        PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.delete_outline_rounded,
+                              const Icon(
+                                Icons.payments_outlined,
+                                size: 14,
                                 color: AppTheme.errorColor,
-                                size: 20,
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 4),
                               Text(
-                                'Eliminar',
-                                style: TextStyle(color: AppTheme.errorColor),
+                                'Deuda: ${NumberFormatter.formatCurrency(cliente.saldoPendiente)}',
+                                style: Theme.of(context).textTheme.labelMedium
+                                    ?.copyWith(
+                                      color: AppTheme.errorColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                               ),
                             ],
                           ),
+                        ],
+                      ],
+                    ),
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (value) =>
+                          _onMenuSelected(context, value, cliente),
+                      itemBuilder: (context) => [
+                        if (cliente.saldoPendiente > 0)
+                          const PopupMenuItem(
+                            value: 'pay',
+                            child: Row(
+                              children: [
+                                Icon(Icons.payments_outlined, size: 20),
+                                SizedBox(width: 8),
+                                Text('Registrar Pago'),
+                              ],
+                            ),
+                          ),
+                        const PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit_outlined, size: 20),
+                              SizedBox(width: 8),
+                              Text('Editar'),
+                            ],
+                          ),
                         ),
-                    ],
+                        if (isInactive)
+                          const PopupMenuItem(
+                            value: 'reactivate',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.refresh,
+                                  size: 20,
+                                  color: AppTheme.successColor,
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Reactivar',
+                                  style: TextStyle(
+                                    color: AppTheme.successColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.delete_outline_rounded,
+                                  color: AppTheme.errorColor,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Eliminar',
+                                  style: TextStyle(color: AppTheme.errorColor),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            }, childCount: viewModel.clientes.length),
+                );
+              }, childCount: viewModel.clientes.length),
+            ),
           ),
-        ),
       ],
     );
   }
@@ -283,7 +284,9 @@ class ClientesPage extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Eliminar cliente'),
-        content: Text('¿Eliminar a ${cliente.nombre}?\n(Se marcará como inactivo para trazabilidad)'),
+        content: Text(
+          '¿Eliminar a ${cliente.nombre}?\n(Se marcará como inactivo para trazabilidad)',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),

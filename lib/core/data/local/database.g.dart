@@ -43,9 +43,9 @@ class $ClientesTable extends Clientes
   late final GeneratedColumn<String> email = GeneratedColumn<String>(
     'email',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _esFiadoMeta = const VerificationMeta(
     'esFiado',
@@ -162,8 +162,6 @@ class $ClientesTable extends Clientes
         _emailMeta,
         email.isAcceptableOrUnknown(data['email']!, _emailMeta),
       );
-    } else if (isInserting) {
-      context.missing(_emailMeta);
     }
     if (data.containsKey('es_fiado')) {
       context.handle(
@@ -225,7 +223,7 @@ class $ClientesTable extends Clientes
       email: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}email'],
-      )!,
+      ),
       esFiado: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}es_fiado'],
@@ -259,7 +257,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
   final String id;
   final String nombre;
   final String telefono;
-  final String email;
+  final String? email;
   final bool esFiado;
   final double saldoPendiente;
   final bool isActivo;
@@ -269,7 +267,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
     required this.id,
     required this.nombre,
     required this.telefono,
-    required this.email,
+    this.email,
     required this.esFiado,
     required this.saldoPendiente,
     required this.isActivo,
@@ -282,7 +280,9 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
     map['id'] = Variable<String>(id);
     map['nombre'] = Variable<String>(nombre);
     map['telefono'] = Variable<String>(telefono);
-    map['email'] = Variable<String>(email);
+    if (!nullToAbsent || email != null) {
+      map['email'] = Variable<String>(email);
+    }
     map['es_fiado'] = Variable<bool>(esFiado);
     map['saldo_pendiente'] = Variable<double>(saldoPendiente);
     map['is_activo'] = Variable<bool>(isActivo);
@@ -298,7 +298,9 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
       id: Value(id),
       nombre: Value(nombre),
       telefono: Value(telefono),
-      email: Value(email),
+      email: email == null && nullToAbsent
+          ? const Value.absent()
+          : Value(email),
       esFiado: Value(esFiado),
       saldoPendiente: Value(saldoPendiente),
       isActivo: Value(isActivo),
@@ -318,7 +320,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
       id: serializer.fromJson<String>(json['id']),
       nombre: serializer.fromJson<String>(json['nombre']),
       telefono: serializer.fromJson<String>(json['telefono']),
-      email: serializer.fromJson<String>(json['email']),
+      email: serializer.fromJson<String?>(json['email']),
       esFiado: serializer.fromJson<bool>(json['esFiado']),
       saldoPendiente: serializer.fromJson<double>(json['saldoPendiente']),
       isActivo: serializer.fromJson<bool>(json['isActivo']),
@@ -333,7 +335,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
       'id': serializer.toJson<String>(id),
       'nombre': serializer.toJson<String>(nombre),
       'telefono': serializer.toJson<String>(telefono),
-      'email': serializer.toJson<String>(email),
+      'email': serializer.toJson<String?>(email),
       'esFiado': serializer.toJson<bool>(esFiado),
       'saldoPendiente': serializer.toJson<double>(saldoPendiente),
       'isActivo': serializer.toJson<bool>(isActivo),
@@ -346,7 +348,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
     String? id,
     String? nombre,
     String? telefono,
-    String? email,
+    Value<String?> email = const Value.absent(),
     bool? esFiado,
     double? saldoPendiente,
     bool? isActivo,
@@ -356,7 +358,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
     id: id ?? this.id,
     nombre: nombre ?? this.nombre,
     telefono: telefono ?? this.telefono,
-    email: email ?? this.email,
+    email: email.present ? email.value : this.email,
     esFiado: esFiado ?? this.esFiado,
     saldoPendiente: saldoPendiente ?? this.saldoPendiente,
     isActivo: isActivo ?? this.isActivo,
@@ -430,7 +432,7 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
   final Value<String> id;
   final Value<String> nombre;
   final Value<String> telefono;
-  final Value<String> email;
+  final Value<String?> email;
   final Value<bool> esFiado;
   final Value<double> saldoPendiente;
   final Value<bool> isActivo;
@@ -453,7 +455,7 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
     required String id,
     required String nombre,
     required String telefono,
-    required String email,
+    this.email = const Value.absent(),
     this.esFiado = const Value.absent(),
     this.saldoPendiente = const Value.absent(),
     this.isActivo = const Value.absent(),
@@ -462,8 +464,7 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        nombre = Value(nombre),
-       telefono = Value(telefono),
-       email = Value(email);
+       telefono = Value(telefono);
   static Insertable<ClienteData> custom({
     Expression<String>? id,
     Expression<String>? nombre,
@@ -494,7 +495,7 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
     Value<String>? id,
     Value<String>? nombre,
     Value<String>? telefono,
-    Value<String>? email,
+    Value<String?>? email,
     Value<bool>? esFiado,
     Value<double>? saldoPendiente,
     Value<bool>? isActivo,
@@ -3149,7 +3150,7 @@ typedef $$ClientesTableCreateCompanionBuilder =
       required String id,
       required String nombre,
       required String telefono,
-      required String email,
+      Value<String?> email,
       Value<bool> esFiado,
       Value<double> saldoPendiente,
       Value<bool> isActivo,
@@ -3162,7 +3163,7 @@ typedef $$ClientesTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> nombre,
       Value<String> telefono,
-      Value<String> email,
+      Value<String?> email,
       Value<bool> esFiado,
       Value<double> saldoPendiente,
       Value<bool> isActivo,
@@ -3358,7 +3359,7 @@ class $$ClientesTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> nombre = const Value.absent(),
                 Value<String> telefono = const Value.absent(),
-                Value<String> email = const Value.absent(),
+                Value<String?> email = const Value.absent(),
                 Value<bool> esFiado = const Value.absent(),
                 Value<double> saldoPendiente = const Value.absent(),
                 Value<bool> isActivo = const Value.absent(),
@@ -3382,7 +3383,7 @@ class $$ClientesTableTableManager
                 required String id,
                 required String nombre,
                 required String telefono,
-                required String email,
+                Value<String?> email = const Value.absent(),
                 Value<bool> esFiado = const Value.absent(),
                 Value<double> saldoPendiente = const Value.absent(),
                 Value<bool> isActivo = const Value.absent(),

@@ -14,9 +14,7 @@ class ProveedoresPage extends StatelessWidget {
     return Consumer<ProveedoresViewModel>(
       builder: (context, viewModel, child) {
         final showInactive = viewModel.showInactive;
-        return Scaffold(
-          body: _buildBody(context, viewModel, showInactive),
-        );
+        return Scaffold(body: _buildBody(context, viewModel, showInactive));
       },
     );
   }
@@ -71,10 +69,7 @@ class ProveedoresPage extends StatelessWidget {
           ),
         ),
         if (viewModel.proveedores.isEmpty)
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: _EmptyProveedores(),
-          )
+          SliverFillRemaining(hasScrollBody: false, child: _EmptyProveedores())
         else
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
@@ -82,159 +77,166 @@ class ProveedoresPage extends StatelessWidget {
               delegate: SliverChildBuilderDelegate((context, index) {
                 final proveedor = viewModel.proveedores[index];
                 final isInactive = !proveedor.isActivo;
+                final isDark = Theme.of(context).brightness == Brightness.dark;
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
-                  color: isInactive ? Colors.grey.shade100 : null,
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(16),
-                  leading: CircleAvatar(
-                    radius: 24,
-                    backgroundColor: AppTheme.primaryColor.withValues(
-                      alpha: 0.1,
-                    ),
-                    child: const Icon(
-                      Icons.local_shipping_outlined,
-                      color: AppTheme.primaryColor,
-                    ),
-                  ),
-                  title: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          proveedor.nombre,
-                          style: Theme.of(context).textTheme.labelLarge,
-                        ),
+                  color: isInactive
+                      ? (isDark ? AppTheme.darkCard : Colors.grey.shade100)
+                      : (isDark ? AppTheme.darkCard : null),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(16),
+                    leading: CircleAvatar(
+                      radius: 24,
+                      backgroundColor: AppTheme.primaryColor.withValues(
+                        alpha: 0.1,
                       ),
-                      if (isInactive)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade400,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Text(
-                            'INACTIVO',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                            ),
+                      child: const Icon(
+                        Icons.local_shipping_outlined,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                    title: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            proveedor.nombre,
+                            style: Theme.of(context).textTheme.labelLarge,
                           ),
                         ),
-                    ],
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 4),
-                      Text(
-                        proveedor.telefono,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      if (proveedor.diasVisita.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.calendar_today_rounded,
-                              size: 14,
-                              color: AppTheme.secondaryColor,
+                        if (isInactive)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
                             ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  'Visita: ${proveedor.diasVisitaShort}',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: AppTheme.secondaryColor,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.grey.shade700
+                                  : Colors.grey.shade400,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'INACTIVO',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 4),
+                        Text(
+                          proveedor.telefono,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        if (proveedor.diasVisita.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.calendar_today_rounded,
+                                size: 14,
+                                color: AppTheme.secondaryColor,
+                              ),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    'Visita: ${proveedor.diasVisitaShort}',
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: AppTheme.secondaryColor,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          ),
+                        ],
                       ],
-                    ],
-                  ),
-                  trailing: PopupMenuButton<String>(
-                    onSelected: (value) {
-                      if (value == 'edit') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ProveedorFormPage(proveedor: proveedor),
-                          ),
-                        );
-                      } else if (value == 'delete') {
-                        _showDeleteDialog(context, proveedor);
-                      } else if (value == 'reactivate') {
-                        context.read<ProveedoresViewModel>().reactivar(
-                          proveedor.id,
-                        );
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit_outlined, size: 20),
-                            SizedBox(width: 8),
-                            Text('Editar'),
-                          ],
-                        ),
-                      ),
-                      if (isInactive)
+                    ),
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'edit') {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ProveedorFormPage(proveedor: proveedor),
+                            ),
+                          );
+                        } else if (value == 'delete') {
+                          _showDeleteDialog(context, proveedor);
+                        } else if (value == 'reactivate') {
+                          context.read<ProveedoresViewModel>().reactivar(
+                            proveedor.id,
+                          );
+                        }
+                      },
+                      itemBuilder: (context) => [
                         const PopupMenuItem(
-                          value: 'reactivate',
+                          value: 'edit',
                           child: Row(
                             children: [
-                              Icon(
-                                Icons.refresh,
-                                size: 20,
-                                color: AppTheme.successColor,
-                              ),
+                              Icon(Icons.edit_outlined, size: 20),
                               SizedBox(width: 8),
-                              Text(
-                                'Reactivar',
-                                style: TextStyle(color: AppTheme.successColor),
-                              ),
-                            ],
-                          ),
-                        )
-                      else
-                        PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.delete_outline_rounded,
-                                color: AppTheme.errorColor,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Eliminar',
-                                style: TextStyle(color: AppTheme.errorColor),
-                              ),
+                              Text('Editar'),
                             ],
                           ),
                         ),
-                    ],
+                        if (isInactive)
+                          const PopupMenuItem(
+                            value: 'reactivate',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.refresh,
+                                  size: 20,
+                                  color: AppTheme.successColor,
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Reactivar',
+                                  style: TextStyle(
+                                    color: AppTheme.successColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.delete_outline_rounded,
+                                  color: AppTheme.errorColor,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Eliminar',
+                                  style: TextStyle(color: AppTheme.errorColor),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            }, childCount: viewModel.proveedores.length),
+                );
+              }, childCount: viewModel.proveedores.length),
+            ),
           ),
-        ),
       ],
     );
   }
@@ -244,7 +246,9 @@ class ProveedoresPage extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Eliminar proveedor'),
-        content: Text('¿Eliminar a ${proveedor.nombre}?\n(Se marcará como inactivo para trazabilidad)'),
+        content: Text(
+          '¿Eliminar a ${proveedor.nombre}?\n(Se marcará como inactivo para trazabilidad)',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),

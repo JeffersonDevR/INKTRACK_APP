@@ -64,15 +64,21 @@ class FinancialSummaryHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: isDark ? AppTheme.darkCard : AppTheme.surfaceColor,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
+        border: Border.all(
+          color: isDark ? AppTheme.darkBorder : const Color(0xFFF1F5F9),
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryColor.withValues(alpha: 0.05),
+            color: AppTheme.primaryColor.withValues(
+              alpha: isDark ? 0.15 : 0.05,
+            ),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -91,7 +97,9 @@ class FinancialSummaryHeader extends StatelessWidget {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
-                    color: AppTheme.textPrimary,
+                    color: isDark
+                        ? AppTheme.darkTextPrimary
+                        : AppTheme.textPrimary,
                     letterSpacing: -1,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -113,16 +121,20 @@ class FinancialSummaryHeader extends StatelessWidget {
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
-                              color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                              color: AppTheme.primaryColor.withValues(
+                                alpha: 0.08,
+                              ),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: AppTheme.primaryColor.withValues(alpha: 0.15),
+                                color: AppTheme.primaryColor.withValues(
+                                  alpha: 0.15,
+                                ),
                               ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.calendar_month_rounded,
                                   size: 16,
                                   color: AppTheme.primaryColor,
@@ -159,22 +171,31 @@ class FinancialSummaryHeader extends StatelessWidget {
                   value: _formatValue(totalIngresos, isCurrency1),
                   color: AppTheme.successColor,
                   icon: icon1 ?? Icons.south_west_rounded,
+                  isDark: isDark,
                 ),
               ),
-              Container(width: 1, height: 40, color: const Color(0xFFF1F5F9)),
+              Container(
+                width: 1,
+                height: 40,
+                color: isDark ? AppTheme.darkBorder : const Color(0xFFF1F5F9),
+              ),
               Expanded(
                 child: _StatItem(
                   label: label2 ?? 'Egresos',
                   value: _formatValue(totalEgresos, isCurrency2),
                   color: AppTheme.errorColor,
                   icon: icon2 ?? Icons.north_east_rounded,
+                  isDark: isDark,
                 ),
               ),
             ],
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Divider(height: 1, color: Color(0xFFF1F5F9)),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Divider(
+              height: 1,
+              color: isDark ? AppTheme.darkBorder : const Color(0xFFF1F5F9),
+            ),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -186,7 +207,9 @@ class FinancialSummaryHeader extends StatelessWidget {
                     Text(
                       label3 ?? 'Balance Neto',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: AppTheme.textSecondary,
+                        color: isDark
+                            ? AppTheme.darkTextSecondary
+                            : AppTheme.textSecondary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -240,12 +263,14 @@ class _StatItem extends StatelessWidget {
   final String value;
   final Color color;
   final IconData icon;
+  final bool isDark;
 
   const _StatItem({
     required this.label,
     required this.value,
     required this.color,
     required this.icon,
+    required this.isDark,
   });
 
   @override
@@ -284,6 +309,7 @@ class _StatItem extends StatelessWidget {
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w900,
             letterSpacing: -0.5,
+            color: isDark ? AppTheme.darkTextPrimary : null,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
