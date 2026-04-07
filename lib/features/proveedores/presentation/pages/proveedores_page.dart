@@ -36,7 +36,9 @@ class ProveedoresPage extends StatelessWidget {
                   onPressed: () => viewModel.toggleShowInactive(),
                   icon: Icon(
                     showInactive ? Icons.visibility : Icons.visibility_off,
-                    color: showInactive ? AppTheme.secondaryColor : null,
+                    color: showInactive
+                        ? AppTheme.warningColor
+                        : AppTheme.textSecondary,
                   ),
                   tooltip: showInactive ? 'Ocultar inactivos' : 'Ver inactivos',
                 ),
@@ -138,10 +140,11 @@ class ProveedoresPage extends StatelessWidget {
                           const SizedBox(height: 8),
                           Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.calendar_today_rounded,
                                 size: 14,
-                                color: AppTheme.secondaryColor,
+                                color:
+                                    AppTheme.infoColor, // Blue = neutral info
                               ),
                               const SizedBox(width: 4),
                               Flexible(
@@ -152,7 +155,7 @@ class ProveedoresPage extends StatelessWidget {
                                     'Visita: ${proveedor.diasVisitaShort}',
                                     style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
-                                          color: AppTheme.secondaryColor,
+                                          color: AppTheme.infoColor,
                                           fontWeight: FontWeight.bold,
                                         ),
                                   ),

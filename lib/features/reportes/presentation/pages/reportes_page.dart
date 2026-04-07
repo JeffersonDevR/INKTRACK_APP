@@ -544,8 +544,9 @@ class _ReportesPageState extends State<ReportesPage>
               decoration: BoxDecoration(
                 color:
                     (cliente.saldoPendiente > 0
-                            ? AppTheme.errorColor
-                            : AppTheme.secondaryColor)
+                            ? AppTheme
+                                  .errorColor // Red = has debt
+                            : AppTheme.successColor) // Green = no debt
                         .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -553,7 +554,7 @@ class _ReportesPageState extends State<ReportesPage>
                 Icons.person,
                 color: cliente.saldoPendiente > 0
                     ? AppTheme.errorColor
-                    : AppTheme.secondaryColor,
+                    : AppTheme.successColor,
               ),
             ),
             title: Text(cliente.nombre),
@@ -569,7 +570,7 @@ class _ReportesPageState extends State<ReportesPage>
                     fontWeight: FontWeight.bold,
                     color: cliente.saldoPendiente > 0
                         ? AppTheme.errorColor
-                        : AppTheme.secondaryColor,
+                        : AppTheme.successColor, // Green for no debt
                   ),
                 ),
                 if (cliente.esFiado)

@@ -38,7 +38,10 @@ class ClientesPage extends StatelessWidget {
                   onPressed: () => viewModel.toggleShowInactive(),
                   icon: Icon(
                     showInactive ? Icons.visibility : Icons.visibility_off,
-                    color: showInactive ? AppTheme.secondaryColor : null,
+                    color: showInactive
+                        ? AppTheme
+                              .warningColor // Yellow = showing inactive
+                        : AppTheme.textSecondary, // Gray = not showing
                   ),
                   tooltip: showInactive ? 'Ocultar inactivos' : 'Ver inactivos',
                 ),

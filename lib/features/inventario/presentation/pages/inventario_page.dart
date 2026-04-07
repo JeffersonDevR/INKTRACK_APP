@@ -33,7 +33,7 @@ class InventarioPage extends StatelessWidget {
                               ? Icons.visibility
                               : Icons.visibility_off,
                           color: showInactive
-                              ? AppTheme.secondaryColor
+                              ? AppTheme.warningColor
                               : AppTheme.primaryColor,
                         ),
                         tooltip: showInactive
@@ -485,15 +485,14 @@ class _ProductoCard extends StatelessWidget {
                             children: [
                               Icon(
                                 Icons.restore,
-                                color: AppTheme.secondaryColor,
+                                color: AppTheme
+                                    .successColor, // Green = positive action
                                 size: 20,
                               ),
                               const SizedBox(width: 8),
                               Text(
                                 'Reactivar',
-                                style: TextStyle(
-                                  color: AppTheme.secondaryColor,
-                                ),
+                                style: TextStyle(color: AppTheme.successColor),
                               ),
                             ],
                           ),
@@ -559,8 +558,12 @@ class _ProductoCard extends StatelessWidget {
                           (isInactive
                                   ? Colors.grey
                                   : (producto.stockBajo
-                                        ? AppTheme.errorColor
-                                        : AppTheme.secondaryColor))
+                                        ? AppTheme
+                                              .errorColor // Red = warning
+                                        : (isDark
+                                              ? AppTheme.darkTextSecondary
+                                              : AppTheme
+                                                    .textSecondary))) // Neutral for normal
                               .withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -573,7 +576,9 @@ class _ProductoCard extends StatelessWidget {
                               ? Colors.grey
                               : (producto.stockBajo
                                     ? AppTheme.errorColor
-                                    : AppTheme.secondaryColor),
+                                    : (isDark
+                                          ? AppTheme.darkTextSecondary
+                                          : AppTheme.textSecondary)),
                         ),
                         const SizedBox(width: 6),
                         Text(
@@ -584,7 +589,9 @@ class _ProductoCard extends StatelessWidget {
                                     ? Colors.grey
                                     : (producto.stockBajo
                                           ? AppTheme.errorColor
-                                          : AppTheme.secondaryColor),
+                                          : (isDark
+                                                ? AppTheme.darkTextSecondary
+                                                : AppTheme.textSecondary)),
                                 fontWeight: FontWeight.bold,
                               ),
                         ),

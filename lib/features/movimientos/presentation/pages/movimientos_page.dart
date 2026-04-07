@@ -182,9 +182,11 @@ class _MovimientoItem extends StatelessWidget {
     final isEgreso = movimiento.tipo == MovimientoType.egreso;
 
     final color = isIngreso
-        ? AppTheme.secondaryColor
+        ? AppTheme
+              .successColor // Green = money in
         : isEgreso
-        ? AppTheme.errorColor
+        ? AppTheme
+              .errorColor // Red = money out
         : AppTheme.primaryColor;
 
     return Card(
