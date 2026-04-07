@@ -29,10 +29,17 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
   List<Venta> get ventas => items;
 
   Future<void> _loadVentas() async {
+    clearAll();
     final loaded = await _repository.getAll();
     for (var venta in loaded) {
       add(venta);
     }
+  }
+
+  @override
+  Future<void> refresh() async {
+    await _loadVentas();
+    notifyListeners();
   }
 
   double get totalVentasDia {

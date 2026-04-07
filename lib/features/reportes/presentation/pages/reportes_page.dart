@@ -391,19 +391,27 @@ class _ReportesPageState extends State<ReportesPage>
     final filteredMovs = movVM.filteredItems;
 
     if (filteredMovs.isEmpty) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.history_rounded,
               size: 64,
-              color: AppTheme.textSecondary,
+              color: isDark
+                  ? AppTheme.darkTextSecondary
+                  : AppTheme.textSecondary,
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'No hay movimientos en este período',
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: 16),
+              style: TextStyle(
+                color: isDark
+                    ? AppTheme.darkTextSecondary
+                    : AppTheme.textSecondary,
+                fontSize: 16,
+              ),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
@@ -616,6 +624,7 @@ class _ReportesPageState extends State<ReportesPage>
   }
 
   Widget _buildCategoryLegend(String label, Color color) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -627,7 +636,10 @@ class _ReportesPageState extends State<ReportesPage>
         const SizedBox(width: 4),
         Text(
           label,
-          style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+          style: TextStyle(
+            fontSize: 11,
+            color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
+          ),
         ),
       ],
     );

@@ -81,10 +81,17 @@ class MovimientosViewModel extends BaseCrudViewModel<Movimiento> {
   double get balanceFiltered => totalIngresosFiltered - totalEgresosFiltered;
 
   Future<void> _loadMovimientos() async {
+    clearAll();
     final loaded = await _repository.getAll();
     for (var movimiento in loaded) {
       add(movimiento);
     }
+  }
+
+  @override
+  Future<void> refresh() async {
+    await _loadMovimientos();
+    notifyListeners();
   }
 
   void agregarCategoria(String nombre) {

@@ -84,6 +84,10 @@ class InventarioPage extends StatelessWidget {
                             }
                           }
 
+                          if (result.isSuccess) {
+                            await viewModel.refresh();
+                          }
+
                           scaffoldMessenger.showSnackBar(
                             SnackBar(
                               content: Text(result.message),
@@ -299,6 +303,7 @@ class InventarioPage extends StatelessWidget {
 class _EmptyInventario extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -308,7 +313,9 @@ class _EmptyInventario extends StatelessWidget {
             Icon(
               Icons.inventory_2_outlined,
               size: 80,
-              color: AppTheme.textSecondary.withValues(alpha: 0.5),
+              color: isDark
+                  ? AppTheme.darkTextSecondary.withValues(alpha: 0.5)
+                  : AppTheme.textSecondary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -534,7 +541,9 @@ class _ProductoCard extends StatelessWidget {
                             ?.copyWith(
                               color: isInactive
                                   ? Colors.grey
-                                  : AppTheme.secondaryColor,
+                                  : (isDark
+                                        ? AppTheme.darkTextPrimary
+                                        : AppTheme.textPrimary),
                               fontWeight: FontWeight.w900,
                             ),
                       ),

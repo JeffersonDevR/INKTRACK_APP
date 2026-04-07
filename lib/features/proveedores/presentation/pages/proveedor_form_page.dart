@@ -70,7 +70,7 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
                   hintText: 'Ej. Distribuidora Ink',
                   counterText: '',
                 ),
-                maxLength: 50,
+                maxLength: 40,
                 textCapitalization: TextCapitalization.words,
                 inputFormatters: [InputFormatters.textOnly],
                 validator: (value) {

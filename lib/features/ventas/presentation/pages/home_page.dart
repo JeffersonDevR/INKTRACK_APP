@@ -206,6 +206,7 @@ class HomePage extends StatelessWidget {
 class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 40),
@@ -214,7 +215,9 @@ class _EmptyState extends StatelessWidget {
             Icon(
               Icons.history_toggle_off,
               size: 64,
-              color: AppTheme.textSecondary.withValues(alpha: 0.2),
+              color: isDark
+                  ? AppTheme.darkTextSecondary.withValues(alpha: 0.2)
+                  : AppTheme.textSecondary.withValues(alpha: 0.2),
             ),
             const SizedBox(height: 16),
             Text(

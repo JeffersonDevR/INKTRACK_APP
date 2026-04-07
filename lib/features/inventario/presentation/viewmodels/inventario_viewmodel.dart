@@ -35,10 +35,17 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
   List<String> get categorias => List.unmodifiable(_categorias);
 
   Future<void> _loadProductos() async {
+    clearAll();
     final loaded = await _repository.getAll();
     for (var producto in loaded) {
       add(producto);
     }
+  }
+
+  @override
+  Future<void> refresh() async {
+    await _loadProductos();
+    notifyListeners();
   }
 
   void agregarCategoria(String nombre) {

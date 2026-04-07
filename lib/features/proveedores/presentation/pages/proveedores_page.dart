@@ -35,7 +35,7 @@ class ProveedoresPage extends StatelessWidget {
                 IconButton(
                   onPressed: () => viewModel.toggleShowInactive(),
                   icon: Icon(
-                    showInactive ? Icons.visibility_off : Icons.visibility,
+                    showInactive ? Icons.visibility : Icons.visibility_off,
                     color: showInactive ? AppTheme.secondaryColor : null,
                   ),
                   tooltip: showInactive ? 'Ocultar inactivos' : 'Ver inactivos',
@@ -271,6 +271,7 @@ class ProveedoresPage extends StatelessWidget {
 class _EmptyProveedores extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -280,7 +281,9 @@ class _EmptyProveedores extends StatelessWidget {
             Icon(
               Icons.local_shipping_outlined,
               size: 80,
-              color: AppTheme.textSecondary.withValues(alpha: 0.5),
+              color: isDark
+                  ? AppTheme.darkTextSecondary.withValues(alpha: 0.5)
+                  : AppTheme.textSecondary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(

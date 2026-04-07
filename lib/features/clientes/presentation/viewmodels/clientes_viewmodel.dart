@@ -35,14 +35,28 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
   int get clientesConDeuda => items.where((c) => c.saldoPendiente > 0).length;
 
   Future<void> _loadClientes() async {
+    clearAll();
     final loaded = await _repository.getAll();
     for (var cliente in loaded) {
       add(cliente);
     }
   }
 
+  @override
+  Future<void> refresh() async {
+    await _loadClientes();
+    notifyListeners();
+  }
+
   bool checkDuplicado(String nombre, String telefono) {
-    return items.any((c) => c.telefono.trim() == telefono.trim());
+    if (telefono.trim().isEmpty) {
+      return false;
+    }
+    return items.any(
+      (c) =>
+          c.telefono.trim() == telefono.trim() &&
+          c.nombre.trim() == nombre.trim(),
+    );
   }
 
   Future<String> agregar({

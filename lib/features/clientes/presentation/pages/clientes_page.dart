@@ -37,7 +37,7 @@ class ClientesPage extends StatelessWidget {
                 IconButton(
                   onPressed: () => viewModel.toggleShowInactive(),
                   icon: Icon(
-                    showInactive ? Icons.visibility_off : Icons.visibility,
+                    showInactive ? Icons.visibility : Icons.visibility_off,
                     color: showInactive ? AppTheme.secondaryColor : null,
                   ),
                   tooltip: showInactive ? 'Ocultar inactivos' : 'Ver inactivos',
@@ -309,6 +309,7 @@ class ClientesPage extends StatelessWidget {
 class _EmptyClientes extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -318,7 +319,9 @@ class _EmptyClientes extends StatelessWidget {
             Icon(
               Icons.people_outline,
               size: 80,
-              color: AppTheme.textSecondary.withValues(alpha: 0.5),
+              color: isDark
+                  ? AppTheme.darkTextSecondary.withValues(alpha: 0.5)
+                  : AppTheme.textSecondary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(

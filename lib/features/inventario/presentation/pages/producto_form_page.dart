@@ -95,7 +95,7 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                   hintText: 'Ej. Tinta negra 50ml',
                   counterText: '',
                 ),
-                maxLength: 100,
+                maxLength: 40,
                 textCapitalization: TextCapitalization.sentences,
                 inputFormatters: [InputFormatters.textOnly],
                 validator: (value) {

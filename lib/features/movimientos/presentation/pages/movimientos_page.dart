@@ -101,17 +101,30 @@ class MovimientosPage extends StatelessWidget {
                       if (viewModel.startDateFilter != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 16),
-                          child: OutlinedButton.icon(
-                            onPressed: () => viewModel.clearDateFilter(),
-                            icon: const Icon(Icons.clear_rounded, size: 18),
-                            label: const Text('Limpiar Filtro'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppTheme.textSecondary,
-                              side: const BorderSide(color: Color(0xFFF1F5F9)),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
+                          child: Builder(
+                            builder: (context) {
+                              final isDark =
+                                  Theme.of(context).brightness ==
+                                  Brightness.dark;
+                              return OutlinedButton.icon(
+                                onPressed: () => viewModel.clearDateFilter(),
+                                icon: const Icon(Icons.clear_rounded, size: 18),
+                                label: const Text('Limpiar Filtro'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: isDark
+                                      ? AppTheme.darkTextSecondary
+                                      : AppTheme.textSecondary,
+                                  side: BorderSide(
+                                    color: isDark
+                                        ? AppTheme.darkBorder
+                                        : const Color(0xFFF1F5F9),
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
                     ],
@@ -297,6 +310,7 @@ class _MovimientoItem extends StatelessWidget {
 class _EmptyMovimientos extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -306,7 +320,9 @@ class _EmptyMovimientos extends StatelessWidget {
             Icon(
               Icons.history_toggle_off_rounded,
               size: 80,
-              color: AppTheme.textSecondary.withValues(alpha: 0.5),
+              color: isDark
+                  ? AppTheme.darkTextSecondary.withValues(alpha: 0.5)
+                  : AppTheme.textSecondary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(

@@ -109,36 +109,56 @@ class SupabaseSyncService {
   }
 
   Future<SyncResult> downloadAll() async {
-    final results = await Future.wait([
-      downloadFromSupabase('productos'),
-      downloadFromSupabase('clientes'),
-      downloadFromSupabase('proveedores'),
-      downloadFromSupabase('movimientos'),
-      downloadFromSupabase('ventas'),
-    ]);
+    int totalDownloaded = 0;
+    int totalErrors = 0;
+
+    // Sequential order: parents first, then children
+    final tablesInOrder = [
+      'clientes',
+      'proveedores',
+      'productos',
+      'movimientos',
+      'ventas',
+    ];
+    for (final table in tablesInOrder) {
+      final result = await downloadFromSupabase(table);
+      totalDownloaded += result.downloaded;
+      totalErrors += result.errors;
+    }
 
     return SyncResult(
       tableName: 'all',
       uploaded: 0,
-      downloaded: results.fold(0, (sum, r) => sum + r.downloaded),
-      errors: results.fold(0, (sum, r) => sum + r.errors),
+      downloaded: totalDownloaded,
+      errors: totalErrors,
     );
   }
 
   Future<SyncResult> syncAll() async {
-    final results = await Future.wait([
-      syncTable('productos'),
-      syncTable('clientes'),
-      syncTable('proveedores'),
-      syncTable('movimientos'),
-      syncTable('ventas'),
-    ]);
+    int totalUploaded = 0;
+    int totalDownloaded = 0;
+    int totalErrors = 0;
+
+    // Sequential order: parents first, then children
+    final tablesInOrder = [
+      'clientes',
+      'proveedores',
+      'productos',
+      'movimientos',
+      'ventas',
+    ];
+    for (final table in tablesInOrder) {
+      final result = await syncTable(table);
+      totalUploaded += result.uploaded;
+      totalDownloaded += result.downloaded;
+      totalErrors += result.errors;
+    }
 
     return SyncResult(
       tableName: 'all',
-      uploaded: results.fold(0, (sum, r) => sum + r.uploaded),
-      downloaded: results.fold(0, (sum, r) => sum + r.downloaded),
-      errors: results.fold(0, (sum, r) => sum + r.errors),
+      uploaded: totalUploaded,
+      downloaded: totalDownloaded,
+      errors: totalErrors,
     );
   }
 
@@ -339,6 +359,8 @@ class SupabaseSyncService {
             'proveedor_id': movimiento.proveedorId,
             'cantidad': movimiento.cantidad,
             'es_fiado': movimiento.esFiado,
+            'sync_status': movimiento.syncStatus,
+            'last_synced_at': movimiento.lastSyncedAt?.toIso8601String(),
           };
 
           final response = await http.post(
@@ -395,6 +417,8 @@ class SupabaseSyncService {
             'cliente_id': venta.clienteId,
             'cliente_nombre': venta.clienteNombre,
             'concepto': venta.concepto,
+            'sync_status': venta.syncStatus,
+            'last_synced_at': venta.lastSyncedAt?.toIso8601String(),
           };
 
           final response = await http.post(
@@ -447,9 +471,18 @@ class SupabaseSyncService {
 
         for (final item in data) {
           try {
+            final id = item['id'] as String;
+            final existing = await (_db.select(
+              _db.productos,
+            )..where((t) => t.id.equals(id))).getSingleOrNull();
+
+            if (existing != null && existing.syncStatus == 'pending_upload') {
+              continue;
+            }
+
             await (_db.into(_db.productos)).insertOnConflictUpdate(
               ProductosCompanion(
-                id: Value(item['id'] as String),
+                id: Value(id),
                 nombre: Value(item['nombre'] as String? ?? ''),
                 cantidad: Value(item['cantidad'] as int? ?? 0),
                 precio: Value((item['precio'] as num?)?.toDouble() ?? 0.0),
@@ -501,10 +534,19 @@ class SupabaseSyncService {
 
         for (final item in data) {
           try {
+            final id = item['id'] as String;
+            final existing = await (_db.select(
+              _db.clientes,
+            )..where((t) => t.id.equals(id))).getSingleOrNull();
+
+            if (existing != null && existing.syncStatus == 'pending_upload') {
+              continue;
+            }
+
             final emailValue = item['email'] as String?;
             await (_db.into(_db.clientes)).insertOnConflictUpdate(
               ClientesCompanion(
-                id: Value(item['id'] as String),
+                id: Value(id),
                 nombre: Value(item['nombre'] as String? ?? ''),
                 telefono: Value(item['telefono'] as String? ?? ''),
                 email: Value(emailValue),
@@ -552,6 +594,15 @@ class SupabaseSyncService {
 
         for (final item in data) {
           try {
+            final id = item['id'] as String;
+            final existing = await (_db.select(
+              _db.proveedores,
+            )..where((t) => t.id.equals(id))).getSingleOrNull();
+
+            if (existing != null && existing.syncStatus == 'pending_upload') {
+              continue;
+            }
+
             final diasVisitaStr = item['dias_visita'] as String? ?? '';
             final diasVisita = diasVisitaStr.isEmpty
                 ? <String>[]
@@ -559,7 +610,7 @@ class SupabaseSyncService {
 
             await (_db.into(_db.proveedores)).insertOnConflictUpdate(
               ProveedoresCompanion(
-                id: Value(item['id'] as String),
+                id: Value(id),
                 nombre: Value(item['nombre'] as String? ?? ''),
                 telefono: Value(item['telefono'] as String? ?? ''),
                 diasVisita: Value(diasVisita),
@@ -603,9 +654,18 @@ class SupabaseSyncService {
 
         for (final item in data) {
           try {
+            final id = item['id'] as String;
+            final existing = await (_db.select(
+              _db.movimientos,
+            )..where((t) => t.id.equals(id))).getSingleOrNull();
+
+            if (existing != null && existing.syncStatus == 'pending_upload') {
+              continue;
+            }
+
             await (_db.into(_db.movimientos)).insertOnConflictUpdate(
               MovimientosCompanion(
-                id: Value(item['id'] as String),
+                id: Value(id),
                 monto: Value((item['monto'] as num?)?.toDouble() ?? 0.0),
                 fecha: Value(DateTime.parse(item['fecha'] as String)),
                 tipo: Value(MovimientoType.values[item['tipo'] as int? ?? 0]),

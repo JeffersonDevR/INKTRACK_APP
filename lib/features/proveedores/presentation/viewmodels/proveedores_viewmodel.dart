@@ -30,10 +30,17 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
   int get totalInactivos => items.where((p) => !p.isActivo).length;
 
   Future<void> _loadProveedores() async {
+    clearAll();
     final loaded = await _repository.getAll();
     for (var proveedor in loaded) {
       add(proveedor);
     }
+  }
+
+  @override
+  Future<void> refresh() async {
+    await _loadProveedores();
+    notifyListeners();
   }
 
   bool checkDuplicado(String nombre, String telefono) {

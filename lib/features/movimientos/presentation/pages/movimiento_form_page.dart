@@ -6,6 +6,7 @@ import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimiento
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
+import 'package:InkTrack/features/inventario/data/models/producto.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/input_formatters.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
@@ -70,7 +71,19 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
     if (_productoId == null) return;
 
     final ivm = context.read<InventarioViewModel>();
-    final producto = ivm.productos.firstWhere((p) => p.id == _productoId);
+    final producto = ivm.productos.firstWhere(
+      (p) => p.id == _productoId,
+      orElse: () => Producto(
+        id: '',
+        nombre: '',
+        cantidad: 0,
+        precio: 0,
+        categoria: '',
+        proveedorId: '',
+      ),
+    );
+    if (producto.id.isEmpty) return;
+
     final cantidad = int.tryParse(_cantidadController.text) ?? 0;
 
     setState(() {
@@ -139,33 +152,81 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
       } else {
         // REVERSAL Logic for existing movements
         final old = widget.movimiento!;
+        bool reversalFailed = false;
 
         // 1. Revert Old Stock
         if (old.productoId != null && old.cantidad != null) {
-          final deltaRevert = old.tipo == MovimientoType.ingreso
-              ? old.cantidad!
-              : -old.cantidad!;
-          ivm.actualizarStock(old.productoId!, deltaRevert);
+          final oldProduct = ivm.productos.firstWhere(
+            (p) => p.id == old.productoId,
+            orElse: () => Producto(
+              id: '',
+              nombre: '',
+              cantidad: 0,
+              precio: 0,
+              categoria: '',
+              proveedorId: '',
+            ),
+          );
+          if (oldProduct.id.isNotEmpty) {
+            final deltaRevert = old.tipo == MovimientoType.ingreso
+                ? old.cantidad!
+                : -old.cantidad!;
+            ivm.actualizarStock(old.productoId!, deltaRevert);
+          } else {
+            reversalFailed = true;
+          }
         }
 
         // 2. Revert Old Debt (Saldo)
         if (old.tipo == MovimientoType.ingreso &&
             old.esFiado &&
             old.clienteId != null) {
-          cvm.actualizarSaldo(old.clienteId!, -old.monto);
+          final oldClient = cvm.getById(old.clienteId!);
+          if (oldClient != null) {
+            cvm.actualizarSaldo(old.clienteId!, -old.monto);
+          } else {
+            reversalFailed = true;
+          }
         }
 
         // 3. Apply New Stock
         if (_productoId != null && cantidad != null) {
-          final deltaApply = _tipo == MovimientoType.ingreso
-              ? -cantidad
-              : cantidad;
-          ivm.actualizarStock(_productoId!, deltaApply);
+          final newProduct = ivm.productos.firstWhere(
+            (p) => p.id == _productoId,
+            orElse: () => Producto(
+              id: '',
+              nombre: '',
+              cantidad: 0,
+              precio: 0,
+              categoria: '',
+              proveedorId: '',
+            ),
+          );
+          if (newProduct.id.isNotEmpty) {
+            final deltaApply = _tipo == MovimientoType.ingreso
+                ? -cantidad
+                : cantidad;
+            ivm.actualizarStock(_productoId!, deltaApply);
+          }
         }
 
         // 4. Apply New Debt (Saldo)
         if (_tipo == MovimientoType.ingreso && _esFiado && _clienteId != null) {
-          cvm.actualizarSaldo(_clienteId!, monto);
+          final newClient = cvm.getById(_clienteId!);
+          if (newClient != null) {
+            cvm.actualizarSaldo(_clienteId!, monto);
+          }
+        }
+
+        if (reversalFailed) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Entidad original eliminada. Algunos cambios no se pudieron revertir.',
+              ),
+              backgroundColor: AppTheme.warningColor,
+            ),
+          );
         }
 
         viewModel.editar(old.id, mov);
