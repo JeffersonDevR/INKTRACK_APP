@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
-import 'package:InkTrack/core/widgets/financial_summary_header.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
-import 'package:InkTrack/features/clientes/data/models/cliente.dart';
+import 'package:InkTrack/core/widgets/app_card.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class ReportesPage extends StatefulWidget {
@@ -18,49 +18,18 @@ class ReportesPage extends StatefulWidget {
   State<ReportesPage> createState() => _ReportesPageState();
 }
 
-class _ReportesPageState extends State<ReportesPage>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  DateTime? _startDate;
-  DateTime? _endDate;
-
-  DateTime? get startDate => _startDate;
-  DateTime? get endDate => _endDate;
-
+class _ReportesPageState extends State<ReportesPage> {
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
-    _startDate = DateTime.now().subtract(const Duration(days: 30));
-    _endDate = DateTime.now();
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  List<Movimiento> _filterMovimientos(
-    List<Movimiento> movements,
-    MovimientosViewModel movVM,
-  ) {
-    return movements.where((m) {
-      if (movVM.startDateFilter != null &&
-          m.fecha.isBefore(movVM.startDateFilter!))
-        return false;
-      if (movVM.endDateFilter != null &&
-          m.fecha.isAfter(movVM.endDateFilter!.add(const Duration(days: 1))))
-        return false;
-      return true;
-    }).toList();
   }
 
   Future<void> _selectDateRange(BuildContext ctx) async {
+    final viewModel = context.read<MovimientosViewModel>();
     final now = DateTime.now();
     final initialRange = DateTimeRange(
-      start: _startDate ?? now.subtract(const Duration(days: 30)),
-      end: _endDate ?? now,
+      start: viewModel.startDateFilter ?? now.subtract(const Duration(days: 30)),
+      end: viewModel.endDateFilter ?? now,
     );
 
     final picked = await showDateRangePicker(
@@ -68,177 +37,279 @@ class _ReportesPageState extends State<ReportesPage>
       firstDate: DateTime(2020),
       lastDate: now,
       initialDateRange: initialRange,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppTheme.primaryColor,
+              onPrimary: Colors.white,
+              onSurface: AppTheme.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (picked != null) {
-      context.read<MovimientosViewModel>().setDateFilter(
-        picked.start,
-        picked.end,
-      );
-      setState(() {
-        _startDate = picked.start;
-        _endDate = picked.end;
-      });
+      viewModel.setDateFilter(picked.start, picked.end);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return _buildKpiSection();
-  }
+    return Scaffold(
+      body: Consumer3<MovimientosViewModel, InventarioViewModel, ClientesViewModel>(
+        builder: (context, movVM, invVM, cliVM, child) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          final filteredMovs = movVM.items.where((m) {
+            if (movVM.startDateFilter != null && m.fecha.isBefore(movVM.startDateFilter!)) return false;
+            if (movVM.endDateFilter != null && m.fecha.isAfter(movVM.endDateFilter!.add(const Duration(days: 1)))) return false;
+            return true;
+          }).toList();
 
-  Widget _buildKpiSection() {
-    return Consumer3<
-      MovimientosViewModel,
-      InventarioViewModel,
-      ClientesViewModel
-    >(
-      builder: (context, movVM, invVM, cliVM, child) {
-        final filteredMovs = _filterMovimientos(movVM.items, movVM);
-        final totalIngresos = filteredMovs
-            .where((m) => m.tipo == MovimientoType.ingreso)
-            .fold(0.0, (sum, m) => sum + m.monto);
-        final totalEgresos = filteredMovs
-            .where((m) => m.tipo == MovimientoType.egreso)
-            .fold(0.0, (sum, m) => sum + m.monto);
+          final totalIngresos = filteredMovs
+              .where((m) => m.tipo == MovimientoType.ingreso)
+              .fold(0.0, (sum, m) => sum + m.monto);
+          final totalEgresos = filteredMovs
+              .where((m) => m.tipo == MovimientoType.egreso)
+              .fold(0.0, (sum, m) => sum + m.monto);
+          final ventasRealizadas = filteredMovs
+              .where((m) => m.tipo == MovimientoType.ingreso) // Count all income as sales for KPI
+              .length;
+          final utilidadNeta = totalIngresos - totalEgresos;
 
-        final summaryHeader = FinancialSummaryHeader(
-          title: 'Resumen\nFinanciero',
-          totalIngresos: totalIngresos,
-          totalEgresos: totalEgresos,
-          balance: totalIngresos - totalEgresos,
-          startDate: movVM.startDateFilter,
-          endDate: movVM.endDateFilter,
-          onDateTap: () => _selectDateRange(context),
-        );
-        final kpiCards = SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-          child: Row(
-            children: [
-              _buildInsightCard(
-                label: 'Ingresos',
-                value: NumberFormatter.formatCompact(totalIngresos),
-                icon: Icons.trending_up,
-                color: AppTheme.successColor,
-              ),
-              const SizedBox(width: 12),
-              _buildInsightCard(
-                label: 'Egresos',
-                value: NumberFormatter.formatCompact(totalEgresos),
-                icon: Icons.trending_down,
-                color: AppTheme.errorColor,
-              ),
-              const SizedBox(width: 12),
-              _buildInsightCard(
-                label: 'Balance',
-                value: NumberFormatter.formatCompact(
-                  totalIngresos - totalEgresos,
+          // Data for charts
+          final expensesByCategory = _groupExpensesByCategory(filteredMovs);
+          final weeklyData = _groupWeeklyData(filteredMovs, movVM.startDateFilter, movVM.endDateFilter);
+
+          return CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                sliver: SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Reportes Financieros',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : AppTheme.textPrimary,
+                          letterSpacing: -1,
+                        ),
+                      ),
+                      Text(
+                        'PERIODO DE ANÁLISIS',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textTertiary,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      InkWell(
+                        onTap: () => _selectDateRange(context),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: isDark ? AppTheme.darkCard : AppTheme.borderLightColor.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: isDark ? AppTheme.darkBorder : AppTheme.borderColor),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.calendar_today_rounded, size: 18, color: AppTheme.secondaryColor),
+                              const SizedBox(width: 12),
+                              Text(
+                                movVM.startDateFilter != null
+                                    ? '${DateFormat('dd MMM').format(movVM.startDateFilter!)} – ${DateFormat('dd MMM').format(movVM.endDateFilter!)}'
+                                    : 'Seleccionar Período',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: AppTheme.textTertiary),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      _buildMetricCard(
+                        label: 'INGRESOS TOTALES',
+                        value: NumberFormatter.formatCurrency(totalIngresos),
+                        icon: Icons.account_balance_wallet_rounded,
+                        color: AppTheme.primaryColor,
+                        isDark: isDark,
+                      ),
+                      _buildMetricCard(
+                        label: 'EGRESOS TOTALES',
+                        value: NumberFormatter.formatCurrency(totalEgresos),
+                        icon: Icons.shopping_cart_rounded,
+                        color: AppTheme.secondaryColor,
+                        isDark: isDark,
+                      ),
+                      _buildMetricCard(
+                        label: 'VENTAS REALIZADAS',
+                        value: ventasRealizadas.toString(),
+                        icon: Icons.local_offer_rounded,
+                        color: AppTheme.secondaryColor,
+                        isDark: isDark,
+                      ),
+                      _buildMetricCard(
+                        label: 'UTILIDAD NETA',
+                        value: NumberFormatter.formatCurrency(utilidadNeta),
+                        icon: Icons.account_balance_rounded,
+                        color: AppTheme.successColor,
+                        isDark: isDark,
+                        valueColor: AppTheme.successColor,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildChartCard(
+                        title: 'Ventas vs Gastos',
+                        child: _buildBarChart(weeklyData, isDark),
+                        isDark: isDark,
+                      ),
+                      _buildChartCard(
+                        title: 'Distribución de Gastos',
+                        child: _buildPieChart(expensesByCategory, totalEgresos, isDark),
+                        isDark: isDark,
+                      ),
+                      const SizedBox(height: 16),
+                      AppCard(
+                        color: isDark ? AppTheme.darkCard : Colors.white,
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.secondaryColor.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(Icons.account_balance_wallet_rounded, color: AppTheme.secondaryColor),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'CARTERA: DEUDA TOTAL PENDIENTE',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppTheme.textTertiary,
+                                          letterSpacing: 1,
+                                        ),
+                                      ),
+                                      Text(
+                                        NumberFormatter.formatCurrency(cliVM.totalDeuda),
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: () {}, // Handled in MainLayout
+                                    icon: const Icon(Icons.picture_as_pdf_rounded),
+                                    label: const Text('Exportar PDF'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.2),
+                                      foregroundColor: AppTheme.primaryColor,
+                                      elevation: 0,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: isDark ? AppTheme.darkBorder : AppTheme.borderLightColor,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: IconButton(
+                                    onPressed: () {},
+                                    icon: const Icon(Icons.share_rounded),
+                                    color: AppTheme.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 100),
+                    ],
+                  ),
                 ),
-                icon: Icons.account_balance_wallet,
-                color: AppTheme.primaryColor,
-              ),
-              const SizedBox(width: 12),
-              _buildInsightCard(
-                label: 'Bajo Stock',
-                value: invVM.productosConStockBajo.length.toString(),
-                icon: Icons.warning_amber_rounded,
-                color: Colors.orange,
               ),
             ],
-          ),
-        );
-
-        return Column(
-          children: [
-            summaryHeader,
-            kpiCards,
-            const SizedBox(height: 8),
-            TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              tabs: const [
-                Tab(text: 'Resumen'),
-                Tab(text: 'Movimientos'),
-                Tab(text: 'Inventario'),
-                Tab(text: 'Clientes'),
-              ],
-            ),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildResumenTab(movVM, invVM, cliVM),
-                  _buildMovimientosTab(movVM),
-                  _buildInventarioTab(invVM),
-                  _buildClientesTab(movVM, cliVM),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildInsightCard({
+  Widget _buildMetricCard({
     required String label,
     required String value,
     required IconData icon,
     required Color color,
+    required bool isDark,
+    Color? valueColor,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      width: 160,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkCard : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? AppTheme.darkBorder : const Color(0xFFF1F5F9),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: isDark ? 0.15 : 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return AppCard(
+      margin: const EdgeInsets.only(bottom: 16),
+      color: isDark ? AppTheme.darkCard : Colors.white,
+      padding: const EdgeInsets.all(20),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, size: 18, color: color),
+            child: Icon(icon, color: color, size: 24),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   label,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textSecondary,
-                    letterSpacing: 0.3,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textTertiary,
+                    letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(height: 2),
                 Text(
                   value,
-                  style: TextStyle(
-                    fontSize: 16,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 20,
                     fontWeight: FontWeight.w900,
-                    color: color,
-                    letterSpacing: -0.5,
+                    color: valueColor ?? (isDark ? Colors.white : AppTheme.textPrimary),
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -248,399 +319,161 @@ class _ReportesPageState extends State<ReportesPage>
     );
   }
 
-  Map<String, double> _getCategoryData(List<Movimiento> movs) {
+  Widget _buildChartCard({required String title, required Widget child, required bool isDark}) {
+    return AppCard(
+      margin: const EdgeInsets.only(bottom: 16),
+      color: isDark ? AppTheme.darkCard : Colors.white,
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(height: 200, child: child),
+        ],
+      ),
+    );
+  }
+
+  Map<String, double> _groupExpensesByCategory(List<Movimiento> movs) {
     final Map<String, double> data = {};
-    for (var m in movs.where((m) => m.tipo == MovimientoType.ingreso)) {
+    for (var m in movs.where((m) => m.tipo == MovimientoType.egreso)) {
       final cat = m.categoria ?? 'Sin Categoría';
       data[cat] = (data[cat] ?? 0) + m.monto;
     }
     return data;
   }
 
-  Map<String, double> _getCustomerData(List<Movimiento> movs) {
-    final Map<String, double> data = {};
-    for (var m in movs.where(
-      (m) => m.tipo == MovimientoType.ingreso && m.clienteId != null,
-    )) {
-      final cid = m.clienteId!;
-      data[cid] = (data[cid] ?? 0) + m.monto;
+  List<Map<String, double>> _groupWeeklyData(List<Movimiento> movs, DateTime? start, DateTime? end) {
+    final s = start ?? DateTime.now().subtract(const Duration(days: 30));
+    final e = end ?? DateTime.now();
+
+    // Divide the period into 4 "weeks" or chunks for display
+    final duration = e.difference(s).inDays;
+    final chunkDays = (duration / 4).ceil();
+
+    List<Map<String, double>> groups = List.generate(4, (_) => {'ventas': 0.0, 'gastos': 0.0});
+
+    for (var m in movs) {
+      final diff = m.fecha.difference(s).inDays;
+      int groupIndex = (diff / chunkDays).floor();
+      if (groupIndex >= 4) groupIndex = 3;
+      if (groupIndex < 0) groupIndex = 0;
+
+      if (m.tipo == MovimientoType.ingreso) {
+        groups[groupIndex]['ventas'] = (groups[groupIndex]['ventas'] ?? 0) + m.monto;
+      } else if (m.tipo == MovimientoType.egreso) {
+        groups[groupIndex]['gastos'] = (groups[groupIndex]['gastos'] ?? 0) + m.monto;
+      }
     }
-    return data;
+    return groups;
   }
 
-  Widget _buildResumenTab(
-    MovimientosViewModel movVM,
-    InventarioViewModel invVM,
-    ClientesViewModel cliVM,
-  ) {
-    final filteredMovs = _filterMovimientos(movVM.items, movVM);
-    final categoryData = _getCategoryData(filteredMovs);
-    final customerData = _getCustomerData(filteredMovs);
+  Widget _buildBarChart(List<Map<String, double>> data, bool isDark) {
+    double maxVal = 0;
+    for (var g in data) {
+      if ((g['ventas'] ?? 0) > maxVal) maxVal = g['ventas']!;
+      if ((g['gastos'] ?? 0) > maxVal) maxVal = g['gastos']!;
+    }
+    if (maxVal == 0) maxVal = 10;
 
-    // Sort customers by spending
-    final sortedCustomers = customerData.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _buildSectionTitle('Distribución por Categoría'),
-        const SizedBox(height: 12),
-        if (categoryData.isEmpty)
-          const Center(child: Text('No hay datos de ventas en este período'))
-        else
-          AspectRatio(
-            aspectRatio: 1.5,
-            child: PieChart(
-              PieChartData(
-                sectionsSpace: 4,
-                centerSpaceRadius: 40,
-                sections: categoryData.entries.map((e) {
-                  final index = categoryData.keys.toList().indexOf(e.key);
-                  final totalIncome = filteredMovs
-                      .where((m) => m.tipo == MovimientoType.ingreso)
-                      .fold(0.0, (sum, m) => sum + m.monto);
-                  final percentage = totalIncome > 0
-                      ? (e.value / totalIncome * 100)
-                      : 0.0;
-
-                  return PieChartSectionData(
-                    color: Colors.primaries[index % Colors.primaries.length],
-                    value: e.value,
-                    title: '${percentage.toStringAsFixed(0)}%',
-                    radius: 50,
-                    titleStyle: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: categoryData.entries
-              .map((e) {
-                final index = categoryData.keys.toList().indexOf(e.key);
-                return _buildCategoryLegend(
-                  e.key,
-                  Colors.primaries[index % Colors.primaries.length],
+    return BarChart(
+      BarChartData(
+        gridData: const FlGridData(show: false),
+        titlesData: FlTitlesData(
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+                return Text(
+                  'SEM ${value.toInt() + 1}',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textTertiary,
+                  ),
                 );
-              })
-              .toList()
-              .cast<Widget>(),
+              },
+            ),
+          ),
+          leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         ),
-        const SizedBox(height: 24),
-        _buildSectionTitle('Top Clientes (LTV)'),
-        const SizedBox(height: 12),
-        if (sortedCustomers.isEmpty)
-          const Text('No hay datos de clientes')
-        else
-          ...sortedCustomers.take(5).map((e) {
-            final cliente = cliVM.items.cast<Cliente?>().firstWhere(
-              (c) => c?.id == e.key,
-              orElse: () => null,
-            );
-
-            final nombre = cliente?.nombre ?? 'Cliente Desconocido';
-            final idStr = cliente?.id ?? e.key;
-
-            return ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-              leading: CircleAvatar(
-                backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-                child: Text(
-                  nombre.isNotEmpty ? nombre[0].toUpperCase() : '?',
-                  style: const TextStyle(
-                    color: AppTheme.primaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              title: Text(
-                nombre,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text(
-                'ID: ${idStr.length > 8 ? idStr.substring(0, 8) : idStr}',
-              ),
-              trailing: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 100),
-                child: Text(
-                  NumberFormatter.formatCompact(e.value),
-                  textAlign: TextAlign.right,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    color: AppTheme.primaryColor,
-                    fontSize: 13,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            );
-          }),
-      ],
-    );
-  }
-
-  Widget _buildMovimientosTab(MovimientosViewModel movVM) {
-    final filteredMovs = movVM.filteredItems;
-
-    if (filteredMovs.isEmpty) {
-      final isDark = Theme.of(context).brightness == Brightness.dark;
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.history_rounded,
-              size: 64,
-              color: isDark
-                  ? AppTheme.darkTextSecondary
-                  : AppTheme.textSecondary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No hay movimientos en este período',
-              style: TextStyle(
-                color: isDark
-                    ? AppTheme.darkTextSecondary
-                    : AppTheme.textSecondary,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () => movVM.clearDateFilter(),
-              icon: const Icon(Icons.filter_alt_off_rounded),
-              label: const Text('Limpiar Filtros'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: filteredMovs.length,
-      itemBuilder: (context, index) {
-        final mov = filteredMovs[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: ListTile(
-            leading: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: _getTipoColor(mov.tipo).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                _getTipoIcon(mov.tipo),
-                color: _getTipoColor(mov.tipo),
-              ),
-            ),
-            title: Text(mov.concepto),
-            subtitle: Text(DateFormat('dd/MM/yyyy HH:mm').format(mov.fecha)),
-            trailing: Text(
-              NumberFormatter.formatCompact(mov.monto),
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: _getTipoColor(mov.tipo),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildInventarioTab(InventarioViewModel invVM) {
-    final productos = invVM.productos;
-
-    if (productos.isEmpty) {
-      return const Center(child: Text('No hay productos'));
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: productos.length,
-      itemBuilder: (context, index) {
-        final prod = productos[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: ListTile(
-            leading: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color:
-                    (prod.stockBajo
-                            ? AppTheme.errorColor
-                            : AppTheme.primaryColor)
-                        .withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                prod.stockBajo ? Icons.warning : Icons.inventory_2,
-                color: prod.stockBajo
-                    ? AppTheme.errorColor
-                    : AppTheme.primaryColor,
-              ),
-            ),
-            title: Text(prod.nombre),
-            subtitle: Text('Stock: ${prod.cantidad} | ${prod.categoria}'),
-            trailing: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  NumberFormatter.formatCompact(prod.precio),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                if (prod.stockBajo)
-                  const Text(
-                    'BAJO',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: AppTheme.errorColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildClientesTab(
-    MovimientosViewModel movVM,
-    ClientesViewModel cliVM,
-  ) {
-    final clientes = cliVM.items;
-
-    if (clientes.isEmpty) {
-      return const Center(child: Text('No hay clientes'));
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: clientes.length,
-      itemBuilder: (context, index) {
-        final cliente = clientes[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: ListTile(
-            leading: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color:
-                    (cliente.saldoPendiente > 0
-                            ? AppTheme
-                                  .errorColor // Red = has debt
-                            : AppTheme.successColor) // Green = no debt
-                        .withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                Icons.person,
-                color: cliente.saldoPendiente > 0
-                    ? AppTheme.errorColor
-                    : AppTheme.successColor,
-              ),
-            ),
-            title: Text(cliente.nombre),
-            subtitle: Text(cliente.telefono),
-            trailing: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  NumberFormatter.formatCompact(cliente.saldoPendiente),
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: cliente.saldoPendiente > 0
-                        ? AppTheme.errorColor
-                        : AppTheme.successColor, // Green for no debt
-                  ),
-                ),
-                if (cliente.esFiado)
-                  const Text(
-                    'FIADO',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: AppTheme.secondaryColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        title,
-        style: Theme.of(
-          context,
-        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        borderData: FlBorderData(show: false),
+        barGroups: data.asMap().entries.map((e) {
+          return _makeGroupData(e.key, (e.value['ventas']! / maxVal) * 20, (e.value['gastos']! / maxVal) * 20);
+        }).toList(),
       ),
     );
   }
 
-  Color _getTipoColor(MovimientoType tipo) {
-    switch (tipo) {
-      case MovimientoType.ingreso:
-        return AppTheme.successColor;
-      case MovimientoType.egreso:
-        return AppTheme.errorColor;
-      case MovimientoType.actividad:
-        return AppTheme.tertiaryColor;
-    }
+  BarChartGroupData _makeGroupData(int x, double y1, double y2) {
+    return BarChartGroupData(
+      barsSpace: 4,
+      x: x,
+      barRods: [
+        BarChartRodData(toY: y1, color: AppTheme.primaryColor.withValues(alpha: 0.4), width: 12, borderRadius: BorderRadius.circular(4)),
+        BarChartRodData(toY: y2, color: AppTheme.secondaryColor, width: 12, borderRadius: BorderRadius.circular(4)),
+      ],
+    );
   }
 
-  IconData _getTipoIcon(MovimientoType tipo) {
-    switch (tipo) {
-      case MovimientoType.ingreso:
-        return Icons.arrow_downward;
-      case MovimientoType.egreso:
-        return Icons.arrow_upward;
-      case MovimientoType.actividad:
-        return Icons.sync;
-    }
-  }
+  Widget _buildPieChart(Map<String, double> categoryData, double total, bool isDark) {
+    if (total == 0) return const Center(child: Text('Sin gastos registrados'));
 
-  Widget _buildCategoryLegend(String label, Color color) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    final List<Color> colors = [
+      AppTheme.primaryColor.withValues(alpha: 0.4),
+      AppTheme.secondaryColor,
+      AppTheme.successColor,
+      AppTheme.infoColor,
+      Colors.purple,
+    ];
+
+    return Column(
       children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
+        Expanded(
+          child: PieChart(
+            PieChartData(
+              sectionsSpace: 0,
+              centerSpaceRadius: 40,
+              sections: categoryData.entries.toList().asMap().entries.map((e) {
+                final color = colors[e.key % colors.length];
+                return PieChartSectionData(
+                  color: color,
+                  value: e.value.value,
+                  title: '',
+                  radius: 25,
+                );
+              }).toList(),
+            ),
           ),
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          children: categoryData.entries.toList().asMap().entries.map((e) {
+            final color = colors[e.key % colors.length];
+            final percentage = (e.value.value / total * 100).toStringAsFixed(0);
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+                const SizedBox(width: 6),
+                Text(
+                  '${e.value.key} ($percentage%)',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                ),
+              ],
+            );
+          }).toList(),
         ),
       ],
     );

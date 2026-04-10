@@ -502,7 +502,9 @@ class _ProductoCard extends StatelessWidget {
                       NumberFormatter.formatCurrency(producto.precio),
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w900,
-                        color: isInactive ? AppTheme.textTertiary : AppTheme.primaryColor,
+                        color: isInactive
+                            ? AppTheme.textTertiary
+                            : (isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary),
                       ),
                     ),
                   ],

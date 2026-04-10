@@ -56,81 +56,84 @@ class HomePage extends StatelessWidget {
           color: isDark ? AppTheme.darkSurface : AppTheme.surfaceColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         ),
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 24),
-                decoration: BoxDecoration(
-                  color: (isDark ? AppTheme.darkBorder : AppTheme.borderLightColor),
-                  borderRadius: BorderRadius.circular(2),
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(
+                    color: (isDark ? AppTheme.darkBorder : AppTheme.borderLightColor),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Detalle de movimiento',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close),
-                  style: IconButton.styleFrom(
-                    backgroundColor: isDark ? AppTheme.darkCard : AppTheme.backgroundColor,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            AppCard(
-              margin: EdgeInsets.zero,
-              padding: const EdgeInsets.all(20),
-              child: Column(
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _DetailRow(label: 'Concepto', value: mov.concepto),
-                  const Divider(height: 32),
-                  _DetailRow(
-                    label: 'Monto',
-                    value: NumberFormatter.formatCompact(mov.monto),
-                    valueStyle: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: mov.tipo == mov_model.MovimientoType.ingreso
-                          ? AppTheme.successColor
-                          : mov.tipo == mov_model.MovimientoType.egreso
-                          ? AppTheme.errorColor
-                          : null,
+                  Text(
+                    'Detalle de movimiento',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                    style: IconButton.styleFrom(
+                      backgroundColor: isDark ? AppTheme.darkCard : AppTheme.backgroundColor,
                     ),
-                  ),
-                  const Divider(height: 32),
-                  _DetailRow(
-                    label: 'Fecha',
-                    value: DateFormat('dd/MM/yyyy HH:mm').format(mov.fecha),
-                  ),
-                  if (mov.categoria != null) ...[
-                    const Divider(height: 32),
-                    _DetailRow(label: 'Categoría', value: mov.categoria!),
-                  ],
-                  const Divider(height: 32),
-                  _DetailRow(
-                    label: 'Tipo',
-                    value: mov.tipo == mov_model.MovimientoType.ingreso
-                        ? 'Ingreso'
-                        : mov.tipo == mov_model.MovimientoType.egreso
-                        ? 'Egreso'
-                        : 'Actividad',
                   ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(height: 24),
+              AppCard(
+                margin: EdgeInsets.zero,
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    _DetailRow(label: 'Concepto', value: mov.concepto),
+                    const Divider(height: 32),
+                    _DetailRow(
+                      label: 'Monto',
+                      value: NumberFormatter.formatCompact(mov.monto),
+                      valueStyle: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: mov.tipo == mov_model.MovimientoType.ingreso
+                            ? AppTheme.successColor
+                            : mov.tipo == mov_model.MovimientoType.egreso
+                            ? AppTheme.errorColor
+                            : null,
+                      ),
+                    ),
+                    const Divider(height: 32),
+                    _DetailRow(
+                      label: 'Fecha',
+                      value: DateFormat('dd/MM/yyyy HH:mm').format(mov.fecha),
+                    ),
+                    if (mov.categoria != null) ...[
+                      const Divider(height: 32),
+                      _DetailRow(label: 'Categoría', value: mov.categoria!),
+                    ],
+                    const Divider(height: 32),
+                    _DetailRow(
+                      label: 'Tipo',
+                      value: mov.tipo == mov_model.MovimientoType.ingreso
+                          ? 'Ingreso'
+                          : mov.tipo == mov_model.MovimientoType.egreso
+                          ? 'Egreso'
+                          : 'Actividad',
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -163,11 +166,10 @@ class HomePage extends StatelessWidget {
             isCurrency3: true,
           );
 
-          final historial =
-              movVM.startDateFilter == null
-                    ? movVM.historialCompleto
-                    : movVM.filteredItems
-                ..sort((a, b) => b.fecha.compareTo(a.fecha));
+          final historial = (movVM.startDateFilter == null
+                  ? List<mov_model.Movimiento>.from(movVM.historialCompleto)
+                  : List<mov_model.Movimiento>.from(movVM.filteredItems))
+              ..sort((a, b) => b.fecha.compareTo(a.fecha));
 
           return CustomScrollView(
             slivers: [
