@@ -5,6 +5,7 @@ import 'package:InkTrack/features/clientes/data/models/cliente.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
+import 'package:InkTrack/core/widgets/app_card.dart';
 import 'cliente_form_page.dart';
 import '../widgets/pago_dialog.dart';
 
@@ -26,22 +27,22 @@ class ClientesPage extends StatelessWidget {
     ClientesViewModel viewModel,
     bool showInactive,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return CustomScrollView(
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
           sliver: SliverToBoxAdapter(
             child: FinancialSummaryHeader(
-              title: 'Resumen\nClientes',
+              title: 'Gestión de\nCartera',
               actions: [
                 IconButton(
                   onPressed: () => viewModel.toggleShowInactive(),
                   icon: Icon(
                     showInactive ? Icons.visibility : Icons.visibility_off,
                     color: showInactive
-                        ? AppTheme
-                              .warningColor // Yellow = showing inactive
-                        : AppTheme.textSecondary, // Gray = not showing
+                        ? AppTheme.warningColor
+                        : AppTheme.textSecondary,
                   ),
                   tooltip: showInactive ? 'Ocultar inactivos' : 'Ver inactivos',
                 ),
@@ -62,11 +63,26 @@ class ClientesPage extends StatelessWidget {
           ),
         ),
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
           sliver: SliverToBoxAdapter(
-            child: Text(
-              'Listado de Clientes',
-              style: Theme.of(context).textTheme.titleMedium,
+            child: Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Listado de Clientes',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -74,28 +90,52 @@ class ClientesPage extends StatelessWidget {
           SliverFillRemaining(hasScrollBody: false, child: _EmptyClientes())
         else
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate((context, index) {
                 final cliente = viewModel.clientes[index];
                 final isInactive = !cliente.isActivo;
-                final isDark = Theme.of(context).brightness == Brightness.dark;
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  color: isInactive
-                      ? (isDark ? AppTheme.darkCard : Colors.grey.shade100)
-                      : (isDark ? AppTheme.darkCard : null),
+
+                return AppCard(
+                  onTap: () => _onMenuSelected(context, 'edit', cliente),
+                  isInactive: isInactive,
+                  padding: EdgeInsets.zero,
                   child: ListTile(
-                    contentPadding: const EdgeInsets.all(16),
-                    leading: CircleAvatar(
-                      radius: 24,
-                      backgroundColor: AppTheme.primaryColor.withValues(
-                        alpha: 0.1,
-                      ),
-                      child: const Icon(
-                        Icons.person_rounded,
-                        color: AppTheme.primaryColor,
-                      ),
+                    contentPadding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+                    leading: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 28,
+                          backgroundColor: AppTheme.primaryColor.withValues(
+                            alpha: 0.1,
+                          ),
+                          child: Text(
+                            cliente.nombre.substring(0, 1).toUpperCase(),
+                            style: const TextStyle(
+                              color: AppTheme.primaryColor,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ),
+                        if (cliente.saldoPendiente > 0)
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: AppTheme.errorColor,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.priority_high_rounded,
+                                size: 10,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                     title: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,90 +145,98 @@ class ClientesPage extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 cliente.nombre,
-                                style: Theme.of(context).textTheme.labelLarge,
+                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 15,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             if (isInactive) ...[
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
+                                  horizontal: 8,
+                                  vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
                                   color: isDark
-                                      ? Colors.grey.shade700
-                                      : Colors.grey.shade400,
-                                  borderRadius: BorderRadius.circular(4),
+                                      ? AppTheme.darkBorder
+                                      : Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   'INACTIVO',
                                   style: TextStyle(
-                                    fontSize: 10,
+                                    fontSize: 9,
                                     fontWeight: FontWeight.w900,
-                                    color: Colors.white,
+                                    color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
                                   ),
                                 ),
                               ),
                             ] else if (cliente.esFiado) ...[
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
+                                  horizontal: 8,
+                                  vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.errorColor.withValues(
+                                  color: AppTheme.primaryColor.withValues(
                                     alpha: 0.1,
                                   ),
-                                  borderRadius: BorderRadius.circular(4),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Text(
                                   'CRÉDITO',
                                   style: TextStyle(
-                                    fontSize: 10,
+                                    fontSize: 9,
                                     fontWeight: FontWeight.w900,
-                                    color: AppTheme.errorColor,
+                                    color: AppTheme.primaryColor,
                                   ),
                                 ),
                               ),
                             ],
                           ],
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                       ],
                     ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          '${cliente.telefono} • ${cliente.email}',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        Row(
+                          children: [
+                            Icon(Icons.phone_outlined, size: 12, color: AppTheme.textTertiary),
+                            const SizedBox(width: 4),
+                            Text(
+                              cliente.telefono,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
                         ),
                         if (cliente.saldoPendiente > 0) ...[
                           const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.payments_outlined,
-                                size: 14,
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppTheme.errorColor.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: AppTheme.errorColor.withValues(alpha: 0.1)),
+                            ),
+                            child: Text(
+                              'Debe: ${NumberFormatter.formatCurrency(cliente.saldoPendiente)}',
+                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
                                 color: AppTheme.errorColor,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 11,
                               ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Deuda: ${NumberFormatter.formatCurrency(cliente.saldoPendiente)}',
-                                style: Theme.of(context).textTheme.labelMedium
-                                    ?.copyWith(
-                                      color: AppTheme.errorColor,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                            ],
+                            ),
                           ),
                         ],
                       ],
                     ),
                     trailing: PopupMenuButton<String>(
+                      icon: Icon(Icons.more_vert_rounded, color: AppTheme.textTertiary),
                       onSelected: (value) =>
                           _onMenuSelected(context, value, cliente),
                       itemBuilder: (context) => [
@@ -197,8 +245,8 @@ class ClientesPage extends StatelessWidget {
                             value: 'pay',
                             child: Row(
                               children: [
-                                Icon(Icons.payments_outlined, size: 20),
-                                SizedBox(width: 8),
+                                Icon(Icons.account_balance_wallet_outlined, size: 20),
+                                SizedBox(width: 12),
                                 Text('Registrar Pago'),
                               ],
                             ),
@@ -208,8 +256,8 @@ class ClientesPage extends StatelessWidget {
                           child: Row(
                             children: [
                               Icon(Icons.edit_outlined, size: 20),
-                              SizedBox(width: 8),
-                              Text('Editar'),
+                              SizedBox(width: 12),
+                              Text('Editar Perfil'),
                             ],
                           ),
                         ),
@@ -219,11 +267,11 @@ class ClientesPage extends StatelessWidget {
                             child: Row(
                               children: [
                                 Icon(
-                                  Icons.refresh,
+                                  Icons.person_add_alt_outlined,
                                   size: 20,
                                   color: AppTheme.successColor,
                                 ),
-                                SizedBox(width: 8),
+                                SizedBox(width: 12),
                                 Text(
                                   'Reactivar',
                                   style: TextStyle(
@@ -239,13 +287,13 @@ class ClientesPage extends StatelessWidget {
                             child: Row(
                               children: [
                                 Icon(
-                                  Icons.delete_outline_rounded,
+                                  Icons.person_remove_outlined,
                                   color: AppTheme.errorColor,
                                   size: 20,
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 12),
                                 Text(
-                                  'Eliminar',
+                                  'Inactivar',
                                   style: TextStyle(color: AppTheme.errorColor),
                                 ),
                               ],
@@ -286,22 +334,26 @@ class ClientesPage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar cliente'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        title: const Text('Inactivar cliente'),
         content: Text(
-          '¿Eliminar a ${cliente.nombre}?\n(Se marcará como inactivo para trazabilidad)',
+          '¿Deseas inactivar a ${cliente.nombre}?\n\nSeguirá apareciendo en reportes pero no estará disponible para nuevas ventas.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text('Cancelar'),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () {
               context.read<ClientesViewModel>().eliminar(cliente.id);
               Navigator.pop(ctx);
             },
-            style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
-            child: const Text('Eliminar'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.errorColor,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Inactivar'),
           ),
         ],
       ),
@@ -315,27 +367,36 @@ class _EmptyClientes extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(40),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.people_outline,
-              size: 80,
-              color: isDark
-                  ? AppTheme.darkTextSecondary.withValues(alpha: 0.5)
-                  : AppTheme.textSecondary.withValues(alpha: 0.5),
+            Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.darkCard : AppTheme.backgroundColor,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.people_outline_rounded,
+                size: 64,
+                color: AppTheme.textTertiary,
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Text(
-              'No hay clientes',
-              style: Theme.of(context).textTheme.titleMedium,
+              'Sin clientes registrados',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Text(
-              'Añade clientes con el botón de abajo para asociarlos a ventas.',
+              'Comienza agregando tu primer cliente para gestionar sus compras y deudas.',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppTheme.textSecondary,
+              ),
             ),
           ],
         ),

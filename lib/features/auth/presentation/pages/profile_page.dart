@@ -125,7 +125,7 @@ class ProfilePage extends StatelessWidget {
                       Switch(
                         value: isDark,
                         onChanged: (_) => themeProvider.toggleTheme(),
-                        activeColor: AppTheme.primaryColor,
+                        activeTrackColor: AppTheme.primaryColor,
                       ),
                     ],
                   ),

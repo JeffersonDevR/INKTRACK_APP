@@ -9,6 +9,7 @@ import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
 import 'package:InkTrack/core/widgets/trend_chart.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
+import 'package:InkTrack/core/widgets/app_card.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -46,19 +47,31 @@ class HomePage extends StatelessWidget {
   }
 
   void _showMovimientoDetalle(BuildContext context, mov_model.Movimiento mov) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: AppTheme.surfaceColor,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.darkSurface : AppTheme.surfaceColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         ),
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 24),
+                decoration: BoxDecoration(
+                  color: (isDark ? AppTheme.darkBorder : AppTheme.borderLightColor),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -69,39 +82,54 @@ class HomePage extends StatelessWidget {
                 IconButton(
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.close),
+                  style: IconButton.styleFrom(
+                    backgroundColor: isDark ? AppTheme.darkCard : AppTheme.backgroundColor,
+                  ),
                 ),
               ],
             ),
-            const Divider(),
-            const SizedBox(height: 16),
-            _DetailRow(label: 'Concepto', value: mov.concepto),
-            _DetailRow(
-              label: 'Monto',
-              value: NumberFormatter.formatCompact(mov.monto),
-              valueStyle: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: mov.tipo == mov_model.MovimientoType.ingreso
-                    ? AppTheme.successColor
-                    : mov.tipo == mov_model.MovimientoType.egreso
-                    ? AppTheme.errorColor
-                    : null,
+            const SizedBox(height: 24),
+            AppCard(
+              margin: EdgeInsets.zero,
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  _DetailRow(label: 'Concepto', value: mov.concepto),
+                  const Divider(height: 32),
+                  _DetailRow(
+                    label: 'Monto',
+                    value: NumberFormatter.formatCompact(mov.monto),
+                    valueStyle: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: mov.tipo == mov_model.MovimientoType.ingreso
+                          ? AppTheme.successColor
+                          : mov.tipo == mov_model.MovimientoType.egreso
+                          ? AppTheme.errorColor
+                          : null,
+                    ),
+                  ),
+                  const Divider(height: 32),
+                  _DetailRow(
+                    label: 'Fecha',
+                    value: DateFormat('dd/MM/yyyy HH:mm').format(mov.fecha),
+                  ),
+                  if (mov.categoria != null) ...[
+                    const Divider(height: 32),
+                    _DetailRow(label: 'Categoría', value: mov.categoria!),
+                  ],
+                  const Divider(height: 32),
+                  _DetailRow(
+                    label: 'Tipo',
+                    value: mov.tipo == mov_model.MovimientoType.ingreso
+                        ? 'Ingreso'
+                        : mov.tipo == mov_model.MovimientoType.egreso
+                        ? 'Egreso'
+                        : 'Actividad',
+                  ),
+                ],
               ),
             ),
-            _DetailRow(
-              label: 'Fecha',
-              value: DateFormat('dd/MM/yyyy HH:mm').format(mov.fecha),
-            ),
-            if (mov.categoria != null)
-              _DetailRow(label: 'Categoría', value: mov.categoria!),
-            _DetailRow(
-              label: 'Tipo',
-              value: mov.tipo == mov_model.MovimientoType.ingreso
-                  ? 'Ingreso'
-                  : mov.tipo == mov_model.MovimientoType.egreso
-                  ? 'Egreso'
-                  : 'Actividad',
-            ),
-            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -144,12 +172,20 @@ class HomePage extends StatelessWidget {
           return CustomScrollView(
             slivers: [
               SliverPadding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
                 sliver: SliverToBoxAdapter(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       summary,
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 28),
+                      Text(
+                        'Tendencia de Flujo',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
                       TrendChart(movimientos: movVM.items),
                       const SizedBox(height: 32),
                       Row(
@@ -157,19 +193,22 @@ class HomePage extends StatelessWidget {
                         children: [
                           Text(
                             movVM.startDateFilter == null
-                                ? 'Actividad de Hoy'
+                                ? 'Actividad Reciente'
                                 : 'Resultados del Filtro',
                             style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                                ?.copyWith(fontWeight: FontWeight.w800),
                           ),
                           if (movVM.startDateFilter != null)
-                            TextButton(
+                            TextButton.icon(
                               onPressed: () => movVM.clearDateFilter(),
-                              child: const Text('Limpiar'),
+                              icon: const Icon(Icons.clear_rounded, size: 18),
+                              label: const Text('Limpiar'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppTheme.errorColor,
+                              ),
                             ),
                         ],
                       ),
-                      const SizedBox(height: 12),
                     ],
                   ),
                 ),
@@ -178,7 +217,7 @@ class HomePage extends StatelessWidget {
                 SliverFillRemaining(hasScrollBody: false, child: _EmptyState())
               else
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
@@ -209,20 +248,35 @@ class _EmptyState extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 40),
+        padding: const EdgeInsets.symmetric(vertical: 60),
         child: Column(
           children: [
-            Icon(
-              Icons.history_toggle_off,
-              size: 64,
-              color: isDark
-                  ? AppTheme.darkTextSecondary.withValues(alpha: 0.2)
-                  : AppTheme.textSecondary.withValues(alpha: 0.2),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: (isDark ? AppTheme.darkCard : AppTheme.backgroundColor),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.history_toggle_off_rounded,
+                size: 48,
+                color: (isDark ? AppTheme.darkTextTertiary : AppTheme.textTertiary),
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Text(
-              'No hay actividad registrada.',
-              style: Theme.of(context).textTheme.bodyMedium,
+              'No hay actividad registrada',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: (isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Tus movimientos aparecerán aquí',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: (isDark ? AppTheme.darkTextTertiary : AppTheme.textTertiary),
+              ),
             ),
           ],
         ),
@@ -247,66 +301,108 @@ class _MovimientoItem extends StatelessWidget {
         ? AppTheme.errorColor
         : AppTheme.primaryColor;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkCard : AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? AppTheme.darkBorder : const Color(0xFFF1F5F9),
-        ),
-      ),
-      child: ListTile(
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
+    return AppCard(
+      onTap: onTap,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(
+              mov.tipo == mov_model.MovimientoType.ingreso
+                  ? Icons.add_chart_rounded
+                  : mov.tipo == mov_model.MovimientoType.egreso
+                  ? Icons.shopping_bag_outlined
+                  : Icons.info_outline_rounded,
+              color: color,
+              size: 24,
+            ),
           ),
-          child: Icon(
-            mov.tipo == mov_model.MovimientoType.ingreso
-                ? Icons.add_rounded
-                : mov.tipo == mov_model.MovimientoType.egreso
-                ? Icons.remove_rounded
-                : Icons.info_outline_rounded,
-            color: color,
-            size: 20,
-          ),
-        ),
-        title: Text(
-          mov.concepto,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            color: isDark ? AppTheme.darkTextPrimary : null,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Text(
-          '${DateFormat('HH:mm').format(mov.fecha)}${mov.categoria != null ? ' • ${mov.categoria}' : ''}',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
-          ),
-        ),
-        trailing: isMonetary
-            ? ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 120),
-                child: Text(
-                  (mov.tipo == mov_model.MovimientoType.ingreso ? '+ ' : '- ') +
-                      NumberFormatter.formatCompact(mov.monto),
-                  textAlign: TextAlign.right,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: color,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  mov.concepto,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
                   ),
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-              )
-            : Icon(
-                Icons.chevron_right_rounded,
-                color: isDark ? AppTheme.darkTextTertiary : null,
-              ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.access_time_rounded,
+                      size: 12,
+                      color: (isDark ? AppTheme.darkTextTertiary : AppTheme.textTertiary),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      DateFormat('HH:mm').format(mov.fecha),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (mov.categoria != null) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        width: 3,
+                        height: 3,
+                        decoration: BoxDecoration(
+                          color: (isDark ? AppTheme.darkTextTertiary : AppTheme.textTertiary),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        mov.categoria!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppTheme.primaryColor,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+          if (isMonetary)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  (mov.tipo == mov_model.MovimientoType.ingreso ? '+ ' : '- ') +
+                      NumberFormatter.formatCompact(mov.monto),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: color,
+                  ),
+                ),
+                Text(
+                  'Monto',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    fontSize: 9,
+                    color: (isDark ? AppTheme.darkTextTertiary : AppTheme.textTertiary),
+                  ),
+                ),
+              ],
+            )
+          else
+            Icon(
+              Icons.chevron_right_rounded,
+              color: (isDark ? AppTheme.darkTextTertiary : AppTheme.textTertiary),
+            ),
+        ],
       ),
     );
   }
@@ -321,23 +417,24 @@ class _DetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
+            fontWeight: FontWeight.w600,
           ),
-          Text(
-            value,
-            style: valueStyle ?? Theme.of(context).textTheme.bodyLarge,
+        ),
+        Text(
+          value,
+          style: valueStyle ?? Theme.of(context).textTheme.bodyLarge?.copyWith(
+            fontWeight: FontWeight.w700,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

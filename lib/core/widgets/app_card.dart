@@ -8,6 +8,8 @@ class AppCard extends StatelessWidget {
   final EdgeInsets? padding;
   final VoidCallback? onTap;
   final double borderRadius;
+  final Color? color;
+  final bool showBorder;
 
   const AppCard({
     super.key,
@@ -16,35 +18,50 @@ class AppCard extends StatelessWidget {
     this.margin,
     this.padding,
     this.onTap,
-    this.borderRadius = 16,
+    this.borderRadius = 24,
+    this.color,
+    this.showBorder = true,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Card(
-      margin: margin ?? const EdgeInsets.only(bottom: 12),
-      color: isInactive
-          ? (isDark ? Colors.grey.shade800 : Colors.grey.shade100)
-          : (isDark ? AppTheme.darkCard : null),
-      shape: RoundedRectangleBorder(
+    return Container(
+      margin: margin ?? const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: color ??
+            (isInactive
+                ? (isDark ? Colors.grey.shade900 : Colors.grey.shade100)
+                : (isDark ? AppTheme.darkCard : Colors.white)),
         borderRadius: BorderRadius.circular(borderRadius),
-        side: BorderSide(
-          color: isDark ? AppTheme.darkBorder : Colors.transparent,
+        border: showBorder
+            ? Border.all(
+                color: isDark ? AppTheme.darkBorder : AppTheme.borderLightColor,
+                width: 1,
+              )
+            : null,
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.3)
+                : Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: isInactive ? null : onTap,
+          borderRadius: BorderRadius.circular(borderRadius),
+          child: Padding(
+            padding: padding ?? const EdgeInsets.all(20),
+            child: child,
+          ),
         ),
       ),
-      child: onTap != null
-          ? InkWell(
-              onTap: isInactive ? null : onTap,
-              borderRadius: BorderRadius.circular(borderRadius),
-              child: _buildContent(isDark),
-            )
-          : _buildContent(isDark),
     );
-  }
-
-  Widget _buildContent(bool isDark) {
-    return Padding(padding: padding ?? const EdgeInsets.all(16), child: child);
   }
 }
