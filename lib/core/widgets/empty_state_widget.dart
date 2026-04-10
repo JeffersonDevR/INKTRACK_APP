@@ -20,9 +20,6 @@ class EmptyStateWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final iconColor = isDark
-        ? AppTheme.darkTextSecondary
-        : AppTheme.textSecondary;
     final textColor = isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
     final secondaryColor = isDark
         ? AppTheme.darkTextSecondary

@@ -578,7 +578,7 @@ class _ReportesPageState extends State<ReportesPage>
                     'FIADO',
                     style: TextStyle(
                       fontSize: 10,
-                      color: AppTheme.tertiaryColor,
+                      color: AppTheme.secondaryColor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

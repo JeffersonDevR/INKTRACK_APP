@@ -23,7 +23,7 @@ class InventarioPage extends StatelessWidget {
             slivers: [
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
-                child: SliverToBoxAdapter(
+                sliver: SliverToBoxAdapter(
                   child: FinancialSummaryHeader(
                     title: 'Control de\nInventario',
                     actions: [

@@ -37,6 +37,10 @@ class AppTheme {
   static const Color darkTextTertiary = Color(0xFF475569);
   static const Color darkBorder = Color(0xFF334155);
 
+  // Backwards compatibility
+  static const Color tertiaryColor = accentColor;
+  static const Color tertiaryColorDark = accentColor;
+
   static ThemeData get lightTheme {
     final base = ThemeData.light(useMaterial3: true);
     return base.copyWith(
@@ -182,7 +186,6 @@ class AppTheme {
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
         elevation: 4,
-        shadowColor: primaryColor.withValues(alpha: 0.4),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
 
@@ -350,7 +353,6 @@ class AppTheme {
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
         elevation: 8,
-        shadowColor: Colors.black.withValues(alpha: 0.4),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
 
