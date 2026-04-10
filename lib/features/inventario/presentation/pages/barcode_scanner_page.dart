@@ -6,9 +6,12 @@ import 'package:InkTrack/features/movimientos/presentation/pages/movimiento_form
 import 'package:InkTrack/features/movimientos/data/models/movimiento.dart'
     as mov_model;
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
+import 'package:InkTrack/core/theme/app_theme.dart';
 
 class BarcodeScannerPage extends StatefulWidget {
-  const BarcodeScannerPage({super.key});
+  final bool returnMode;
+
+  const BarcodeScannerPage({super.key, this.returnMode = false});
 
   @override
   State<BarcodeScannerPage> createState() => _BarcodeScannerPageState();
@@ -39,31 +42,45 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
     final viewModel = context.read<InventarioViewModel>();
     final productoExistente = viewModel.findProductoByCodigo(code);
 
-    Navigator.of(context).pop();
+    if (widget.returnMode) {
+      if (productoExistente != null) {
+        Navigator.of(context).pop(productoExistente);
+      } else {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Producto no encontrado en el inventario'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    } else {
+      Navigator.of(context).pop();
 
-    if (productoExistente != null) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => MovimientoFormPage(
-            initialType: mov_model.MovimientoType.egreso,
-            movimiento: mov_model.Movimiento(
-              id: '',
-              monto: 0,
-              fecha: DateTime.now(),
-              tipo: mov_model.MovimientoType.egreso,
-              concepto: 'Restock: ${productoExistente.nombre}',
-              productoId: productoExistente.id,
-              categoria: productoExistente.categoria,
+      if (productoExistente != null) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => MovimientoFormPage(
+              initialType: mov_model.MovimientoType.egreso,
+              movimiento: mov_model.Movimiento(
+                id: '',
+                monto: 0,
+                fecha: DateTime.now(),
+                tipo: mov_model.MovimientoType.egreso,
+                concepto: 'Restock: ${productoExistente.nombre}',
+                productoId: productoExistente.id,
+                categoria: productoExistente.categoria,
+              ),
             ),
           ),
-        ),
-      );
-    } else {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => ProductoFormPage(initialCodigoBarras: code),
-        ),
-      );
+        );
+      } else {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ProductoFormPage(initialCodigoBarras: code),
+          ),
+        );
+      }
     }
   }
 

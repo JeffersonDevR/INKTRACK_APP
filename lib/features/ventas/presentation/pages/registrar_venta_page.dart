@@ -6,6 +6,8 @@ import 'package:InkTrack/features/clientes/data/models/cliente.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
+import 'package:InkTrack/features/inventario/data/models/producto.dart';
+import 'package:InkTrack/features/inventario/presentation/pages/barcode_scanner_page.dart';
 import 'package:InkTrack/core/input_formatters.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
@@ -66,11 +68,22 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
     final inventarioVM = context.read<InventarioViewModel>();
     if (_productoId != null) {
       final product = inventarioVM.getById(_productoId!);
+      if (product != null && !product.isActivo) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('El producto "${product.nombre}" está inactivo'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+        return;
+      }
       final cantidad = int.tryParse(_cantidadController.text) ?? 0;
       if (product != null && product.cantidad < cantidad) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('No hay suficiente stock. Disponible: ${product.cantidad}'),
+            content: Text(
+              'No hay suficiente stock. Disponible: ${product.cantidad}',
+            ),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -206,6 +219,26 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _scanProductBarcode() async {
+    final result = await Navigator.push<Producto>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const BarcodeScannerPage(returnMode: true),
+      ),
+    );
+
+    if (result != null && mounted) {
+      setState(() {
+        _productoId = result.id;
+        _montoController.text = NumberFormatter.formatCurrency(
+          result.precio,
+        ).replaceAll('\$', '');
+        _conceptoController.text = 'Venta: ${result.nombre}';
+        _cantidadController.text = '1';
+      });
+    }
   }
 
   @override
@@ -364,45 +397,77 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
               const SizedBox(height: 12),
               Consumer<InventarioViewModel>(
                 builder: (context, inventarioVM, child) {
-                  return DropdownButtonFormField<String>(
-                    initialValue: _productoId,
-                    decoration: const InputDecoration(labelText: 'Producto'),
-                    items: [
-                      const DropdownMenuItem(
-                        value: null,
-                        child: Text('Sin producto vinculado'),
-                      ),
-                      ...inventarioVM.productos.map(
-                        (p) => DropdownMenuItem(
-                          value: p.id,
-                          child: Text(
-                            '${p.nombre} (${p.cantidad} en stock)',
-                            overflow: TextOverflow.ellipsis,
+                  return Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              initialValue: _productoId,
+                              decoration: const InputDecoration(
+                                labelText: 'Producto',
+                              ),
+                              items: [
+                                const DropdownMenuItem(
+                                  value: null,
+                                  child: Text('Sin producto vinculado'),
+                                ),
+                                ...inventarioVM.productos.map(
+                                  (p) => DropdownMenuItem(
+                                    value: p.id,
+                                    child: Text(
+                                      '${p.nombre} (${p.cantidad} en stock)',
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              onChanged: (value) {
+                                setState(() {
+                                  _productoId = value;
+                                  if (value != null) {
+                                    final prod = inventarioVM.getById(value);
+                                    if (prod != null) {
+                                      if (_montoController.text.isEmpty) {
+                                        _montoController.text =
+                                            NumberFormatter.formatCurrency(
+                                              prod.precio,
+                                            ).replaceAll('\$', '');
+                                      }
+                                      if (_conceptoController.text.isEmpty) {
+                                        _conceptoController.text =
+                                            'Venta: ${prod.nombre}';
+                                      }
+                                    }
+                                  }
+                                });
+                              },
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 12),
+                          Material(
+                            color: AppTheme.primaryColor.withValues(
+                              alpha: 0.15,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            child: InkWell(
+                              onTap: _scanProductBarcode,
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                width: 56,
+                                height: 56,
+                                alignment: Alignment.center,
+                                child: Icon(
+                                  Icons.qr_code_scanner_rounded,
+                                  color: AppTheme.primaryColor,
+                                  size: 28,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
-                    onChanged: (value) {
-                      setState(() {
-                        _productoId = value;
-                        // Pre-fill price and concept if product selected
-                        if (value != null) {
-                          final prod = inventarioVM.getById(value);
-                          if (prod != null) {
-                            if (_montoController.text.isEmpty) {
-                              _montoController.text =
-                                  NumberFormatter.formatCurrency(
-                                    prod.precio,
-                                  ).replaceAll('\$', '');
-                            }
-                            if (_conceptoController.text.isEmpty) {
-                              _conceptoController.text =
-                                  'Venta: ${prod.nombre}';
-                            }
-                          }
-                        }
-                      });
-                    },
                   );
                 },
               ),

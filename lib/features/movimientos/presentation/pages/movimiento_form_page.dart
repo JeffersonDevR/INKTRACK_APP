@@ -7,6 +7,7 @@ import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_view
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/inventario/data/models/producto.dart';
+import 'package:InkTrack/features/inventario/presentation/pages/barcode_scanner_page.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/input_formatters.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
@@ -65,6 +66,25 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
     _conceptoController.dispose();
     _cantidadController.dispose();
     super.dispose();
+  }
+
+  Future<void> _scanProductBarcode() async {
+    final result = await Navigator.push<Producto>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const BarcodeScannerPage(returnMode: true),
+      ),
+    );
+
+    if (result != null && mounted) {
+      setState(() {
+        _productoId = result.id;
+        _montoController.text = NumberFormatter.formatCurrency(
+          result.precio,
+        ).replaceAll('\$', '');
+        _cantidadController.text = '1';
+      });
+    }
   }
 
   void _updateMontoAuto() {
@@ -496,34 +516,59 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
               Consumer<InventarioViewModel>(
                 builder: (context, ivm, child) {
                   final productos = ivm.productos;
-                  return DropdownButtonFormField<String?>(
-                    isExpanded: true,
-                    initialValue: _productoId,
-                    decoration: const InputDecoration(
-                      labelText: 'Producto (Asociar)',
-                      prefixIcon: Icon(Icons.inventory_2_outlined),
-                      hintText: 'Seleccione un producto',
-                    ),
-                    items: [
-                      const DropdownMenuItem(
-                        value: null,
-                        child: Text('Ninguno'),
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String?>(
+                          isExpanded: true,
+                          initialValue: _productoId,
+                          decoration: const InputDecoration(
+                            labelText: 'Producto (Asociar)',
+                            prefixIcon: Icon(Icons.inventory_2_outlined),
+                            hintText: 'Seleccione un producto',
+                          ),
+                          items: [
+                            const DropdownMenuItem(
+                              value: null,
+                              child: Text('Ninguno'),
+                            ),
+                            ...productos.map(
+                              (p) => DropdownMenuItem(
+                                value: p.id,
+                                child: Text('${p.nombre} (\$${p.precio})'),
+                              ),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            setState(() {
+                              _productoId = value;
+                              if (value != null) {
+                                _updateMontoAuto();
+                              }
+                            });
+                          },
+                        ),
                       ),
-                      ...productos.map(
-                        (p) => DropdownMenuItem(
-                          value: p.id,
-                          child: Text('${p.nombre} (\$${p.precio})'),
+                      const SizedBox(width: 12),
+                      Material(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        child: InkWell(
+                          onTap: _scanProductBarcode,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            width: 56,
+                            height: 56,
+                            alignment: Alignment.center,
+                            child: Icon(
+                              Icons.qr_code_scanner_rounded,
+                              color: AppTheme.primaryColor,
+                              size: 28,
+                            ),
+                          ),
                         ),
                       ),
                     ],
-                    onChanged: (value) {
-                      setState(() {
-                        _productoId = value;
-                        if (value != null) {
-                          _updateMontoAuto();
-                        }
-                      });
-                    },
                   );
                 },
               ),
