@@ -231,6 +231,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
   Widget build(BuildContext context) {
     final authService = widget.authService;
     final user = authService?.currentUser;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       body: Column(
@@ -238,109 +239,122 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
           Container(
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).padding.top + 8,
-              left: 16,
-              right: 16,
-              bottom: 12,
+              left: 20,
+              right: 20,
+              bottom: 16,
             ),
             decoration: BoxDecoration(
-              color: AppTheme.darkBackground,
+              color: isDark ? AppTheme.darkSurface : Colors.white,
               borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(24),
-                bottomRight: Radius.circular(24),
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
                 ),
               ],
             ),
             child: Row(
               children: [
-                // App Logo/Name
+                // App Logo/Name with refined look
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      'InkTrack',
-                      style: GoogleFonts.plusJakartaSans(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 18,
-                        letterSpacing: -1,
-                      ),
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppTheme.primaryColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'InkTrack',
+                          style: GoogleFonts.plusJakartaSans(
+                            color: isDark ? Colors.white : AppTheme.textPrimary,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 20,
+                            letterSpacing: -1,
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      [
-                        'Inicio',
-                        'Clientes',
-                        'Proveedores',
-                        'Inventario',
-                        'Reportes',
-                      ][_currentIndex].toUpperCase(),
-                      style: GoogleFonts.plusJakartaSans(
-                        color: AppTheme.secondaryColor.withValues(alpha: 0.8),
-                        fontWeight: FontWeight.w800,
-                        fontSize: 9,
-                        letterSpacing: 1,
+                    const SizedBox(height: 2),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        [
+                          'Panel de Inicio',
+                          'Gestión de Clientes',
+                          'Proveedores',
+                          'Control de Inventario',
+                          'Reportes de Negocio',
+                        ][_currentIndex].toUpperCase(),
+                        style: GoogleFonts.plusJakartaSans(
+                          color: AppTheme.primaryColor,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 10,
+                          letterSpacing: 0.5,
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const Spacer(),
-                // Administrator Info (Compact)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
+                // Administrator Info (Compact & Modern)
+                InkWell(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ProfilePage()),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            user?.email?.split('@').first ?? 'User',
-                            style: GoogleFonts.plusJakartaSans(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 11,
-                            ),
-                          ),
-                          Text(
-                            'Admin',
-                            style: GoogleFonts.plusJakartaSans(
-                              color: Colors.white70,
-                              fontSize: 8,
-                            ),
-                          ),
-                        ],
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppTheme.darkCard : AppTheme.backgroundColor,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: isDark ? AppTheme.darkBorder : AppTheme.borderLightColor,
                       ),
-                      const SizedBox(width: 8),
-                      InkWell(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const ProfilePage()),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(width: 8),
+                        Text(
+                          user?.email?.split('@').first ?? 'User',
+                          style: GoogleFonts.plusJakartaSans(
+                            color: isDark ? Colors.white : AppTheme.textPrimary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                          ),
                         ),
-                        child: CircleAvatar(
-                          radius: 12,
-                          backgroundColor: AppTheme.tertiaryColor,
+                        const SizedBox(width: 10),
+                        CircleAvatar(
+                          radius: 16,
+                          backgroundColor: AppTheme.primaryColor,
                           child: Text(
                             user?.email?.substring(0, 1).toUpperCase() ?? 'U',
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
-                              fontSize: 10,
+                              fontSize: 12,
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -351,41 +365,60 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
           ),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-        onDestinationSelected: (int index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Inicio',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.darkSurface : Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: NavigationBar(
+              selectedIndex: _currentIndex,
+              labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              onDestinationSelected: (int index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.grid_view_outlined),
+                  selectedIcon: Icon(Icons.grid_view_rounded),
+                  label: 'Inicio',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.people_outline_rounded),
+                  selectedIcon: Icon(Icons.people_rounded),
+                  label: 'Clientes',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.local_shipping_outlined),
+                  selectedIcon: Icon(Icons.local_shipping_rounded),
+                  label: 'Proveedor',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.inventory_2_outlined),
+                  selectedIcon: Icon(Icons.inventory_2_rounded),
+                  label: 'Stock',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.analytics_outlined),
+                  selectedIcon: Icon(Icons.analytics_rounded),
+                  label: 'Reportes',
+                ),
+              ],
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.people_alt_outlined),
-            selectedIcon: Icon(Icons.people_alt),
-            label: 'Clientes',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.local_shipping_outlined),
-            selectedIcon: Icon(Icons.local_shipping),
-            label: 'Proveedor',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.inventory_2_outlined),
-            selectedIcon: Icon(Icons.inventory_2),
-            label: 'Inventario',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart),
-            label: 'Reportes',
-          ),
-        ],
+        ),
       ),
       floatingActionButton: SpeedDialFab(
         currentTab: _currentFabTab,
