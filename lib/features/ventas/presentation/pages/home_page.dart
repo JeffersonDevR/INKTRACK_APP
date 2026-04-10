@@ -69,7 +69,9 @@ class HomePage extends StatelessWidget {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 24),
                   decoration: BoxDecoration(
-                    color: (isDark ? AppTheme.darkBorder : AppTheme.borderLightColor),
+                    color: (isDark
+                        ? AppTheme.darkBorder
+                        : AppTheme.borderLightColor),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -85,7 +87,9 @@ class HomePage extends StatelessWidget {
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close),
                     style: IconButton.styleFrom(
-                      backgroundColor: isDark ? AppTheme.darkCard : AppTheme.backgroundColor,
+                      backgroundColor: isDark
+                          ? AppTheme.darkCard
+                          : AppTheme.backgroundColor,
                     ),
                   ),
                 ],
@@ -166,15 +170,19 @@ class HomePage extends StatelessWidget {
             isCurrency3: true,
           );
 
-          final historial = (movVM.startDateFilter == null
-                  ? List<mov_model.Movimiento>.from(movVM.historialCompleto)
-                  : List<mov_model.Movimiento>.from(movVM.filteredItems))
-              ..sort((a, b) => b.fecha.compareTo(a.fecha));
+          final historial =
+              (movVM.startDateFilter == null
+                    ? List<mov_model.Movimiento>.from(movVM.historialCompleto)
+                    : List<mov_model.Movimiento>.from(movVM.filteredItems))
+                ..sort((a, b) => b.fecha.compareTo(a.fecha));
 
           return CustomScrollView(
             slivers: [
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 24,
+                ),
                 sliver: SliverToBoxAdapter(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,9 +191,8 @@ class HomePage extends StatelessWidget {
                       const SizedBox(height: 28),
                       Text(
                         'Tendencia de Flujo',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 16),
                       TrendChart(movimientos: movVM.items),
@@ -231,7 +238,7 @@ class HomePage extends StatelessWidget {
                       },
                       childCount:
                           historial.length > 10 && movVM.startDateFilter == null
-                          ? 10
+                          ? 5
                           : historial.length,
                     ),
                   ),
@@ -262,14 +269,18 @@ class _EmptyState extends StatelessWidget {
               child: Icon(
                 Icons.history_toggle_off_rounded,
                 size: 48,
-                color: (isDark ? AppTheme.darkTextTertiary : AppTheme.textTertiary),
+                color: (isDark
+                    ? AppTheme.darkTextTertiary
+                    : AppTheme.textTertiary),
               ),
             ),
             const SizedBox(height: 20),
             Text(
               'No hay actividad registrada',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: (isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary),
+                color: (isDark
+                    ? AppTheme.darkTextSecondary
+                    : AppTheme.textSecondary),
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -277,7 +288,9 @@ class _EmptyState extends StatelessWidget {
             Text(
               'Tus movimientos aparecerán aquí',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: (isDark ? AppTheme.darkTextTertiary : AppTheme.textTertiary),
+                color: (isDark
+                    ? AppTheme.darkTextTertiary
+                    : AppTheme.textTertiary),
               ),
             ),
           ],
@@ -345,7 +358,9 @@ class _MovimientoItem extends StatelessWidget {
                     Icon(
                       Icons.access_time_rounded,
                       size: 12,
-                      color: (isDark ? AppTheme.darkTextTertiary : AppTheme.textTertiary),
+                      color: (isDark
+                          ? AppTheme.darkTextTertiary
+                          : AppTheme.textTertiary),
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -360,16 +375,23 @@ class _MovimientoItem extends StatelessWidget {
                         width: 3,
                         height: 3,
                         decoration: BoxDecoration(
-                          color: (isDark ? AppTheme.darkTextTertiary : AppTheme.textTertiary),
+                          color: (isDark
+                              ? AppTheme.darkTextTertiary
+                              : AppTheme.textTertiary),
                           shape: BoxShape.circle,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        mov.categoria!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppTheme.primaryColor,
-                          fontWeight: FontWeight.w700,
+                      Flexible(
+                        child: Text(
+                          mov.categoria!,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.w700,
+                              ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -394,7 +416,9 @@ class _MovimientoItem extends StatelessWidget {
                   'Monto',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     fontSize: 9,
-                    color: (isDark ? AppTheme.darkTextTertiary : AppTheme.textTertiary),
+                    color: (isDark
+                        ? AppTheme.darkTextTertiary
+                        : AppTheme.textTertiary),
                   ),
                 ),
               ],
@@ -402,7 +426,9 @@ class _MovimientoItem extends StatelessWidget {
           else
             Icon(
               Icons.chevron_right_rounded,
-              color: (isDark ? AppTheme.darkTextTertiary : AppTheme.textTertiary),
+              color: (isDark
+                  ? AppTheme.darkTextTertiary
+                  : AppTheme.textTertiary),
             ),
         ],
       ),
@@ -432,9 +458,11 @@ class _DetailRow extends StatelessWidget {
         ),
         Text(
           value,
-          style: valueStyle ?? Theme.of(context).textTheme.bodyLarge?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
+          style:
+              valueStyle ??
+              Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700),
         ),
       ],
     );
