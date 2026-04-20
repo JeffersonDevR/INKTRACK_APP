@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:InkTrack/core/base_crud_viewmodel.dart';
 
 class Venta implements HasId {
@@ -14,6 +15,9 @@ class Venta implements HasId {
   final String? clienteNombre;
   final String? concepto;
 
+  /// Multiple products support (JSON string)
+  final String? productosJson;
+
   Venta({
     required this.id,
     required this.monto,
@@ -24,7 +28,22 @@ class Venta implements HasId {
     this.esFiado = false,
     this.clienteNombre,
     this.concepto,
+    this.productosJson,
   });
+
+  List<VentaItem> get productos {
+    if (productosJson == null || productosJson!.isEmpty) {
+      return [];
+    }
+    try {
+      final list = jsonDecode(productosJson!) as List;
+      return list.map((p) => VentaItem.fromJson(p)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  bool get isMultiProducto => productos != null && productos.isNotEmpty;
 
   Venta copyWith({
     String? id,
@@ -36,6 +55,7 @@ class Venta implements HasId {
     bool? esFiado,
     String? clienteNombre,
     String? concepto,
+    String? productosJson,
   }) {
     return Venta(
       id: id ?? this.id,
@@ -47,6 +67,37 @@ class Venta implements HasId {
       esFiado: esFiado ?? this.esFiado,
       clienteNombre: clienteNombre ?? this.clienteNombre,
       concepto: concepto ?? this.concepto,
+      productosJson: productosJson ?? this.productosJson,
     );
   }
+}
+
+class VentaItem {
+  final String productoId;
+  final String nombre;
+  final int cantidad;
+  final double precioUnitario;
+
+  VentaItem({
+    required this.productoId,
+    required this.nombre,
+    required this.cantidad,
+    required this.precioUnitario,
+  });
+
+  double get subtotal => cantidad * precioUnitario;
+
+  Map<String, dynamic> toJson() => {
+    'productoId': productoId,
+    'nombre': nombre,
+    'cantidad': cantidad,
+    'precioUnitario': precioUnitario,
+  };
+
+  factory VentaItem.fromJson(Map<String, dynamic> json) => VentaItem(
+    productoId: json['productoId'] as String,
+    nombre: json['nombre'] as String,
+    cantidad: json['cantidad'] as int,
+    precioUnitario: (json['precioUnitario'] as num).toDouble(),
+  );
 }

@@ -105,10 +105,17 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
       }
 
       // auto-update stock
-      if (inventarioVM != null &&
-          venta.productoId != null &&
-          venta.cantidad > 0) {
-        await inventarioVM.actualizarStock(venta.productoId!, -venta.cantidad);
+      if (inventarioVM != null) {
+        if (venta.isMultiProducto) {
+          for (final item in venta.productos) {
+            await inventarioVM.actualizarStock(item.productoId, -item.cantidad);
+          }
+        } else if (venta.productoId != null && venta.cantidad > 0) {
+          await inventarioVM.actualizarStock(
+            venta.productoId!,
+            -venta.cantidad,
+          );
+        }
       }
 
       // auto-update client debt

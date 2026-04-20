@@ -1,3 +1,4 @@
+import 'dart:convert';
 import '../../../../core/base_crud_viewmodel.dart';
 
 enum MovimientoType { ingreso, egreso, actividad }
@@ -15,6 +16,7 @@ class Movimiento implements HasId {
   final String? proveedorId;
   final int? cantidad;
   final bool esFiado;
+  final String? productosJson;
 
   Movimiento({
     required this.id,
@@ -28,7 +30,22 @@ class Movimiento implements HasId {
     this.proveedorId,
     this.cantidad,
     this.esFiado = false,
+    this.productosJson,
   });
+
+  List<MovimientoProducto> get productos {
+    if (productosJson == null || productosJson!.isEmpty) {
+      return [];
+    }
+    try {
+      final list = jsonDecode(productosJson!) as List;
+      return list.map((p) => MovimientoProducto.fromJson(p)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  bool get isMultiProducto => productos != null && productos.isNotEmpty;
 
   Movimiento copyWith({
     String? id,
@@ -42,6 +59,7 @@ class Movimiento implements HasId {
     String? proveedorId,
     int? cantidad,
     bool? esFiado,
+    String? productosJson,
   }) {
     return Movimiento(
       id: id ?? this.id,
@@ -55,6 +73,38 @@ class Movimiento implements HasId {
       proveedorId: proveedorId ?? this.proveedorId,
       cantidad: cantidad ?? this.cantidad,
       esFiado: esFiado ?? this.esFiado,
+      productosJson: productosJson ?? this.productosJson,
     );
   }
+}
+
+class MovimientoProducto {
+  final String productoId;
+  final String nombre;
+  final int cantidad;
+  final double precioUnitario;
+
+  MovimientoProducto({
+    required this.productoId,
+    required this.nombre,
+    required this.cantidad,
+    required this.precioUnitario,
+  });
+
+  double get subtotal => cantidad * precioUnitario;
+
+  Map<String, dynamic> toJson() => {
+    'productoId': productoId,
+    'nombre': nombre,
+    'cantidad': cantidad,
+    'precioUnitario': precioUnitario,
+  };
+
+  factory MovimientoProducto.fromJson(Map<String, dynamic> json) =>
+      MovimientoProducto(
+        productoId: json['productoId'] as String,
+        nombre: json['nombre'] as String,
+        cantidad: json['cantidad'] as int,
+        precioUnitario: (json['precioUnitario'] as num).toDouble(),
+      );
 }

@@ -72,6 +72,7 @@ class Movimientos extends Table {
   TextColumn get proveedorId => text().nullable()();
   IntColumn get cantidad => integer().nullable()();
   BoolColumn get esFiado => boolean().withDefault(const Constant(false))();
+  TextColumn get productosJson => text().nullable()();
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
   DateTimeColumn get lastSyncedAt => dateTime().nullable()();
 
@@ -90,6 +91,25 @@ class Ventas extends Table {
   TextColumn get clienteId => text().nullable()();
   TextColumn get clienteNombre => text().nullable()();
   TextColumn get concepto => text().nullable()();
+  TextColumn get productosJson => text().nullable()();
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
+  DateTimeColumn get lastSyncedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('PedidoProveedorData')
+class PedidosProveedor extends Table {
+  TextColumn get id => text()();
+  TextColumn get proveedorId => text()();
+  TextColumn get proveedorNombre => text().nullable()();
+  DateTimeColumn get fechaPedido => dateTime()();
+  DateTimeColumn get fechaEntrega => dateTime()();
+  TextColumn get productos => text()();
+  RealColumn get montoTotal => real()();
+  BoolColumn get isEntregado => boolean().withDefault(const Constant(false))();
+  TextColumn get notas => text().nullable()();
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
   DateTimeColumn get lastSyncedAt => dateTime().nullable()();
 
@@ -99,6 +119,7 @@ class Ventas extends Table {
 
 class StringListConverter extends TypeConverter<List<String>, String> {
   const StringListConverter();
+
   @override
   List<String> fromSql(String fromDb) {
     return fromDb.isEmpty ? [] : fromDb.split(',');
@@ -110,12 +131,21 @@ class StringListConverter extends TypeConverter<List<String>, String> {
   }
 }
 
-@DriftDatabase(tables: [Clientes, Proveedores, Productos, Movimientos, Ventas])
+@DriftDatabase(
+  tables: [
+    Clientes,
+    Proveedores,
+    Productos,
+    Movimientos,
+    Ventas,
+    PedidosProveedor,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1; // TEMPORARY: Force fresh database for testing sync
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -124,25 +154,58 @@ class AppDatabase extends _$AppDatabase {
     },
     onUpgrade: (m, from, to) async {
       debugPrint("Migrating from $from to $to");
-      if (from < 2) {
-        await m.addColumn(productos, productos.codigoPersonalizado);
+      try {
+        if (from < 2) {
+          await m.addColumn(productos, productos.codigoPersonalizado);
+        }
+      } catch (e) {
+        debugPrint("Migration v2 skip: $e");
       }
-      if (from < 3) {
-        await m.addColumn(productos, productos.isActivo);
-        await m.addColumn(clientes, clientes.isActivo);
-        await m.addColumn(proveedores, proveedores.isActivo);
+      try {
+        if (from < 3) {
+          await m.addColumn(productos, productos.isActivo);
+          await m.addColumn(clientes, clientes.isActivo);
+          await m.addColumn(proveedores, proveedores.isActivo);
+        }
+      } catch (e) {
+        debugPrint("Migration v3 skip: $e");
       }
-      if (from < 4) {
-        await m.addColumn(productos, productos.syncStatus);
-        await m.addColumn(productos, productos.lastSyncedAt);
-        await m.addColumn(clientes, clientes.syncStatus);
-        await m.addColumn(clientes, clientes.lastSyncedAt);
-        await m.addColumn(proveedores, proveedores.syncStatus);
-        await m.addColumn(proveedores, proveedores.lastSyncedAt);
-        await m.addColumn(movimientos, movimientos.syncStatus);
-        await m.addColumn(movimientos, movimientos.lastSyncedAt);
-        await m.addColumn(ventas, ventas.syncStatus);
-        await m.addColumn(ventas, ventas.lastSyncedAt);
+      try {
+        if (from < 4) {
+          await m.addColumn(productos, productos.syncStatus);
+          await m.addColumn(productos, productos.lastSyncedAt);
+          await m.addColumn(clientes, clientes.syncStatus);
+          await m.addColumn(clientes, clientes.lastSyncedAt);
+          await m.addColumn(proveedores, proveedores.syncStatus);
+          await m.addColumn(proveedores, proveedores.lastSyncedAt);
+          await m.addColumn(movimientos, movimientos.syncStatus);
+          await m.addColumn(movimientos, movimientos.lastSyncedAt);
+          await m.addColumn(ventas, ventas.syncStatus);
+          await m.addColumn(ventas, ventas.lastSyncedAt);
+        }
+      } catch (e) {
+        debugPrint("Migration v4 skip: $e");
+      }
+      try {
+        if (from < 5) {
+          await m.createTable(pedidosProveedor);
+        }
+      } catch (e) {
+        debugPrint("Migration v5 skip: $e");
+      }
+      try {
+        if (from < 6) {
+          await m.addColumn(ventas, ventas.productosJson);
+        }
+      } catch (e) {
+        debugPrint("Migration v6 skip: $e");
+      }
+      try {
+        if (from < 7) {
+          await m.addColumn(movimientos, movimientos.productosJson);
+        }
+      } catch (e) {
+        debugPrint("Migration v7 skip: $e");
       }
     },
     beforeOpen: (details) async {

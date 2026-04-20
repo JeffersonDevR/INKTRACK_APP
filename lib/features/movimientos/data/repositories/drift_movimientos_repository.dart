@@ -38,6 +38,7 @@ class DriftMovimientosRepository implements MovimientosRepository {
             proveedorId: Value(item.proveedorId),
             cantidad: Value(item.cantidad),
             esFiado: Value(item.esFiado),
+            productosJson: Value(item.productosJson),
             syncStatus: const Value('pending_upload'),
           ),
         );
@@ -57,6 +58,7 @@ class DriftMovimientosRepository implements MovimientosRepository {
         proveedorId: Value(item.proveedorId),
         cantidad: Value(item.cantidad),
         esFiado: Value(item.esFiado),
+        productosJson: Value(item.productosJson),
         syncStatus: const Value('pending_upload'),
       ),
     );
@@ -80,6 +82,7 @@ class DriftMovimientosRepository implements MovimientosRepository {
       proveedorId: data.proveedorId,
       cantidad: data.cantidad,
       esFiado: data.esFiado,
+      productosJson: data.productosJson,
     );
   }
 }

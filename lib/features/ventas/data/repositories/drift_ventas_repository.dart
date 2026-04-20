@@ -33,6 +33,7 @@ class DriftVentasRepository implements VentasRepository {
             clienteId: Value(item.clienteId),
             clienteNombre: Value(item.clienteNombre),
             concepto: Value(item.concepto),
+            productosJson: Value(item.productosJson),
             syncStatus: const Value('pending_upload'),
           ),
         );
@@ -47,6 +48,7 @@ class DriftVentasRepository implements VentasRepository {
         clienteId: Value(item.clienteId),
         clienteNombre: Value(item.clienteNombre),
         concepto: Value(item.concepto),
+        productosJson: Value(item.productosJson),
         syncStatus: const Value('pending_upload'),
       ),
     );
@@ -65,6 +67,7 @@ class DriftVentasRepository implements VentasRepository {
       clienteId: data.clienteId,
       clienteNombre: data.clienteNombre,
       concepto: data.concepto,
+      productosJson: data.productosJson,
     );
   }
 }

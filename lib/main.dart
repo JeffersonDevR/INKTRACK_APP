@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/data/local/database.dart';
 import 'package:InkTrack/core/services/auth_service.dart';
@@ -14,9 +15,11 @@ import 'package:InkTrack/features/proveedores/data/repositories/drift_proveedore
 import 'package:InkTrack/features/inventario/data/repositories/drift_productos_repository.dart';
 import 'package:InkTrack/features/movimientos/data/repositories/drift_movimientos_repository.dart';
 import 'package:InkTrack/features/ventas/data/repositories/drift_ventas_repository.dart';
+import 'package:InkTrack/features/proveedores/data/repositories/drift_pedidos_repository.dart';
 
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
+import 'package:InkTrack/features/proveedores/presentation/viewmodels/pedidos_viewmodel.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/features/ventas/presentation/viewmodels/ventas_viewmodel.dart';
@@ -26,6 +29,7 @@ import 'package:InkTrack/features/auth/presentation/pages/login_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('es', null);
 
   try {
     await dotenv.load(fileName: ".env", isOptional: true);
@@ -139,6 +143,7 @@ class _InkTrackAppState extends State<InkTrackApp> {
     final productosRepo = DriftProductosRepository(widget.database);
     final movimientosRepo = DriftMovimientosRepository(widget.database);
     final ventasRepo = DriftVentasRepository(widget.database);
+    final pedidosRepo = DriftPedidosProveedorRepository(widget.database);
 
     return MultiProvider(
       providers: [
@@ -149,6 +154,7 @@ class _InkTrackAppState extends State<InkTrackApp> {
         Provider.value(value: productosRepo),
         Provider.value(value: movimientosRepo),
         Provider.value(value: ventasRepo),
+        Provider.value(value: pedidosRepo),
         Provider(create: (_) => ScannerService()),
         Provider(
           create: (_) => SupabaseSyncService(
@@ -164,6 +170,9 @@ class _InkTrackAppState extends State<InkTrackApp> {
         ChangeNotifierProvider(create: (_) => ClientesViewModel(clientesRepo)),
         ChangeNotifierProvider(
           create: (_) => ProveedoresViewModel(proveedoresRepo),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => PedidosProveedorViewModel(pedidosRepo),
         ),
         ChangeNotifierProvider(
           create: (_) => InventarioViewModel(productosRepo),

@@ -6,6 +6,7 @@ import 'package:InkTrack/features/inventario/data/models/producto.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
 import 'package:InkTrack/core/input_formatters.dart';
 import 'package:InkTrack/core/utils/ean13_generator.dart';
+import 'package:InkTrack/core/theme/app_theme.dart';
 
 const String _kCustomProveedorValue = '__custom__';
 const String _kNewCategoryValue = '__new_category__';
@@ -362,7 +363,7 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
     );
   }
 
-  void _saveProducto() {
+  void _saveProducto() async {
     if (!_formKey.currentState!.validate()) return;
 
     final proveedorId = _useCustomProveedor ? '' : (_proveedorId ?? '');
@@ -388,10 +389,68 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
       isActivo: widget.producto?.isActivo ?? true,
     );
 
-    viewModel.guardar(producto);
+    try {
+      await viewModel.guardar(producto);
 
-    if (mounted) {
-      Navigator.pop(context);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              widget.producto == null
+                  ? 'Producto creado correctamente'
+                  : 'Producto actualizado correctamente',
+            ),
+            backgroundColor: AppTheme.successColor,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted && e.toString().contains('ya existe')) {
+        _showProductoExisteDialog(codigoBarras);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error al guardar: $e'),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+        }
+      }
     }
+  }
+
+  void _showProductoExisteDialog(String? codigoBarras) {
+    final viewModel = context.read<InventarioViewModel>();
+    final productoExistente = codigoBarras != null
+        ? viewModel.findProductoByCodigo(codigoBarras)
+        : null;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Producto ya existe'),
+        content: Text(
+          productoExistente != null
+              ? 'Ya existe un producto con este código de barras:\n\n${productoExistente.nombre}\nStock: ${productoExistente.cantidad}\nPrecio: \$${productoExistente.precio.toStringAsFixed(2)}'
+              : 'Ya existe un producto con este código de barras.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          if (productoExistente != null)
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                Navigator.pop(context, productoExistente);
+              },
+              child: const Text('Ver producto'),
+            ),
+        ],
+      ),
+    );
   }
 }

@@ -10,6 +10,7 @@ class SpeedDialFab extends StatefulWidget {
   final VoidCallback? onRestockPressed;
   final VoidCallback? onClientePressed;
   final VoidCallback? onProveedorPressed;
+  final VoidCallback? onPedidoPressed;
   final VoidCallback? onProductoPressed;
   final VoidCallback? onReportesPressed;
   final VoidCallback? onExportPdfPressed;
@@ -26,6 +27,7 @@ class SpeedDialFab extends StatefulWidget {
     this.onRestockPressed,
     this.onClientePressed,
     this.onProveedorPressed,
+    this.onPedidoPressed,
     this.onProductoPressed,
     this.onReportesPressed,
     this.onExportPdfPressed,
@@ -192,6 +194,17 @@ class _SpeedDialFabState extends State<SpeedDialFab>
                 widget.onProveedorPressed?.call();
               },
               delay: 2,
+            ),
+            const SizedBox(height: 8),
+            _buildSpeedDialOption(
+              icon: Icons.shopping_cart,
+              label: 'Nuevo Pedido',
+              color: AppTheme.secondaryColor,
+              onTap: () {
+                _toggle();
+                widget.onPedidoPressed?.call();
+              },
+              delay: 3,
             ),
           ],
           if (widget.currentTab == FabTab.inventario) ...[

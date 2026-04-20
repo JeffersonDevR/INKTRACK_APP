@@ -8,6 +8,7 @@ import 'package:printing/printing.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/features/clientes/presentation/pages/clientes_page.dart';
 import 'package:InkTrack/features/proveedores/presentation/pages/proveedores_page.dart';
+import 'package:InkTrack/features/proveedores/presentation/pages/pedidos_proveedor_page.dart';
 import 'package:InkTrack/features/ventas/presentation/pages/home_page.dart';
 import 'package:InkTrack/features/inventario/presentation/pages/inventario_page.dart';
 import 'package:InkTrack/features/movimientos/presentation/pages/movimiento_form_page.dart';
@@ -23,6 +24,7 @@ import 'package:InkTrack/features/home/presentation/widgets/speed_dial_fab.dart'
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
+import 'package:InkTrack/features/proveedores/presentation/viewmodels/pedidos_viewmodel.dart';
 import 'package:InkTrack/core/services/pdf_export_service.dart';
 import 'package:InkTrack/core/services/excel_export_service.dart';
 import 'package:InkTrack/core/services/auth_service.dart';
@@ -227,6 +229,78 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
     );
   }
 
+  Widget _buildAlertasBanner(BuildContext context) {
+    return Consumer<PedidosProveedorViewModel>(
+      builder: (context, pedidosVM, child) {
+        final alertas = pedidosVM.pedidosConAlerta;
+        if (alertas.isEmpty) return const SizedBox.shrink();
+
+        final currencyFormat = NumberFormat.currency(
+          symbol: '\$',
+          decimalDigits: 0,
+        );
+
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppTheme.warningColor.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppTheme.warningColor.withValues(alpha: 0.3),
+            ),
+          ),
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const PedidosProveedorPage(showAll: false),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.local_shipping_rounded,
+                    color: AppTheme.warningColor,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${alertas.length} entrega${alertas.length == 1 ? '' : 's'} pendiente${alertas.length == 1 ? '' : 's'}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.warningColor,
+                          ),
+                        ),
+                        Text(
+                          alertas
+                              .map((p) => p.proveedorNombre ?? 'Proveedor')
+                              .join(', '),
+                          style: Theme.of(context).textTheme.bodySmall,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right, color: AppTheme.warningColor),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authService = widget.authService;
@@ -288,7 +362,10 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                     ),
                     const SizedBox(height: 2),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.primaryColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(6),
@@ -322,10 +399,14 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: isDark ? AppTheme.darkCard : AppTheme.backgroundColor,
+                      color: isDark
+                          ? AppTheme.darkCard
+                          : AppTheme.backgroundColor,
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                        color: isDark ? AppTheme.darkBorder : AppTheme.borderLightColor,
+                        color: isDark
+                            ? AppTheme.darkBorder
+                            : AppTheme.borderLightColor,
                       ),
                     ),
                     child: Row(
@@ -360,6 +441,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
               ],
             ),
           ),
+          _buildAlertasBanner(context),
           Expanded(
             child: IndexedStack(index: _currentIndex, children: _pages),
           ),
@@ -381,7 +463,8 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: NavigationBar(
               selectedIndex: _currentIndex,
-              labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+              labelBehavior:
+                  NavigationDestinationLabelBehavior.onlyShowSelected,
               backgroundColor: Colors.transparent,
               elevation: 0,
               onDestinationSelected: (int index) {
@@ -389,20 +472,38 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                   _currentIndex = index;
                 });
               },
-              destinations: const [
-                NavigationDestination(
+              destinations: [
+                const NavigationDestination(
                   icon: Icon(Icons.grid_view_outlined),
                   selectedIcon: Icon(Icons.grid_view_rounded),
                   label: 'Inicio',
                 ),
-                NavigationDestination(
+                const NavigationDestination(
                   icon: Icon(Icons.people_outline_rounded),
                   selectedIcon: Icon(Icons.people_rounded),
                   label: 'Clientes',
                 ),
                 NavigationDestination(
-                  icon: Icon(Icons.local_shipping_outlined),
-                  selectedIcon: Icon(Icons.local_shipping_rounded),
+                  icon: Consumer<PedidosProveedorViewModel>(
+                    builder: (context, pedidosVM, child) {
+                      final count = pedidosVM.countAlertas;
+                      return Badge(
+                        isLabelVisible: count > 0,
+                        label: Text('$count'),
+                        child: const Icon(Icons.local_shipping_outlined),
+                      );
+                    },
+                  ),
+                  selectedIcon: Consumer<PedidosProveedorViewModel>(
+                    builder: (context, pedidosVM, child) {
+                      final count = pedidosVM.countAlertas;
+                      return Badge(
+                        isLabelVisible: count > 0,
+                        label: Text('$count'),
+                        child: const Icon(Icons.local_shipping_rounded),
+                      );
+                    },
+                  ),
                   label: 'Proveedor',
                 ),
                 NavigationDestination(
@@ -463,6 +564,10 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
         onProveedorPressed: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const ProveedorFormPage()),
+        ),
+        onPedidoPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const PedidosProveedorPage()),
         ),
         onProductoPressed: () => Navigator.push(
           context,

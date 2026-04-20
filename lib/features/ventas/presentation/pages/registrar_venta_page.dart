@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import 'package:InkTrack/features/ventas/presentation/viewmodels/ventas_viewmodel.dart';
 import 'package:InkTrack/features/ventas/data/models/venta.dart';
 import 'package:InkTrack/features/clientes/data/models/cliente.dart';
@@ -25,10 +28,9 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
   final _montoController = TextEditingController();
   final _clienteNombreController = TextEditingController();
   final _conceptoController = TextEditingController();
-  final _cantidadController = TextEditingController(text: '1');
   String? _clienteId;
-  String? _productoId;
   bool _esFiado = false;
+  final List<_VentaItemState> _productos = [];
   static const String _kWriteNameValue = '__write_name__';
 
   @override
@@ -36,11 +38,112 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
     _montoController.dispose();
     _clienteNombreController.dispose();
     _conceptoController.dispose();
-    _cantidadController.dispose();
     super.dispose();
   }
 
-  //Guardar venta
+  double get _montoTotal => _productos.fold(0.0, (sum, p) => sum + p.subtotal);
+
+  void _actualizarMonto() {
+    _montoController.text = NumberFormatter.formatCurrency(
+      _montoTotal,
+    ).replaceAll('\$', '');
+  }
+
+  Future<void> _agregarProducto() async {
+    final result = await showModalBottomSheet<_VentaItemState>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => const _AgregarProductoSheet(),
+    );
+
+    if (result != null) {
+      setState(() {
+        final existingIndex = _productos.indexWhere(
+          (p) => p.productoId == result.productoId,
+        );
+        if (existingIndex != -1) {
+          _productos[existingIndex].cantidad += result.cantidad;
+          _productos[existingIndex].precioUnitario = result.precioUnitario;
+        } else {
+          _productos.add(result);
+        }
+        _actualizarMonto();
+      });
+    }
+  }
+
+  Future<void> _escanearProducto() async {
+    final producto = await Navigator.push<Producto>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const BarcodeScannerPage(returnMode: true),
+      ),
+    );
+
+    if (producto != null && mounted) {
+      final cantidad = await _showCantidadDialog(producto);
+      if (cantidad != null && mounted) {
+        setState(() {
+          final existingIndex = _productos.indexWhere(
+            (p) => p.productoId == producto.id,
+          );
+          if (existingIndex != -1) {
+            _productos[existingIndex].cantidad += cantidad;
+          } else {
+            _productos.add(
+              _VentaItemState(
+                productoId: producto.id,
+                nombre: producto.nombre,
+                cantidad: cantidad,
+                precioUnitario: producto.precio,
+              ),
+            );
+          }
+          _actualizarMonto();
+        });
+      }
+    }
+  }
+
+  Future<int?> _showCantidadDialog(Producto producto) async {
+    final controller = TextEditingController(text: '1');
+    return showDialog<int>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(producto.nombre),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Precio unitario: \$${producto.precio.toStringAsFixed(2)}'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(labelText: 'Cantidad'),
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              autofocus: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final cantidad = int.tryParse(controller.text);
+              if (cantidad != null && cantidad > 0) {
+                Navigator.pop(ctx, cantidad);
+              }
+            },
+            child: const Text('Agregar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _guardarVenta() {
     if (!_formKey.currentState!.validate()) return;
 
@@ -53,21 +156,9 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
       }
     }
 
-    final venta = Venta(
-      id: '', // New sale
-      monto: monto,
-      fecha: DateTime.now(),
-      clienteId: _clienteId == _kWriteNameValue ? null : _clienteId,
-      productoId: _productoId,
-      cantidad: int.tryParse(_cantidadController.text) ?? 0,
-      esFiado: _esFiado,
-      clienteNombre: clienteNombre,
-      concepto: _conceptoController.text.trim(),
-    );
-
     final inventarioVM = context.read<InventarioViewModel>();
-    if (_productoId != null) {
-      final product = inventarioVM.getById(_productoId!);
+    for (final prod in _productos) {
+      final product = inventarioVM.getById(prod.productoId);
       if (product != null && !product.isActivo) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -77,12 +168,11 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
         );
         return;
       }
-      final cantidad = int.tryParse(_cantidadController.text) ?? 0;
-      if (product != null && product.cantidad < cantidad) {
+      if (product != null && product.cantidad < prod.cantidad) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'No hay suficiente stock. Disponible: ${product.cantidad}',
+              'No hay suficiente stock de "${product.nombre}". Disponible: ${product.cantidad}',
             ),
             backgroundColor: AppTheme.errorColor,
           ),
@@ -90,6 +180,32 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
         return;
       }
     }
+
+    final productosJson = _productos.isEmpty
+        ? null
+        : jsonEncode(
+            _productos
+                .map(
+                  (p) => {
+                    'productoId': p.productoId,
+                    'nombre': p.nombre,
+                    'cantidad': p.cantidad,
+                    'precioUnitario': p.precioUnitario,
+                  },
+                )
+                .toList(),
+          );
+
+    final venta = Venta(
+      id: '',
+      monto: monto,
+      fecha: DateTime.now(),
+      clienteId: _clienteId == _kWriteNameValue ? null : _clienteId,
+      esFiado: _esFiado,
+      clienteNombre: clienteNombre,
+      concepto: _conceptoController.text.trim(),
+      productosJson: productosJson,
+    );
 
     context.read<VentasViewModel>().guardar(
       venta,
@@ -99,8 +215,8 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
     );
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Venta registrada con éxito'),
+      const SnackBar(
+        content: Text('Venta registrada con éxito'),
         backgroundColor: AppTheme.successColor,
       ),
     );
@@ -128,8 +244,6 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
       if (result.clientName != null) {
         final clientName = result.clientName!;
         final clientesVM = context.read<ClientesViewModel>();
-
-        // Try to find a match in existing clients
         final match = clientesVM.clientes.firstWhere(
           (c) =>
               c.nombre.toLowerCase().contains(clientName.toLowerCase()) ||
@@ -151,11 +265,13 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
 
       if (foundSomething) {
         String message = 'Datos detectados:';
-        if (result.amount != null)
+        if (result.amount != null) {
           message +=
               '\n- Monto: ${NumberFormatter.formatCurrency(result.amount!)}';
-        if (result.clientName != null)
+        }
+        if (result.clientName != null) {
           message += '\n- Cliente: ${result.clientName}';
+        }
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -221,298 +337,471 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
     );
   }
 
-  Future<void> _scanProductBarcode() async {
-    final result = await Navigator.push<Producto>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const BarcodeScannerPage(returnMode: true),
-      ),
+  @override
+  Widget build(BuildContext context) {
+    final currencyFormat = NumberFormat.currency(
+      symbol: '\$',
+      decimalDigits: 2,
     );
 
-    if (result != null && mounted) {
-      setState(() {
-        _productoId = result.id;
-        _montoController.text = NumberFormatter.formatCurrency(
-          result.precio,
-        ).replaceAll('\$', '');
-        _conceptoController.text = 'Venta: ${result.nombre}';
-        _cantidadController.text = '1';
-      });
-    }
+    return Scaffold(
+      appBar: AppBar(title: const Text('Registrar Venta')),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(24.0),
+          children: [
+            Text('Concepto', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _conceptoController,
+              decoration: const InputDecoration(
+                labelText: 'Concepto',
+                hintText: 'Ej. Tatuaje ',
+              ),
+              textCapitalization: TextCapitalization.sentences,
+              inputFormatters: [InputFormatters.textOnly],
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Ingrese el concepto';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    'Monto de la venta',
+                    style: Theme.of(context).textTheme.titleMedium,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Consumer<VentasViewModel>(
+                  builder: (context, vm, _) {
+                    if (vm.isScanning) {
+                      return const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      );
+                    }
+                    return TextButton.icon(
+                      onPressed: _showScanMenu,
+                      icon: const Icon(
+                        Icons.document_scanner_rounded,
+                        size: 18,
+                      ),
+                      label: const Text('Escanear'),
+                    );
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _montoController,
+              decoration: const InputDecoration(
+                labelText: 'Monto',
+                prefixText: '\$ ',
+                hintText: '0.00',
+              ),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: [InputFormatters.decimal],
+              textInputAction: TextInputAction.next,
+              onChanged: (_) => setState(() {}),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Ingrese el monto';
+                }
+                final number = NumberFormatter.parseAmount(value);
+                if (number <= 0) {
+                  return 'El monto debe ser mayor a 0';
+                }
+                if (number > 999999999) {
+                  return 'Máximo 999,999,999';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Cliente (opcional)',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+            Consumer<ClientesViewModel>(
+              builder: (context, clientesViewModel, child) {
+                final items = <DropdownMenuItem<String>>[
+                  const DropdownMenuItem(
+                    value: null,
+                    child: Text('Sin cliente (venta general)'),
+                  ),
+                  ...clientesViewModel.clientes.map((cliente) {
+                    return DropdownMenuItem(
+                      value: cliente.id,
+                      child: Text(cliente.nombre),
+                    );
+                  }),
+                  const DropdownMenuItem(
+                    value: _kWriteNameValue,
+                    child: Text('Escribir nombre del cliente'),
+                  ),
+                ];
+                return DropdownButtonFormField<String>(
+                  initialValue: _clienteId,
+                  decoration: const InputDecoration(labelText: 'Cliente'),
+                  items: items,
+                  onChanged: (value) {
+                    setState(() {
+                      _clienteId = value;
+                      if (value != _kWriteNameValue) {
+                        _clienteNombreController.clear();
+                      }
+                    });
+                  },
+                );
+              },
+            ),
+            if (_clienteId == _kWriteNameValue) ...[
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _clienteNombreController,
+                decoration: const InputDecoration(
+                  labelText: 'Nombre del cliente',
+                  hintText: 'Ej. Juan Pérez',
+                ),
+                textCapitalization: TextCapitalization.words,
+                inputFormatters: [InputFormatters.textOnly],
+                validator: (value) {
+                  if (_clienteId == _kWriteNameValue &&
+                      (value == null || value.trim().isEmpty)) {
+                    return 'Ingrese el nombre del cliente';
+                  }
+                  return null;
+                },
+              ),
+            ],
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Productos',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                Row(
+                  children: [
+                    TextButton.icon(
+                      onPressed: _escanearProducto,
+                      icon: const Icon(Icons.qr_code_scanner, size: 18),
+                      label: const Text('Escanear'),
+                    ),
+                    TextButton.icon(
+                      onPressed: _agregarProducto,
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Agregar'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (_productos.isEmpty)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.inventory_2_outlined,
+                        size: 48,
+                        color: AppTheme.textSecondary.withValues(alpha: 0.5),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text('No hay productos'),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Escanee o agregue productos del inventario',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              ...List.generate(_productos.length, (index) {
+                final producto = _productos[index];
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    title: Text(producto.nombre),
+                    subtitle: Text(
+                      '${producto.cantidad} x ${currencyFormat.format(producto.precioUnitario)}',
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          currencyFormat.format(producto.subtotal),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _productos.removeAt(index);
+                              _actualizarMonto();
+                            });
+                          },
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            color: AppTheme.errorColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            const SizedBox(height: 24),
+            if (_clienteId != null) ...[
+              SwitchListTile(
+                title: const Text('Venta a crédito (Fiado)'),
+                subtitle: const Text(
+                  'Aumentará el saldo pendiente del cliente',
+                ),
+                value: _esFiado,
+                onChanged: (value) {
+                  setState(() => _esFiado = value);
+                },
+              ),
+            ],
+            const SizedBox(height: 32),
+            if (_productos.isNotEmpty)
+              Card(
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Total Productos',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        currencyFormat.format(_montoTotal),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _guardarVenta,
+                child: const Text('Guardar venta'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _VentaItemState {
+  final String productoId;
+  final String nombre;
+  int cantidad;
+  double precioUnitario;
+
+  _VentaItemState({
+    required this.productoId,
+    required this.nombre,
+    required this.cantidad,
+    required this.precioUnitario,
+  });
+
+  double get subtotal => cantidad * precioUnitario;
+}
+
+class _AgregarProductoSheet extends StatefulWidget {
+  const _AgregarProductoSheet();
+
+  @override
+  State<_AgregarProductoSheet> createState() => _AgregarProductoSheetState();
+}
+
+class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
+  final _busquedaController = TextEditingController();
+  String? _productoSeleccionadoId;
+  String? _productoSeleccionadoNombre;
+  double _precioUnitario = 0;
+  final _cantidadController = TextEditingController(text: '1');
+  final _precioController = TextEditingController();
+
+  @override
+  void dispose() {
+    _busquedaController.dispose();
+    _cantidadController.dispose();
+    _precioController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Registrar Venta')),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              Text('Concepto', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _conceptoController,
-                decoration: const InputDecoration(
-                  labelText: 'Concepto',
-                  hintText: 'Ej. Tatuaje ',
+    return DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      maxChildSize: 0.9,
+      minChildSize: 0.5,
+      expand: false,
+      builder: (context, scrollController) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Agregar Producto',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                 ),
-                textCapitalization: TextCapitalization.sentences,
-                inputFormatters: [InputFormatters.textOnly],
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Ingrese el concepto';
-                  }
-                  return null;
-                },
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _busquedaController,
+              decoration: const InputDecoration(
+                labelText: 'Buscar producto',
+                prefixIcon: Icon(Icons.search),
               ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              onChanged: (_) => setState(() {}),
+            ),
+            const SizedBox(height: 16),
+            if (_productoSeleccionadoId == null)
+              Expanded(
+                child: Consumer<InventarioViewModel>(
+                  builder: (context, invm, child) {
+                    var productos = invm.productos;
+                    final busqueda = _busquedaController.text
+                        .trim()
+                        .toLowerCase();
+                    if (busqueda.isNotEmpty) {
+                      productos = productos
+                          .where(
+                            (p) =>
+                                p.nombre.toLowerCase().contains(busqueda) ||
+                                p.categoria.toLowerCase().contains(busqueda),
+                          )
+                          .toList();
+                    }
+                    return ListView.builder(
+                      controller: scrollController,
+                      itemCount: productos.length,
+                      itemBuilder: (context, index) {
+                        final producto = productos[index];
+                        return ListTile(
+                          title: Text(producto.nombre),
+                          subtitle: Text(
+                            'Stock: ${producto.cantidad} • \$${producto.precio.toStringAsFixed(2)}',
+                          ),
+                          onTap: () {
+                            setState(() {
+                              _productoSeleccionadoId = producto.id;
+                              _productoSeleccionadoNombre = producto.nombre;
+                              _precioUnitario = producto.precio;
+                              _precioController.text = producto.precio
+                                  .toString();
+                            });
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              )
+            else
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Text(
-                      'Monto de la venta',
-                      style: Theme.of(context).textTheme.titleMedium,
-                      overflow: TextOverflow.ellipsis,
+                  Card(
+                    child: ListTile(
+                      title: Text(_productoSeleccionadoNombre!),
+                      trailing: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            _productoSeleccionadoId = null;
+                            _productoSeleccionadoNombre = null;
+                          });
+                        },
+                        icon: const Icon(Icons.edit),
+                      ),
                     ),
                   ),
-                  Consumer<VentasViewModel>(
-                    builder: (context, vm, _) {
-                      if (vm.isScanning) {
-                        return const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        );
-                      }
-                      return TextButton.icon(
-                        onPressed: _showScanMenu,
-                        icon: const Icon(
-                          Icons.document_scanner_rounded,
-                          size: 18,
-                        ),
-                        label: const Text('Escanear'),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      );
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _cantidadController,
+                    decoration: const InputDecoration(labelText: 'Cantidad'),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _precioController,
+                    decoration: const InputDecoration(
+                      labelText: 'Precio Unitario',
+                      prefixText: '\$ ',
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    onChanged: (value) {
+                      _precioUnitario = double.tryParse(value) ?? 0;
                     },
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final cantidad =
+                            int.tryParse(_cantidadController.text) ?? 0;
+                        if (_productoSeleccionadoId != null &&
+                            cantidad > 0 &&
+                            _precioUnitario > 0) {
+                          Navigator.pop(
+                            context,
+                            _VentaItemState(
+                              productoId: _productoSeleccionadoId!,
+                              nombre: _productoSeleccionadoNombre!,
+                              cantidad: cantidad,
+                              precioUnitario: _precioUnitario,
+                            ),
+                          );
+                        }
+                      },
+                      child: const Text('Agregar'),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _montoController,
-                decoration: const InputDecoration(
-                  labelText: 'Monto',
-                  prefixText: '\$ ',
-                  hintText: '0.00',
-                ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                inputFormatters: [InputFormatters.decimal],
-                textInputAction: TextInputAction.next,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Ingrese el monto';
-                  }
-                  final number = NumberFormatter.parseAmount(value);
-                  if (number <= 0) {
-                    return 'El monto debe ser mayor a 0';
-                  }
-                  if (number > 999999999) {
-                    return 'Máximo 999,999,999';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Cliente (opcional)',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 12),
-              Consumer<ClientesViewModel>(
-                builder: (context, clientesViewModel, child) {
-                  final items = <DropdownMenuItem<String>>[
-                    const DropdownMenuItem(
-                      value: null,
-                      child: Text('Sin cliente (venta general)'),
-                    ),
-                    ...clientesViewModel.clientes.map((cliente) {
-                      return DropdownMenuItem(
-                        value: cliente.id,
-                        child: Text(cliente.nombre),
-                      );
-                    }),
-                    const DropdownMenuItem(
-                      value: _kWriteNameValue,
-                      child: Text('Escribir nombre del cliente'),
-                    ),
-                  ];
-                  return DropdownButtonFormField<String>(
-                    initialValue: _clienteId,
-                    decoration: const InputDecoration(labelText: 'Cliente'),
-                    items: items,
-                    onChanged: (value) {
-                      setState(() {
-                        _clienteId = value;
-                        if (value != _kWriteNameValue) {
-                          _clienteNombreController.clear();
-                        }
-                      });
-                    },
-                  );
-                },
-              ),
-              if (_clienteId == _kWriteNameValue) ...[
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _clienteNombreController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nombre del cliente',
-                    hintText: 'Ej. Juan Pérez',
-                  ),
-                  textCapitalization: TextCapitalization.words,
-                  inputFormatters: [InputFormatters.textOnly],
-                  validator: (value) {
-                    if (_clienteId == _kWriteNameValue &&
-                        (value == null || value.trim().isEmpty)) {
-                      return 'Ingrese el nombre del cliente';
-                    }
-                    return null;
-                  },
-                ),
-              ],
-              const SizedBox(height: 24),
-              Text(
-                'Producto (opcional para stock)',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 12),
-              Consumer<InventarioViewModel>(
-                builder: (context, inventarioVM, child) {
-                  return Column(
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: DropdownButtonFormField<String>(
-                              initialValue: _productoId,
-                              decoration: const InputDecoration(
-                                labelText: 'Producto',
-                              ),
-                              items: [
-                                const DropdownMenuItem(
-                                  value: null,
-                                  child: Text('Sin producto vinculado'),
-                                ),
-                                ...inventarioVM.productos.map(
-                                  (p) => DropdownMenuItem(
-                                    value: p.id,
-                                    child: Text(
-                                      '${p.nombre} (${p.cantidad} en stock)',
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                              onChanged: (value) {
-                                setState(() {
-                                  _productoId = value;
-                                  if (value != null) {
-                                    final prod = inventarioVM.getById(value);
-                                    if (prod != null) {
-                                      if (_montoController.text.isEmpty) {
-                                        _montoController.text =
-                                            NumberFormatter.formatCurrency(
-                                              prod.precio,
-                                            ).replaceAll('\$', '');
-                                      }
-                                      if (_conceptoController.text.isEmpty) {
-                                        _conceptoController.text =
-                                            'Venta: ${prod.nombre}';
-                                      }
-                                    }
-                                  }
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Material(
-                            color: AppTheme.primaryColor.withValues(
-                              alpha: 0.15,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                            child: InkWell(
-                              onTap: _scanProductBarcode,
-                              borderRadius: BorderRadius.circular(12),
-                              child: Container(
-                                width: 56,
-                                height: 56,
-                                alignment: Alignment.center,
-                                child: Icon(
-                                  Icons.qr_code_scanner_rounded,
-                                  color: AppTheme.primaryColor,
-                                  size: 28,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  );
-                },
-              ),
-              if (_productoId != null) ...[
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _cantidadController,
-                  decoration: const InputDecoration(
-                    labelText: 'Cantidad vendida',
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (_productoId != null &&
-                        (value == null || value.isEmpty)) {
-                      return 'Ingrese la cantidad';
-                    }
-                    final n = int.tryParse(value!);
-                    if (n == null || n <= 0) return 'Cantidad inválida';
-                    return null;
-                  },
-                ),
-              ],
-              const SizedBox(height: 24),
-              if (_clienteId != null) ...[
-                SwitchListTile(
-                  title: const Text('Venta a crédito (Fiado)'),
-                  subtitle: const Text(
-                    'Aumentará el saldo pendiente del cliente',
-                  ),
-                  value: _esFiado,
-                  onChanged: (value) {
-                    setState(() => _esFiado = value);
-                  },
-                ),
-              ],
-              const SizedBox(height: 32),
-              SizedBox(
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: _guardarVenta,
-                  child: const Text('Guardar venta'),
-                ),
-              ),
-            ],
-          ),
+          ],
         ),
       ),
     );
