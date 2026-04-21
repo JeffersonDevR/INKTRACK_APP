@@ -58,6 +58,15 @@ class $LocalesTable extends Locales with TableInfo<$LocalesTable, LocalData> {
     requiredDuringInsert: false,
     defaultValue: const Constant('tienda'),
   );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isActivoMeta = const VerificationMeta(
     'isActivo',
   );
@@ -103,6 +112,7 @@ class $LocalesTable extends Locales with TableInfo<$LocalesTable, LocalData> {
     direccion,
     telefono,
     tipo,
+    userId,
     isActivo,
     syncStatus,
     lastSyncedAt,
@@ -148,6 +158,12 @@ class $LocalesTable extends Locales with TableInfo<$LocalesTable, LocalData> {
       context.handle(
         _tipoMeta,
         tipo.isAcceptableOrUnknown(data['tipo']!, _tipoMeta),
+      );
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
       );
     }
     if (data.containsKey('is_activo')) {
@@ -200,6 +216,10 @@ class $LocalesTable extends Locales with TableInfo<$LocalesTable, LocalData> {
         DriftSqlType.string,
         data['${effectivePrefix}tipo'],
       )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      ),
       isActivo: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_activo'],
@@ -227,6 +247,7 @@ class LocalData extends DataClass implements Insertable<LocalData> {
   final String? direccion;
   final String? telefono;
   final String tipo;
+  final String? userId;
   final bool isActivo;
   final String syncStatus;
   final DateTime? lastSyncedAt;
@@ -236,6 +257,7 @@ class LocalData extends DataClass implements Insertable<LocalData> {
     this.direccion,
     this.telefono,
     required this.tipo,
+    this.userId,
     required this.isActivo,
     required this.syncStatus,
     this.lastSyncedAt,
@@ -252,6 +274,9 @@ class LocalData extends DataClass implements Insertable<LocalData> {
       map['telefono'] = Variable<String>(telefono);
     }
     map['tipo'] = Variable<String>(tipo);
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<String>(userId);
+    }
     map['is_activo'] = Variable<bool>(isActivo);
     map['sync_status'] = Variable<String>(syncStatus);
     if (!nullToAbsent || lastSyncedAt != null) {
@@ -271,6 +296,9 @@ class LocalData extends DataClass implements Insertable<LocalData> {
           ? const Value.absent()
           : Value(telefono),
       tipo: Value(tipo),
+      userId: userId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(userId),
       isActivo: Value(isActivo),
       syncStatus: Value(syncStatus),
       lastSyncedAt: lastSyncedAt == null && nullToAbsent
@@ -290,6 +318,7 @@ class LocalData extends DataClass implements Insertable<LocalData> {
       direccion: serializer.fromJson<String?>(json['direccion']),
       telefono: serializer.fromJson<String?>(json['telefono']),
       tipo: serializer.fromJson<String>(json['tipo']),
+      userId: serializer.fromJson<String?>(json['userId']),
       isActivo: serializer.fromJson<bool>(json['isActivo']),
       syncStatus: serializer.fromJson<String>(json['syncStatus']),
       lastSyncedAt: serializer.fromJson<DateTime?>(json['lastSyncedAt']),
@@ -304,6 +333,7 @@ class LocalData extends DataClass implements Insertable<LocalData> {
       'direccion': serializer.toJson<String?>(direccion),
       'telefono': serializer.toJson<String?>(telefono),
       'tipo': serializer.toJson<String>(tipo),
+      'userId': serializer.toJson<String?>(userId),
       'isActivo': serializer.toJson<bool>(isActivo),
       'syncStatus': serializer.toJson<String>(syncStatus),
       'lastSyncedAt': serializer.toJson<DateTime?>(lastSyncedAt),
@@ -316,6 +346,7 @@ class LocalData extends DataClass implements Insertable<LocalData> {
     Value<String?> direccion = const Value.absent(),
     Value<String?> telefono = const Value.absent(),
     String? tipo,
+    Value<String?> userId = const Value.absent(),
     bool? isActivo,
     String? syncStatus,
     Value<DateTime?> lastSyncedAt = const Value.absent(),
@@ -325,6 +356,7 @@ class LocalData extends DataClass implements Insertable<LocalData> {
     direccion: direccion.present ? direccion.value : this.direccion,
     telefono: telefono.present ? telefono.value : this.telefono,
     tipo: tipo ?? this.tipo,
+    userId: userId.present ? userId.value : this.userId,
     isActivo: isActivo ?? this.isActivo,
     syncStatus: syncStatus ?? this.syncStatus,
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
@@ -336,6 +368,7 @@ class LocalData extends DataClass implements Insertable<LocalData> {
       direccion: data.direccion.present ? data.direccion.value : this.direccion,
       telefono: data.telefono.present ? data.telefono.value : this.telefono,
       tipo: data.tipo.present ? data.tipo.value : this.tipo,
+      userId: data.userId.present ? data.userId.value : this.userId,
       isActivo: data.isActivo.present ? data.isActivo.value : this.isActivo,
       syncStatus: data.syncStatus.present
           ? data.syncStatus.value
@@ -354,6 +387,7 @@ class LocalData extends DataClass implements Insertable<LocalData> {
           ..write('direccion: $direccion, ')
           ..write('telefono: $telefono, ')
           ..write('tipo: $tipo, ')
+          ..write('userId: $userId, ')
           ..write('isActivo: $isActivo, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('lastSyncedAt: $lastSyncedAt')
@@ -368,6 +402,7 @@ class LocalData extends DataClass implements Insertable<LocalData> {
     direccion,
     telefono,
     tipo,
+    userId,
     isActivo,
     syncStatus,
     lastSyncedAt,
@@ -381,6 +416,7 @@ class LocalData extends DataClass implements Insertable<LocalData> {
           other.direccion == this.direccion &&
           other.telefono == this.telefono &&
           other.tipo == this.tipo &&
+          other.userId == this.userId &&
           other.isActivo == this.isActivo &&
           other.syncStatus == this.syncStatus &&
           other.lastSyncedAt == this.lastSyncedAt);
@@ -392,6 +428,7 @@ class LocalesCompanion extends UpdateCompanion<LocalData> {
   final Value<String?> direccion;
   final Value<String?> telefono;
   final Value<String> tipo;
+  final Value<String?> userId;
   final Value<bool> isActivo;
   final Value<String> syncStatus;
   final Value<DateTime?> lastSyncedAt;
@@ -402,6 +439,7 @@ class LocalesCompanion extends UpdateCompanion<LocalData> {
     this.direccion = const Value.absent(),
     this.telefono = const Value.absent(),
     this.tipo = const Value.absent(),
+    this.userId = const Value.absent(),
     this.isActivo = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.lastSyncedAt = const Value.absent(),
@@ -413,6 +451,7 @@ class LocalesCompanion extends UpdateCompanion<LocalData> {
     this.direccion = const Value.absent(),
     this.telefono = const Value.absent(),
     this.tipo = const Value.absent(),
+    this.userId = const Value.absent(),
     this.isActivo = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.lastSyncedAt = const Value.absent(),
@@ -425,6 +464,7 @@ class LocalesCompanion extends UpdateCompanion<LocalData> {
     Expression<String>? direccion,
     Expression<String>? telefono,
     Expression<String>? tipo,
+    Expression<String>? userId,
     Expression<bool>? isActivo,
     Expression<String>? syncStatus,
     Expression<DateTime>? lastSyncedAt,
@@ -436,6 +476,7 @@ class LocalesCompanion extends UpdateCompanion<LocalData> {
       if (direccion != null) 'direccion': direccion,
       if (telefono != null) 'telefono': telefono,
       if (tipo != null) 'tipo': tipo,
+      if (userId != null) 'user_id': userId,
       if (isActivo != null) 'is_activo': isActivo,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (lastSyncedAt != null) 'last_synced_at': lastSyncedAt,
@@ -449,6 +490,7 @@ class LocalesCompanion extends UpdateCompanion<LocalData> {
     Value<String?>? direccion,
     Value<String?>? telefono,
     Value<String>? tipo,
+    Value<String?>? userId,
     Value<bool>? isActivo,
     Value<String>? syncStatus,
     Value<DateTime?>? lastSyncedAt,
@@ -460,6 +502,7 @@ class LocalesCompanion extends UpdateCompanion<LocalData> {
       direccion: direccion ?? this.direccion,
       telefono: telefono ?? this.telefono,
       tipo: tipo ?? this.tipo,
+      userId: userId ?? this.userId,
       isActivo: isActivo ?? this.isActivo,
       syncStatus: syncStatus ?? this.syncStatus,
       lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
@@ -485,6 +528,9 @@ class LocalesCompanion extends UpdateCompanion<LocalData> {
     if (tipo.present) {
       map['tipo'] = Variable<String>(tipo.value);
     }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
     if (isActivo.present) {
       map['is_activo'] = Variable<bool>(isActivo.value);
     }
@@ -508,6 +554,7 @@ class LocalesCompanion extends UpdateCompanion<LocalData> {
           ..write('direccion: $direccion, ')
           ..write('telefono: $telefono, ')
           ..write('tipo: $tipo, ')
+          ..write('userId: $userId, ')
           ..write('isActivo: $isActivo, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('lastSyncedAt: $lastSyncedAt, ')
@@ -4771,6 +4818,7 @@ typedef $$LocalesTableCreateCompanionBuilder =
       Value<String?> direccion,
       Value<String?> telefono,
       Value<String> tipo,
+      Value<String?> userId,
       Value<bool> isActivo,
       Value<String> syncStatus,
       Value<DateTime?> lastSyncedAt,
@@ -4783,6 +4831,7 @@ typedef $$LocalesTableUpdateCompanionBuilder =
       Value<String?> direccion,
       Value<String?> telefono,
       Value<String> tipo,
+      Value<String?> userId,
       Value<bool> isActivo,
       Value<String> syncStatus,
       Value<DateTime?> lastSyncedAt,
@@ -4820,6 +4869,11 @@ class $$LocalesTableFilterComposer
 
   ColumnFilters<String> get tipo => $composableBuilder(
     column: $table.tipo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4873,6 +4927,11 @@ class $$LocalesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isActivo => $composableBuilder(
     column: $table.isActivo,
     builder: (column) => ColumnOrderings(column),
@@ -4912,6 +4971,9 @@ class $$LocalesTableAnnotationComposer
 
   GeneratedColumn<String> get tipo =>
       $composableBuilder(column: $table.tipo, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
 
   GeneratedColumn<bool> get isActivo =>
       $composableBuilder(column: $table.isActivo, builder: (column) => column);
@@ -4960,6 +5022,7 @@ class $$LocalesTableTableManager
                 Value<String?> direccion = const Value.absent(),
                 Value<String?> telefono = const Value.absent(),
                 Value<String> tipo = const Value.absent(),
+                Value<String?> userId = const Value.absent(),
                 Value<bool> isActivo = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
                 Value<DateTime?> lastSyncedAt = const Value.absent(),
@@ -4970,6 +5033,7 @@ class $$LocalesTableTableManager
                 direccion: direccion,
                 telefono: telefono,
                 tipo: tipo,
+                userId: userId,
                 isActivo: isActivo,
                 syncStatus: syncStatus,
                 lastSyncedAt: lastSyncedAt,
@@ -4982,6 +5046,7 @@ class $$LocalesTableTableManager
                 Value<String?> direccion = const Value.absent(),
                 Value<String?> telefono = const Value.absent(),
                 Value<String> tipo = const Value.absent(),
+                Value<String?> userId = const Value.absent(),
                 Value<bool> isActivo = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
                 Value<DateTime?> lastSyncedAt = const Value.absent(),
@@ -4992,6 +5057,7 @@ class $$LocalesTableTableManager
                 direccion: direccion,
                 telefono: telefono,
                 tipo: tipo,
+                userId: userId,
                 isActivo: isActivo,
                 syncStatus: syncStatus,
                 lastSyncedAt: lastSyncedAt,

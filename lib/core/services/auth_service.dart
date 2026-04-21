@@ -117,6 +117,27 @@ class AuthService {
     }
   }
 
+  Future<List<String>> getUserLocalesIds() async {
+    try {
+      final user = currentUser;
+      if (user == null) return [];
+
+      final response = await _supabase
+          .from('locales')
+          .select('id')
+          .eq('user_id', user.id);
+
+      return (response as List).map((e) => e['id'] as String).toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<bool> hasUserLocales() async {
+    final ids = await getUserLocalesIds();
+    return ids.isNotEmpty;
+  }
+
   static String? validatePassword(String password) {
     if (password.length < 8) {
       return 'Minimum 8 characters';

@@ -32,6 +32,7 @@ class DriftLocalesRepository implements LocalesRepository {
             direccion: Value(local.direccion),
             telefono: Value(local.telefono),
             tipo: Value(local.tipo),
+            userId: Value(local.userId),
             isActivo: Value(local.isActivo),
             syncStatus: const Value('pending_upload'),
           ),
@@ -46,6 +47,7 @@ class DriftLocalesRepository implements LocalesRepository {
         direccion: Value(local.direccion),
         telefono: Value(local.telefono),
         tipo: Value(local.tipo),
+        userId: Value(local.userId),
         isActivo: Value(local.isActivo),
         syncStatus: const Value('pending_upload'),
       ),
@@ -64,6 +66,7 @@ class DriftLocalesRepository implements LocalesRepository {
       direccion: data.direccion,
       telefono: data.telefono,
       tipo: data.tipo,
+      userId: data.userId,
       isActivo: data.isActivo,
     );
   }

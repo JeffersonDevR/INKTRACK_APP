@@ -16,6 +16,7 @@ class Locales extends Table {
   TextColumn get direccion => text().nullable()();
   TextColumn get telefono => text().nullable()();
   TextColumn get tipo => text().withDefault(const Constant('tienda'))();
+  TextColumn get userId => text().nullable()();
   BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
   DateTimeColumn get lastSyncedAt => dateTime().nullable()();
@@ -167,7 +168,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -253,6 +254,13 @@ class AppDatabase extends _$AppDatabase {
         }
       } catch (e) {
         debugPrint("Migration v10 skip: $e");
+      }
+      try {
+        if (from < 11) {
+          await m.addColumn(locales, locales.userId);
+        }
+      } catch (e) {
+        debugPrint("Migration v11 skip: $e");
       }
     },
     beforeOpen: (details) async {

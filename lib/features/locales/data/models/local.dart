@@ -7,6 +7,7 @@ class Local implements HasId {
   final String? direccion;
   final String? telefono;
   final String tipo;
+  final String? userId;
   final bool isActivo;
 
   Local({
@@ -15,6 +16,7 @@ class Local implements HasId {
     this.direccion,
     this.telefono,
     this.tipo = 'tienda',
+    this.userId,
     this.isActivo = true,
   });
 
@@ -24,6 +26,7 @@ class Local implements HasId {
     String? direccion,
     String? telefono,
     String? tipo,
+    String? userId,
     bool? isActivo,
   }) {
     return Local(
@@ -32,6 +35,7 @@ class Local implements HasId {
       direccion: direccion ?? this.direccion,
       telefono: telefono ?? this.telefono,
       tipo: tipo ?? this.tipo,
+      userId: userId ?? this.userId,
       isActivo: isActivo ?? this.isActivo,
     );
   }

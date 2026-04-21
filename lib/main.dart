@@ -29,6 +29,7 @@ import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmo
 import 'package:InkTrack/core/services/scanner_service.dart';
 import 'package:InkTrack/features/home/presentation/pages/main_layout_page.dart';
 import 'package:InkTrack/features/auth/presentation/pages/login_page.dart';
+import 'package:InkTrack/features/locales/presentation/pages/onboarding_local_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -135,10 +136,92 @@ class _InkTrackAppState extends State<InkTrackApp> {
     super.dispose();
   }
 
-  void _handleLoginSuccess() {
-    setState(() {
-      _isLoggedIn = true;
-    });
+  void _handleLoginSuccess() async {
+    final hasLocales = await widget.authService.hasUserLocales();
+    if (hasLocales && mounted) {
+      setState(() {
+        _isLoggedIn = true;
+      });
+    } else if (mounted) {
+      _showOnboarding();
+    }
+  }
+
+  void _showOnboarding() {
+    final userId = widget.authService.currentUser?.id;
+    if (userId == null) {
+      setState(() {
+        _isLoggedIn = true;
+      });
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MultiProvider(
+          providers: [
+            Provider.value(value: widget.database),
+            Provider.value(value: widget.authService),
+            Provider.value(value: DriftClientesRepository(widget.database)),
+            Provider.value(value: DriftProveedoresRepository(widget.database)),
+            Provider.value(value: DriftProductosRepository(widget.database)),
+            Provider.value(value: DriftMovimientosRepository(widget.database)),
+            Provider.value(value: DriftVentasRepository(widget.database)),
+            Provider.value(
+              value: DriftPedidosProveedorRepository(widget.database),
+            ),
+            Provider.value(value: DriftLocalesRepository(widget.database)),
+            ChangeNotifierProvider(
+              create: (_) => LocalesViewModel(
+                DriftLocalesRepository(widget.database),
+                productosRepo: DriftProductosRepository(widget.database),
+                clientesRepo: DriftClientesRepository(widget.database),
+                proveedoresRepo: DriftProveedoresRepository(widget.database),
+              ),
+            ),
+            ChangeNotifierProvider(
+              create: (_) =>
+                  ClientesViewModel(DriftClientesRepository(widget.database)),
+            ),
+            ChangeNotifierProvider(
+              create: (_) => ProveedoresViewModel(
+                DriftProveedoresRepository(widget.database),
+              ),
+            ),
+            ChangeNotifierProvider(
+              create: (_) => InventarioViewModel(
+                DriftProductosRepository(widget.database),
+              ),
+            ),
+            ChangeNotifierProvider(
+              create: (_) => MovimientosViewModel(
+                DriftMovimientosRepository(widget.database),
+              ),
+            ),
+            ChangeNotifierProvider(
+              create: (_) => VentasViewModel(
+                DriftVentasRepository(widget.database),
+                ScannerService(),
+              ),
+            ),
+            ChangeNotifierProvider(
+              create: (_) => PedidosProveedorViewModel(
+                DriftPedidosProveedorRepository(widget.database),
+              ),
+            ),
+          ],
+          child: _OnboardingWrapper(
+            authService: widget.authService,
+            onComplete: () {
+              Navigator.of(context).pop();
+              setState(() {
+                _isLoggedIn = true;
+              });
+            },
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -212,5 +295,25 @@ class _InkTrackAppState extends State<InkTrackApp> {
         },
       ),
     );
+  }
+}
+
+class _OnboardingWrapper extends StatelessWidget {
+  final AuthService authService;
+  final VoidCallback onComplete;
+
+  const _OnboardingWrapper({
+    required this.authService,
+    required this.onComplete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final userId = authService.currentUser?.id;
+    if (userId == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    return OnboardingLocalPage(userId: userId, authService: authService);
   }
 }
