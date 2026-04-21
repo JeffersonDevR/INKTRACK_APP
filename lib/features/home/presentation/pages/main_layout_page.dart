@@ -46,16 +46,24 @@ class MainLayoutPage extends StatefulWidget {
 
 class _MainLayoutPageState extends State<MainLayoutPage> {
   int _currentIndex = 0;
+  bool _listenerAdded = false;
 
   @override
   void initState() {
     super.initState();
     _checkPedidosNotificaciones();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _syncLocalToViewModels();
   }
 
   void _syncLocalToViewModels() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
       final localesVM = context.read<LocalesViewModel>();
       final invVM = context.read<InventarioViewModel>();
       final cliVM = context.read<ClientesViewModel>();
@@ -64,63 +72,36 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
       final movVM = context.read<MovimientosViewModel>();
       final ventVM = context.read<VentasViewModel>();
 
-      final datosSinLocal =
-          invVM.items.any((p) => p.localId == null) ||
-          cliVM.items.any((c) => c.localId == null) ||
-          provVM.items.any((p) => p.localId == null);
-
       if (localesVM.localIdSeleccionado == null && localesVM.items.isNotEmpty) {
         localesVM.seleccionarLocal(localesVM.items.first.id);
       }
 
-      if (datosSinLocal &&
-          localesVM.localIdSeleccionado != null &&
-          localesVM.hayLocalesCargados) {
-        showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Importante'),
-            content: const Text(
-              'Tienes datos sin asignar a un local. '
-              '¿Deseas asignarlos al local actual?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('No'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  localesVM.migrarDatosExistentes(
-                    invVM: invVM,
-                    cliVM: cliVM,
-                    provVM: provVM,
-                    context: context,
-                  );
-                  Navigator.pop(ctx);
-                },
-                child: const Text('Sí'),
-              ),
-            ],
-          ),
-        );
+      if (!_listenerAdded) {
+        _listenerAdded = true;
+        localesVM.addListener(() {
+          final currentLocalId = localesVM.localIdSeleccionado;
+          invVM.setLocalId(currentLocalId);
+          invVM.refresh();
+          cliVM.setLocalId(currentLocalId);
+          cliVM.refresh();
+          provVM.setLocalId(currentLocalId);
+          provVM.refresh();
+          pedVM.setLocalId(currentLocalId);
+          pedVM.refresh();
+          movVM.setLocalId(currentLocalId);
+          movVM.refresh();
+          ventVM.setLocalId(currentLocalId);
+          ventVM.refresh();
+        });
       }
 
-      invVM.setLocalId(localesVM.localIdSeleccionado);
-      cliVM.setLocalId(localesVM.localIdSeleccionado);
-      provVM.setLocalId(localesVM.localIdSeleccionado);
-      pedVM.setLocalId(localesVM.localIdSeleccionado);
-      movVM.setLocalId(localesVM.localIdSeleccionado);
-      ventVM.setLocalId(localesVM.localIdSeleccionado);
-
-      localesVM.addListener(() {
-        invVM.setLocalId(localesVM.localIdSeleccionado);
-        cliVM.setLocalId(localesVM.localIdSeleccionado);
-        provVM.setLocalId(localesVM.localIdSeleccionado);
-        pedVM.setLocalId(localesVM.localIdSeleccionado);
-        movVM.setLocalId(localesVM.localIdSeleccionado);
-        ventVM.setLocalId(localesVM.localIdSeleccionado);
-      });
+      final currentLocalId = localesVM.localIdSeleccionado;
+      invVM.setLocalId(currentLocalId);
+      cliVM.setLocalId(currentLocalId);
+      provVM.setLocalId(currentLocalId);
+      pedVM.setLocalId(currentLocalId);
+      movVM.setLocalId(currentLocalId);
+      ventVM.setLocalId(currentLocalId);
     });
   }
 
@@ -396,323 +377,356 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
     final user = authService?.currentUser;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      body: Column(
-        children: [
-          Container(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 8,
-              left: 20,
-              right: 20,
-              bottom: 16,
-            ),
-            decoration: BoxDecoration(
-              color: isDark ? AppTheme.darkSurface : Colors.white,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(32),
-                bottomRight: Radius.circular(32),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 15,
-                  offset: const Offset(0, 5),
+    return Consumer<LocalesViewModel>(
+      builder: (context, localesVM, child) {
+        if (localesVM.items.isNotEmpty &&
+            localesVM.localIdSeleccionado == null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const LocalesPage()));
+          });
+        }
+
+        return Scaffold(
+          body: Column(
+            children: [
+              Container(
+                padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top + 8,
+                  left: 20,
+                  right: 20,
+                  bottom: 16,
                 ),
-              ],
-            ),
-            child: Row(
-              children: [
-                // App Logo/Name with refined look
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: AppTheme.primaryColor,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'InkTrack',
-                          style: GoogleFonts.plusJakartaSans(
-                            color: isDark ? Colors.white : AppTheme.textPrimary,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 20,
-                            letterSpacing: -1,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        [
-                          'Panel de Inicio',
-                          'Gestión de Clientes',
-                          'Proveedores',
-                          'Control de Inventario',
-                          'Reportes de Negocio',
-                        ][_currentIndex].toUpperCase(),
-                        style: GoogleFonts.plusJakartaSans(
-                          color: AppTheme.primaryColor,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 10,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
+                decoration: BoxDecoration(
+                  color: isDark ? AppTheme.darkSurface : Colors.white,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(32),
+                    bottomRight: Radius.circular(32),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
                     ),
                   ],
                 ),
-                const Spacer(),
-                // Administrator Info (Compact & Modern)
-                InkWell(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const ProfilePage()),
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppTheme.darkCard
-                          : AppTheme.backgroundColor,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: isDark
-                            ? AppTheme.darkBorder
-                            : AppTheme.borderLightColor,
-                      ),
-                    ),
-                    child: Row(
+                child: Row(
+                  children: [
+                    // App Logo/Name with refined look
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const SizedBox(width: 8),
-                        Text(
-                          user?.email?.split('@').first ?? 'User',
-                          style: GoogleFonts.plusJakartaSans(
-                            color: isDark ? Colors.white : AppTheme.textPrimary,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12,
-                          ),
+                        Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: AppTheme.primaryColor,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'InkTrack',
+                              style: GoogleFonts.plusJakartaSans(
+                                color: isDark
+                                    ? Colors.white
+                                    : AppTheme.textPrimary,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 20,
+                                letterSpacing: -1,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 10),
-                        CircleAvatar(
-                          radius: 16,
-                          backgroundColor: AppTheme.primaryColor,
+                        const SizedBox(height: 2),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
                           child: Text(
-                            user?.email?.substring(0, 1).toUpperCase() ?? 'U',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                            [
+                              'Panel de Inicio',
+                              'Gestión de Clientes',
+                              'Proveedores',
+                              'Control de Inventario',
+                              'Reportes de Negocio',
+                            ][_currentIndex].toUpperCase(),
+                            style: GoogleFonts.plusJakartaSans(
+                              color: AppTheme.primaryColor,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 10,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Local Selector below user
-          Consumer<LocalesViewModel>(
-            builder: (context, localesVM, child) {
-              final localActual = localesVM.localActual;
-              return InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LocalesPage()),
-                  );
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        localActual?.tipo == 'bodega'
-                            ? Icons.warehouse_rounded
-                            : Icons.store_rounded,
-                        size: 14,
-                        color: AppTheme.secondaryColor,
+                    const Spacer(),
+                    // Administrator Info (Compact & Modern)
+                    InkWell(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ProfilePage()),
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        localActual?.nombre ?? 'Sin local',
-                        style: GoogleFonts.plusJakartaSans(
-                          color: AppTheme.secondaryColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 11,
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppTheme.darkCard
+                              : AppTheme.backgroundColor,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: isDark
+                                ? AppTheme.darkBorder
+                                : AppTheme.borderLightColor,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const SizedBox(width: 8),
+                            Text(
+                              user?.email?.split('@').first ?? 'User',
+                              style: GoogleFonts.plusJakartaSans(
+                                color: isDark
+                                    ? Colors.white
+                                    : AppTheme.textPrimary,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            CircleAvatar(
+                              radius: 16,
+                              backgroundColor: AppTheme.primaryColor,
+                              child: Text(
+                                user?.email?.substring(0, 1).toUpperCase() ??
+                                    'U',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 2),
-                      Icon(
-                        Icons.arrow_drop_down,
-                        size: 16,
-                        color: AppTheme.secondaryColor,
+                    ),
+                  ],
+                ),
+              ),
+              // Local Selector below user
+              Consumer<LocalesViewModel>(
+                builder: (context, localesVM, child) {
+                  final localActual = localesVM.localActual;
+                  return InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LocalesPage()),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 4,
                       ),
-                    ],
-                  ),
-                ),
-              );
-            },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            localActual?.tipo == 'bodega'
+                                ? Icons.warehouse_rounded
+                                : Icons.store_rounded,
+                            size: 14,
+                            color: AppTheme.secondaryColor,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            localActual?.nombre ?? 'Sin local',
+                            style: GoogleFonts.plusJakartaSans(
+                              color: AppTheme.secondaryColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 11,
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          Icon(
+                            Icons.arrow_drop_down,
+                            size: 16,
+                            color: AppTheme.secondaryColor,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+              _buildAlertasBanner(context),
+              Expanded(
+                child: IndexedStack(index: _currentIndex, children: _pages),
+              ),
+            ],
           ),
-          _buildAlertasBanner(context),
-          Expanded(
-            child: IndexedStack(index: _currentIndex, children: _pages),
-          ),
-        ],
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: isDark ? AppTheme.darkSurface : Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 20,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: NavigationBar(
-              selectedIndex: _currentIndex,
-              labelBehavior:
-                  NavigationDestinationLabelBehavior.onlyShowSelected,
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              onDestinationSelected: (int index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
-              destinations: [
-                const NavigationDestination(
-                  icon: Icon(Icons.grid_view_outlined),
-                  selectedIcon: Icon(Icons.grid_view_rounded),
-                  label: 'Inicio',
-                ),
-                const NavigationDestination(
-                  icon: Icon(Icons.people_outline_rounded),
-                  selectedIcon: Icon(Icons.people_rounded),
-                  label: 'Clientes',
-                ),
-                NavigationDestination(
-                  icon: Consumer<PedidosProveedorViewModel>(
-                    builder: (context, pedidosVM, child) {
-                      final count = pedidosVM.countAlertas;
-                      return Badge(
-                        isLabelVisible: count > 0,
-                        label: Text('$count'),
-                        child: const Icon(Icons.local_shipping_outlined),
-                      );
-                    },
-                  ),
-                  selectedIcon: Consumer<PedidosProveedorViewModel>(
-                    builder: (context, pedidosVM, child) {
-                      final count = pedidosVM.countAlertas;
-                      return Badge(
-                        isLabelVisible: count > 0,
-                        label: Text('$count'),
-                        child: const Icon(Icons.local_shipping_rounded),
-                      );
-                    },
-                  ),
-                  label: 'Proveedor',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.inventory_2_outlined),
-                  selectedIcon: Icon(Icons.inventory_2_rounded),
-                  label: 'Stock',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.analytics_outlined),
-                  selectedIcon: Icon(Icons.analytics_rounded),
-                  label: 'Reportes',
+          bottomNavigationBar: Container(
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.darkSurface : Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 20,
+                  offset: const Offset(0, -5),
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-      floatingActionButton: SpeedDialFab(
-        currentTab: _currentFabTab,
-        onExportPdfPressed: () => _showExportOptions('pdf'),
-        onExportExcelPressed: () => _showExportOptions('excel'),
-        onScanBarcodePressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const BarcodeScannerPage()),
-        ),
-        onOcrScanPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const RegistrarVentaPage()),
-        ),
-        onVentaPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const RegistrarVentaPage()),
-        ),
-        onIngresoPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const MovimientoFormPage(
-              initialType: mov_model.MovimientoType.ingreso,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                child: NavigationBar(
+                  selectedIndex: _currentIndex,
+                  labelBehavior:
+                      NavigationDestinationLabelBehavior.onlyShowSelected,
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  onDestinationSelected: (int index) {
+                    setState(() {
+                      _currentIndex = index;
+                    });
+                  },
+                  destinations: [
+                    const NavigationDestination(
+                      icon: Icon(Icons.grid_view_outlined),
+                      selectedIcon: Icon(Icons.grid_view_rounded),
+                      label: 'Inicio',
+                    ),
+                    const NavigationDestination(
+                      icon: Icon(Icons.people_outline_rounded),
+                      selectedIcon: Icon(Icons.people_rounded),
+                      label: 'Clientes',
+                    ),
+                    NavigationDestination(
+                      icon: Consumer<PedidosProveedorViewModel>(
+                        builder: (context, pedidosVM, child) {
+                          final count = pedidosVM.countAlertas;
+                          return Badge(
+                            isLabelVisible: count > 0,
+                            label: Text('$count'),
+                            child: const Icon(Icons.local_shipping_outlined),
+                          );
+                        },
+                      ),
+                      selectedIcon: Consumer<PedidosProveedorViewModel>(
+                        builder: (context, pedidosVM, child) {
+                          final count = pedidosVM.countAlertas;
+                          return Badge(
+                            isLabelVisible: count > 0,
+                            label: Text('$count'),
+                            child: const Icon(Icons.local_shipping_rounded),
+                          );
+                        },
+                      ),
+                      label: 'Proveedor',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.inventory_2_outlined),
+                      selectedIcon: Icon(Icons.inventory_2_rounded),
+                      label: 'Stock',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.analytics_outlined),
+                      selectedIcon: Icon(Icons.analytics_rounded),
+                      label: 'Reportes',
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-        onEgresoPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const MovimientoFormPage(
-              initialType: mov_model.MovimientoType.egreso,
+          floatingActionButton: SpeedDialFab(
+            currentTab: _currentFabTab,
+            onExportPdfPressed: () => _showExportOptions('pdf'),
+            onExportExcelPressed: () => _showExportOptions('excel'),
+            onScanBarcodePressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const BarcodeScannerPage(),
+              ),
             ),
+            onOcrScanPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const RegistrarVentaPage(),
+              ),
+            ),
+            onVentaPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const RegistrarVentaPage(),
+              ),
+            ),
+            onIngresoPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const MovimientoFormPage(
+                  initialType: mov_model.MovimientoType.ingreso,
+                ),
+              ),
+            ),
+            onEgresoPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const MovimientoFormPage(
+                  initialType: mov_model.MovimientoType.egreso,
+                ),
+              ),
+            ),
+            onRestockPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const BarcodeScannerPage(),
+              ),
+            ),
+            onClientePressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ClienteFormPage()),
+            ),
+            onProveedorPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ProveedorFormPage(),
+              ),
+            ),
+            onPedidoPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const PedidosProveedorPage(),
+              ),
+            ),
+            onProductoPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProductoFormPage()),
+            ),
+            onReportesPressed: _navigateToReports,
           ),
-        ),
-        onRestockPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const BarcodeScannerPage()),
-        ),
-        onClientePressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ClienteFormPage()),
-        ),
-        onProveedorPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ProveedorFormPage()),
-        ),
-        onPedidoPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const PedidosProveedorPage()),
-        ),
-        onProductoPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ProductoFormPage()),
-        ),
-        onReportesPressed: _navigateToReports,
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        );
+      },
     );
   }
 }

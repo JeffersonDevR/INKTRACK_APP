@@ -11,6 +11,7 @@ import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedore
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/inventario/data/models/producto.dart';
 import 'package:InkTrack/features/inventario/presentation/pages/barcode_scanner_page.dart';
+import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmodel.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/input_formatters.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
@@ -261,9 +262,23 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
 
     final viewModel = context.read<MovimientosViewModel>();
     final cvm = context.read<ClientesViewModel>();
+    final localesVM = context.read<LocalesViewModel>();
 
     if (widget.movimiento == null) {
-      viewModel.guardar(mov);
+      final movConLocal = Movimiento(
+        id: mov.id,
+        monto: mov.monto,
+        fecha: mov.fecha,
+        tipo: mov.tipo,
+        concepto: mov.concepto,
+        categoria: mov.categoria,
+        clienteId: mov.clienteId,
+        proveedorId: mov.proveedorId,
+        esFiado: mov.esFiado,
+        productosJson: mov.productosJson,
+        localId: localesVM.localIdSeleccionado,
+      );
+      viewModel.guardar(movConLocal);
 
       for (final prod in _productos) {
         final delta = _tipo == MovimientoType.ingreso

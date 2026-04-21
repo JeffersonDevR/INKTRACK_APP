@@ -11,6 +11,7 @@ import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimiento
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/inventario/data/models/producto.dart';
 import 'package:InkTrack/features/inventario/presentation/pages/barcode_scanner_page.dart';
+import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmodel.dart';
 import 'package:InkTrack/core/input_formatters.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
@@ -157,6 +158,8 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
     }
 
     final inventarioVM = context.read<InventarioViewModel>();
+    final localesVM = context.read<LocalesViewModel>();
+    final localIdSeleccionado = localesVM.localIdSeleccionado;
     for (final prod in _productos) {
       final product = inventarioVM.getById(prod.productoId);
       if (product != null && !product.isActivo) {
@@ -205,6 +208,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
       clienteNombre: clienteNombre,
       concepto: _conceptoController.text.trim(),
       productosJson: productosJson,
+      localId: localIdSeleccionado,
     );
 
     context.read<VentasViewModel>().guardar(

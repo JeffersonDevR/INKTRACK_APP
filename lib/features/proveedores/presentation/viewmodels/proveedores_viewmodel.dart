@@ -66,6 +66,7 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
     required String telefono,
     required List<String> diasVisita,
     MovimientosViewModel? movimientosVM,
+    String? localId,
   }) async {
     if (checkDuplicado(nombre, telefono)) {
       throw Exception('El proveedor ya existe (mismo nombre y teléfono)');
@@ -76,6 +77,7 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
       nombre: nombre,
       telefono: telefono,
       diasVisita: diasVisita,
+      localId: localId ?? _localId,
     );
 
     await _repository.save(nuevoProveedor);

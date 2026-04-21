@@ -17,6 +17,8 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
     notifyListeners();
   }
 
+  String? get currentLocalId => _localId;
+
   List<Producto> get productos {
     if (_localId == null) {
       return _showInactive

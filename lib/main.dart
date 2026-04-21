@@ -107,10 +107,26 @@ class _InkTrackAppState extends State<InkTrackApp> {
   bool _isLoggedIn = false;
   StreamSubscription<User?>? _authSubscription;
 
+  late final DriftClientesRepository _clientesRepo;
+  late final DriftProveedoresRepository _proveedoresRepo;
+  late final DriftProductosRepository _productosRepo;
+  late final DriftMovimientosRepository _movimientosRepo;
+  late final DriftVentasRepository _ventasRepo;
+  late final DriftPedidosProveedorRepository _pedidosRepo;
+  late final DriftLocalesRepository _localesRepo;
+
   @override
   void initState() {
     super.initState();
     _isLoggedIn = widget.currentUser != null;
+
+    _clientesRepo = DriftClientesRepository(widget.database);
+    _proveedoresRepo = DriftProveedoresRepository(widget.database);
+    _productosRepo = DriftProductosRepository(widget.database);
+    _movimientosRepo = DriftMovimientosRepository(widget.database);
+    _ventasRepo = DriftVentasRepository(widget.database);
+    _pedidosRepo = DriftPedidosProveedorRepository(widget.database);
+    _localesRepo = DriftLocalesRepository(widget.database);
 
     try {
       _authSubscription = widget.authService.authStateChanges.listen(
@@ -137,7 +153,9 @@ class _InkTrackAppState extends State<InkTrackApp> {
   }
 
   void _handleLoginSuccess() async {
-    final hasLocales = await widget.authService.hasUserLocales();
+    final hasLocales = await widget.authService.hasUserLocales(
+      localDb: widget.database,
+    );
     if (hasLocales && mounted) {
       setState(() {
         _isLoggedIn = true;
@@ -162,52 +180,38 @@ class _InkTrackAppState extends State<InkTrackApp> {
           providers: [
             Provider.value(value: widget.database),
             Provider.value(value: widget.authService),
-            Provider.value(value: DriftClientesRepository(widget.database)),
-            Provider.value(value: DriftProveedoresRepository(widget.database)),
-            Provider.value(value: DriftProductosRepository(widget.database)),
-            Provider.value(value: DriftMovimientosRepository(widget.database)),
-            Provider.value(value: DriftVentasRepository(widget.database)),
-            Provider.value(
-              value: DriftPedidosProveedorRepository(widget.database),
-            ),
-            Provider.value(value: DriftLocalesRepository(widget.database)),
+            Provider.value(value: _clientesRepo),
+            Provider.value(value: _proveedoresRepo),
+            Provider.value(value: _productosRepo),
+            Provider.value(value: _movimientosRepo),
+            Provider.value(value: _ventasRepo),
+            Provider.value(value: _pedidosRepo),
+            Provider.value(value: _localesRepo),
             ChangeNotifierProvider(
               create: (_) => LocalesViewModel(
-                DriftLocalesRepository(widget.database),
-                productosRepo: DriftProductosRepository(widget.database),
-                clientesRepo: DriftClientesRepository(widget.database),
-                proveedoresRepo: DriftProveedoresRepository(widget.database),
+                _localesRepo,
+                productosRepo: _productosRepo,
+                clientesRepo: _clientesRepo,
+                proveedoresRepo: _proveedoresRepo,
               ),
             ),
             ChangeNotifierProvider(
-              create: (_) =>
-                  ClientesViewModel(DriftClientesRepository(widget.database)),
+              create: (_) => ClientesViewModel(_clientesRepo),
             ),
             ChangeNotifierProvider(
-              create: (_) => ProveedoresViewModel(
-                DriftProveedoresRepository(widget.database),
-              ),
+              create: (_) => ProveedoresViewModel(_proveedoresRepo),
             ),
             ChangeNotifierProvider(
-              create: (_) => InventarioViewModel(
-                DriftProductosRepository(widget.database),
-              ),
+              create: (_) => InventarioViewModel(_productosRepo),
             ),
             ChangeNotifierProvider(
-              create: (_) => MovimientosViewModel(
-                DriftMovimientosRepository(widget.database),
-              ),
+              create: (_) => MovimientosViewModel(_movimientosRepo),
             ),
             ChangeNotifierProvider(
-              create: (_) => VentasViewModel(
-                DriftVentasRepository(widget.database),
-                ScannerService(),
-              ),
+              create: (_) => VentasViewModel(_ventasRepo, ScannerService()),
             ),
             ChangeNotifierProvider(
-              create: (_) => PedidosProveedorViewModel(
-                DriftPedidosProveedorRepository(widget.database),
-              ),
+              create: (_) => PedidosProveedorViewModel(_pedidosRepo),
             ),
           ],
           child: _OnboardingWrapper(
@@ -226,25 +230,17 @@ class _InkTrackAppState extends State<InkTrackApp> {
 
   @override
   Widget build(BuildContext context) {
-    final clientesRepo = DriftClientesRepository(widget.database);
-    final proveedoresRepo = DriftProveedoresRepository(widget.database);
-    final productosRepo = DriftProductosRepository(widget.database);
-    final movimientosRepo = DriftMovimientosRepository(widget.database);
-    final ventasRepo = DriftVentasRepository(widget.database);
-    final pedidosRepo = DriftPedidosProveedorRepository(widget.database);
-    final localesRepo = DriftLocalesRepository(widget.database);
-
     return MultiProvider(
       providers: [
         Provider.value(value: widget.database),
         Provider.value(value: widget.authService),
-        Provider.value(value: clientesRepo),
-        Provider.value(value: proveedoresRepo),
-        Provider.value(value: productosRepo),
-        Provider.value(value: movimientosRepo),
-        Provider.value(value: ventasRepo),
-        Provider.value(value: pedidosRepo),
-        Provider.value(value: localesRepo),
+        Provider.value(value: _clientesRepo),
+        Provider.value(value: _proveedoresRepo),
+        Provider.value(value: _productosRepo),
+        Provider.value(value: _movimientosRepo),
+        Provider.value(value: _ventasRepo),
+        Provider.value(value: _pedidosRepo),
+        Provider.value(value: _localesRepo),
         Provider(create: (_) => ScannerService()),
         Provider(
           create: (_) => SupabaseSyncService(
@@ -255,28 +251,28 @@ class _InkTrackAppState extends State<InkTrackApp> {
         ),
         ChangeNotifierProvider(
           create: (context) =>
-              VentasViewModel(ventasRepo, context.read<ScannerService>()),
+              VentasViewModel(_ventasRepo, context.read<ScannerService>()),
         ),
-        ChangeNotifierProvider(create: (_) => ClientesViewModel(clientesRepo)),
+        ChangeNotifierProvider(create: (_) => ClientesViewModel(_clientesRepo)),
         ChangeNotifierProvider(
-          create: (_) => ProveedoresViewModel(proveedoresRepo),
+          create: (_) => ProveedoresViewModel(_proveedoresRepo),
         ),
         ChangeNotifierProvider(
           create: (_) => LocalesViewModel(
-            localesRepo,
-            productosRepo: productosRepo,
-            clientesRepo: clientesRepo,
-            proveedoresRepo: proveedoresRepo,
+            _localesRepo,
+            productosRepo: _productosRepo,
+            clientesRepo: _clientesRepo,
+            proveedoresRepo: _proveedoresRepo,
           ),
         ),
         ChangeNotifierProvider(
-          create: (_) => PedidosProveedorViewModel(pedidosRepo),
+          create: (_) => PedidosProveedorViewModel(_pedidosRepo),
         ),
         ChangeNotifierProvider(
-          create: (_) => InventarioViewModel(productosRepo),
+          create: (_) => InventarioViewModel(_productosRepo),
         ),
         ChangeNotifierProvider(
-          create: (_) => MovimientosViewModel(movimientosRepo),
+          create: (_) => MovimientosViewModel(_movimientosRepo),
         ),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:InkTrack/core/data/local/database.dart';
 import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmodel.dart';
 import 'package:InkTrack/features/locales/data/models/local.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
@@ -20,9 +21,44 @@ class LocalesPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Mis Locales'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showLocalDialog(context),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              final viewModel = context.read<LocalesViewModel>();
+              if (value == 'add') {
+                _showLocalDialog(context);
+              } else if (value == 'delete_all') {
+                _confirmDeleteAllData(context, viewModel);
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'add',
+                child: Row(
+                  children: [
+                    Icon(Icons.add, size: 20),
+                    SizedBox(width: 8),
+                    Text('Agregar Local'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'delete_all',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.delete_forever,
+                      size: 20,
+                      color: AppTheme.errorColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Eliminar Todos los Datos',
+                      style: TextStyle(color: AppTheme.errorColor),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -361,5 +397,52 @@ class LocalesPage extends StatelessWidget {
         ),
       );
     }
+  }
+
+  void _confirmDeleteAllData(BuildContext context, LocalesViewModel viewModel) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('⚠️ Eliminar Todos los Datos'),
+        content: const Text(
+          'Esto eliminará TODOS los datos de la app (productos, clientes, proveedores, ventas, movimientos, locales).\n\n'
+          'Asegúrate de syncear primero si quieres guardar algo en Supabase.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
+            onPressed: () async {
+              final db = context.read<AppDatabase>();
+
+              await db.delete(db.productos).go();
+              await db.delete(db.clientes).go();
+              await db.delete(db.proveedores).go();
+              await db.delete(db.ventas).go();
+              await db.delete(db.movimientos).go();
+              await db.delete(db.pedidosProveedor).go();
+              await db.delete(db.locales).go();
+
+              if (context.mounted) {
+                final localesVM = context.read<LocalesViewModel>();
+                await localesVM.refresh();
+              }
+
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Todos los datos eliminados')),
+                );
+              }
+
+              if (ctx.mounted) Navigator.pop(ctx);
+            },
+            child: const Text('Eliminar Todo'),
+          ),
+        ],
+      ),
+    );
   }
 }

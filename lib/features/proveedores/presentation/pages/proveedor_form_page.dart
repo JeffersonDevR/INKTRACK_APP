@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
+import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmodel.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/features/proveedores/data/models/proveedor.dart';
 import 'package:InkTrack/core/input_formatters.dart';
@@ -156,6 +157,7 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
   Future<void> _saveProveedor() async {
     if (_formKey.currentState!.validate()) {
       final viewModel = context.read<ProveedoresViewModel>();
+      final localesVM = context.read<LocalesViewModel>();
 
       try {
         if (widget.proveedor == null) {
@@ -164,6 +166,7 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
             telefono: _telefonoController.text,
             diasVisita: _diasVisita,
             movimientosVM: context.read<MovimientosViewModel>(),
+            localId: localesVM.localIdSeleccionado,
           );
         } else {
           await viewModel.editar(

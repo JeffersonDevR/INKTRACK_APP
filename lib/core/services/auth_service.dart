@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:InkTrack/core/data/local/database.dart';
 
 class AuthService {
   final SupabaseClient _supabase;
@@ -117,25 +118,66 @@ class AuthService {
     }
   }
 
-  Future<List<String>> getUserLocalesIds() async {
+  Future<List<String>> getUserLocalesIds({
+    bool includeLocalDb = false,
+    AppDatabase? localDb,
+  }) async {
     try {
       final user = currentUser;
       if (user == null) return [];
 
-      final response = await _supabase
-          .from('locales')
-          .select('id')
-          .eq('user_id', user.id);
+      final List<String> result = [];
 
-      return (response as List).map((e) => e['id'] as String).toList();
+      if (includeLocalDb && localDb != null) {
+        final query = localDb.select(localDb.locales)
+          ..where((t) => t.userId.equals(user.id));
+        final localLocales = await query.get();
+        for (final loc in localLocales) {
+          result.add(loc.id);
+        }
+      }
+
+      try {
+        final response = await _supabase
+            .from('locales')
+            .select('id')
+            .eq('user_id', user.id);
+
+        for (final e in (response as List)) {
+          final id = e['id'] as String;
+          if (!result.contains(id)) {
+            result.add(id);
+          }
+        }
+      } catch (_) {}
+
+      return result;
     } catch (e) {
       return [];
     }
   }
 
-  Future<bool> hasUserLocales() async {
-    final ids = await getUserLocalesIds();
-    return ids.isNotEmpty;
+  Future<bool> hasUserLocales({AppDatabase? localDb}) async {
+    final user = currentUser;
+    if (user == null) return false;
+
+    if (localDb != null) {
+      final query = localDb.select(localDb.locales)
+        ..where((t) => t.userId.equals(user.id));
+      final count = await query.get();
+      if (count.isNotEmpty) return true;
+    }
+
+    try {
+      final response = await _supabase
+          .from('locales')
+          .select('id')
+          .eq('user_id', user.id)
+          .limit(1);
+      return (response as List).isNotEmpty;
+    } catch (e) {
+      return false;
+    }
   }
 
   static String? validatePassword(String password) {
