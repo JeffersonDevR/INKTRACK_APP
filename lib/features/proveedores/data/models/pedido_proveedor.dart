@@ -6,6 +6,7 @@ class PedidoProveedor implements HasId {
   final String id;
   final String proveedorId;
   final String? proveedorNombre;
+  final String? localId;
   final DateTime fechaPedido;
   final DateTime fechaEntrega;
   final List<PedidoProducto> productos;
@@ -17,6 +18,7 @@ class PedidoProveedor implements HasId {
     required this.id,
     required this.proveedorId,
     this.proveedorNombre,
+    this.localId,
     required this.fechaPedido,
     required this.fechaEntrega,
     required this.productos,
@@ -37,6 +39,7 @@ class PedidoProveedor implements HasId {
     String? id,
     String? proveedorId,
     String? proveedorNombre,
+    String? localId,
     DateTime? fechaPedido,
     DateTime? fechaEntrega,
     List<PedidoProducto>? productos,
@@ -48,6 +51,7 @@ class PedidoProveedor implements HasId {
       id: id ?? this.id,
       proveedorId: proveedorId ?? this.proveedorId,
       proveedorNombre: proveedorNombre ?? this.proveedorNombre,
+      localId: localId ?? this.localId,
       fechaPedido: fechaPedido ?? this.fechaPedido,
       fechaEntrega: fechaEntrega ?? this.fechaEntrega,
       productos: productos ?? this.productos,

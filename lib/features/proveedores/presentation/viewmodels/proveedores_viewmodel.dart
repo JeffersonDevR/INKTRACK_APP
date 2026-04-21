@@ -7,9 +7,15 @@ import '../../../movimientos/data/models/movimiento.dart';
 
 class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
   final ProveedoresRepository _repository;
+  String? _localId;
 
   ProveedoresViewModel(this._repository) {
     _loadProveedores();
+  }
+
+  void setLocalId(String? localId) {
+    _localId = localId;
+    notifyListeners();
   }
 
   bool _showInactive = false;
@@ -22,12 +28,20 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
 
   List<Proveedor> get proveedores {
     if (_showInactive) {
-      return items;
+      return _localId != null
+          ? items.where((p) => p.localId == _localId).toList()
+          : items.toList();
     }
-    return items.where((p) => p.isActivo).toList();
+    var result = items.where((p) => p.isActivo).toList();
+    if (_localId != null) {
+      result = result.where((p) => p.localId == _localId).toList();
+    }
+    return result;
   }
 
-  int get totalInactivos => items.where((p) => !p.isActivo).length;
+  int get totalInactivos => _localId != null
+      ? items.where((p) => !p.isActivo && p.localId == _localId).length
+      : items.where((p) => !p.isActivo).length;
 
   Future<void> _loadProveedores() async {
     clearAll();

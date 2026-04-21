@@ -6,16 +6,28 @@ import 'package:InkTrack/features/inventario/data/repositories/drift_productos_r
 
 class InventarioViewModel extends BaseCrudViewModel<Producto> {
   final ProductosRepository _repository;
+  String? _localId;
 
   InventarioViewModel(this._repository) {
     _loadProductos();
   }
 
+  void setLocalId(String? localId) {
+    _localId = localId;
+    notifyListeners();
+  }
+
   List<Producto> get productos {
-    if (_showInactive) {
-      return items;
+    if (_localId == null) {
+      return _showInactive
+          ? items.toList()
+          : items.where((p) => p.isActivo).toList();
     }
-    return items.where((p) => p.isActivo).toList();
+    var result = items.where((p) => p.localId == _localId).toList();
+    if (!_showInactive) {
+      result = result.where((p) => p.isActivo).toList();
+    }
+    return result;
   }
 
   bool _showInactive = false;
@@ -140,26 +152,33 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
     }
   }
 
-  double get valorTotalInventario => items.fold(
+  List<Producto> get _itemsFiltrados {
+    if (_localId == null) return items;
+    return items.where((p) => p.localId == _localId).toList();
+  }
+
+  double get valorTotalInventario => _itemsFiltrados.fold(
     0.0,
     (sum, producto) => sum + (producto.precio * producto.cantidad),
   );
 
   int get totalProductos =>
-      items.fold(0, (sum, producto) => sum + producto.cantidad);
+      _itemsFiltrados.fold(0, (sum, producto) => sum + producto.cantidad);
 
-  List<Producto> getProductosPorCategoria(String categoria) =>
-      items.where((producto) => producto.categoria == categoria).toList();
+  List<Producto> getProductosPorCategoria(String categoria) => _itemsFiltrados
+      .where((producto) => producto.categoria == categoria)
+      .toList();
 
-  List<Producto> getProductosPorProveedor(String proveedorId) =>
-      items.where((producto) => producto.proveedorId == proveedorId).toList();
+  List<Producto> getProductosPorProveedor(String proveedorId) => _itemsFiltrados
+      .where((producto) => producto.proveedorId == proveedorId)
+      .toList();
 
   List<Producto> get productosConStockBajo =>
-      items.where((p) => p.stockBajo).toList();
+      _itemsFiltrados.where((p) => p.stockBajo).toList();
 
-  bool get hayStockBajo => items.any((p) => p.stockBajo);
+  bool get hayStockBajo => _itemsFiltrados.any((p) => p.stockBajo);
 
-  int get totalInactivos => items.where((p) => !p.isActivo).length;
+  int get totalInactivos => _itemsFiltrados.where((p) => !p.isActivo).length;
 
   Producto? findProductoByCodigo(String codigo) {
     try {

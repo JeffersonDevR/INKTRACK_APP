@@ -4,9 +4,20 @@ import 'package:InkTrack/features/movimientos/data/repositories/movimientos_repo
 
 class MovimientosViewModel extends BaseCrudViewModel<Movimiento> {
   final MovimientosRepository _repository;
+  String? _localId;
 
   MovimientosViewModel(this._repository) {
     _loadMovimientos();
+  }
+
+  void setLocalId(String? localId) {
+    _localId = localId;
+    notifyListeners();
+  }
+
+  List<Movimiento> get _itemsFiltrados {
+    if (_localId == null) return items;
+    return items.where((m) => m.localId == _localId).toList();
   }
 
   final List<String> _categorias = [
@@ -36,20 +47,22 @@ class MovimientosViewModel extends BaseCrudViewModel<Movimiento> {
     notifyListeners();
   }
 
-  double get totalIngresos => items
+  double get totalIngresos => _itemsFiltrados
       .where((m) => m.tipo == MovimientoType.ingreso)
       .fold(0.0, (sum, m) => sum + m.monto);
 
-  double get totalEgresos => items
+  double get totalEgresos => _itemsFiltrados
       .where((m) => m.tipo == MovimientoType.egreso)
       .fold(0.0, (sum, m) => sum + m.monto);
 
   double get balance => totalIngresos - totalEgresos;
 
   List<Movimiento> get filteredItems {
-    if (startDateFilter == null) return historialCompleto;
+    var base = _itemsFiltrados;
+    if (startDateFilter == null)
+      return base..sort((a, b) => b.fecha.compareTo(a.fecha));
 
-    return items.where((m) {
+    return base.where((m) {
       final mDate = DateTime(m.fecha.year, m.fecha.month, m.fecha.day);
       final startDate = DateTime(
         startDateFilter!.year,
@@ -103,7 +116,7 @@ class MovimientosViewModel extends BaseCrudViewModel<Movimiento> {
 
   double get totalIngresosHoy {
     final now = DateTime.now();
-    return items
+    return _itemsFiltrados
         .where(
           (m) =>
               m.tipo == MovimientoType.ingreso &&
@@ -116,7 +129,7 @@ class MovimientosViewModel extends BaseCrudViewModel<Movimiento> {
 
   double get totalEgresosHoy {
     final now = DateTime.now();
-    return items
+    return _itemsFiltrados
         .where(
           (m) =>
               m.tipo == MovimientoType.egreso &&
@@ -130,13 +143,13 @@ class MovimientosViewModel extends BaseCrudViewModel<Movimiento> {
   double get balanceHoy => totalIngresosHoy - totalEgresosHoy;
 
   List<Movimiento> get ingresos =>
-      items.where((m) => m.tipo == MovimientoType.ingreso).toList();
+      _itemsFiltrados.where((m) => m.tipo == MovimientoType.ingreso).toList();
 
   List<Movimiento> get egresos =>
-      items.where((m) => m.tipo == MovimientoType.egreso).toList();
+      _itemsFiltrados.where((m) => m.tipo == MovimientoType.egreso).toList();
 
   List<Movimiento> get historialCompleto =>
-      items.toList()..sort((a, b) => b.fecha.compareTo(a.fecha));
+      _itemsFiltrados.toList()..sort((a, b) => b.fecha.compareTo(a.fecha));
 
   @override
   void add(Movimiento item) {

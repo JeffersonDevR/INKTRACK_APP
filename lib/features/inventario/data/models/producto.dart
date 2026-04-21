@@ -9,6 +9,7 @@ class Producto implements HasId {
   final String categoria;
   final String proveedorId;
   final int stockMinimo;
+  final String? localId;
 
   final String? codigoBarras;
   final String? codigoPersonalizado;
@@ -28,6 +29,7 @@ class Producto implements HasId {
     required this.categoria,
     required this.proveedorId,
     this.stockMinimo = 5,
+    this.localId,
     this.codigoBarras,
     this.codigoPersonalizado,
     this.proveedorNombre,
@@ -42,6 +44,7 @@ class Producto implements HasId {
     String? categoria,
     String? proveedorId,
     int? stockMinimo,
+    String? localId,
     String? codigoBarras,
     String? codigoPersonalizado,
     String? proveedorNombre,
@@ -55,6 +58,7 @@ class Producto implements HasId {
       categoria: categoria ?? this.categoria,
       proveedorId: proveedorId ?? this.proveedorId,
       stockMinimo: stockMinimo ?? this.stockMinimo,
+      localId: localId ?? this.localId,
       codigoBarras: codigoBarras ?? this.codigoBarras,
       codigoPersonalizado: codigoPersonalizado ?? this.codigoPersonalizado,
       proveedorNombre: proveedorNombre ?? this.proveedorNombre,

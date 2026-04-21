@@ -21,6 +21,7 @@ class Proveedor implements HasId {
     return _diasVisita.map((d) => dayMap[d] ?? d).join(', ');
   }
 
+  final String? localId;
   final bool isActivo;
 
   Proveedor({
@@ -28,6 +29,7 @@ class Proveedor implements HasId {
     required this.nombre,
     required this.telefono,
     required List<String> diasVisita,
+    this.localId,
     this.isActivo = true,
   }) : _diasVisita = diasVisita;
 
@@ -36,6 +38,7 @@ class Proveedor implements HasId {
     String? nombre,
     String? telefono,
     List<String>? diasVisita,
+    String? localId,
     bool? isActivo,
   }) {
     return Proveedor(
@@ -43,6 +46,7 @@ class Proveedor implements HasId {
       nombre: nombre ?? this.nombre,
       telefono: telefono ?? this.telefono,
       diasVisita: diasVisita ?? _diasVisita,
+      localId: localId ?? this.localId,
       isActivo: isActivo ?? this.isActivo,
     );
   }

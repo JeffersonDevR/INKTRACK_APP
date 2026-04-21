@@ -3,6 +3,520 @@
 part of 'database.dart';
 
 // ignore_for_file: type=lint
+class $LocalesTable extends Locales with TableInfo<$LocalesTable, LocalData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LocalesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nombreMeta = const VerificationMeta('nombre');
+  @override
+  late final GeneratedColumn<String> nombre = GeneratedColumn<String>(
+    'nombre',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _direccionMeta = const VerificationMeta(
+    'direccion',
+  );
+  @override
+  late final GeneratedColumn<String> direccion = GeneratedColumn<String>(
+    'direccion',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _telefonoMeta = const VerificationMeta(
+    'telefono',
+  );
+  @override
+  late final GeneratedColumn<String> telefono = GeneratedColumn<String>(
+    'telefono',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _tipoMeta = const VerificationMeta('tipo');
+  @override
+  late final GeneratedColumn<String> tipo = GeneratedColumn<String>(
+    'tipo',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('tienda'),
+  );
+  static const VerificationMeta _isActivoMeta = const VerificationMeta(
+    'isActivo',
+  );
+  @override
+  late final GeneratedColumn<bool> isActivo = GeneratedColumn<bool>(
+    'is_activo',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_activo" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  static const VerificationMeta _lastSyncedAtMeta = const VerificationMeta(
+    'lastSyncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastSyncedAt = GeneratedColumn<DateTime>(
+    'last_synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    nombre,
+    direccion,
+    telefono,
+    tipo,
+    isActivo,
+    syncStatus,
+    lastSyncedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'locales';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LocalData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('nombre')) {
+      context.handle(
+        _nombreMeta,
+        nombre.isAcceptableOrUnknown(data['nombre']!, _nombreMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nombreMeta);
+    }
+    if (data.containsKey('direccion')) {
+      context.handle(
+        _direccionMeta,
+        direccion.isAcceptableOrUnknown(data['direccion']!, _direccionMeta),
+      );
+    }
+    if (data.containsKey('telefono')) {
+      context.handle(
+        _telefonoMeta,
+        telefono.isAcceptableOrUnknown(data['telefono']!, _telefonoMeta),
+      );
+    }
+    if (data.containsKey('tipo')) {
+      context.handle(
+        _tipoMeta,
+        tipo.isAcceptableOrUnknown(data['tipo']!, _tipoMeta),
+      );
+    }
+    if (data.containsKey('is_activo')) {
+      context.handle(
+        _isActivoMeta,
+        isActivo.isAcceptableOrUnknown(data['is_activo']!, _isActivoMeta),
+      );
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('last_synced_at')) {
+      context.handle(
+        _lastSyncedAtMeta,
+        lastSyncedAt.isAcceptableOrUnknown(
+          data['last_synced_at']!,
+          _lastSyncedAtMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  LocalData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LocalData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      nombre: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nombre'],
+      )!,
+      direccion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}direccion'],
+      ),
+      telefono: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}telefono'],
+      ),
+      tipo: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tipo'],
+      )!,
+      isActivo: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_activo'],
+      )!,
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      )!,
+      lastSyncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_synced_at'],
+      ),
+    );
+  }
+
+  @override
+  $LocalesTable createAlias(String alias) {
+    return $LocalesTable(attachedDatabase, alias);
+  }
+}
+
+class LocalData extends DataClass implements Insertable<LocalData> {
+  final String id;
+  final String nombre;
+  final String? direccion;
+  final String? telefono;
+  final String tipo;
+  final bool isActivo;
+  final String syncStatus;
+  final DateTime? lastSyncedAt;
+  const LocalData({
+    required this.id,
+    required this.nombre,
+    this.direccion,
+    this.telefono,
+    required this.tipo,
+    required this.isActivo,
+    required this.syncStatus,
+    this.lastSyncedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['nombre'] = Variable<String>(nombre);
+    if (!nullToAbsent || direccion != null) {
+      map['direccion'] = Variable<String>(direccion);
+    }
+    if (!nullToAbsent || telefono != null) {
+      map['telefono'] = Variable<String>(telefono);
+    }
+    map['tipo'] = Variable<String>(tipo);
+    map['is_activo'] = Variable<bool>(isActivo);
+    map['sync_status'] = Variable<String>(syncStatus);
+    if (!nullToAbsent || lastSyncedAt != null) {
+      map['last_synced_at'] = Variable<DateTime>(lastSyncedAt);
+    }
+    return map;
+  }
+
+  LocalesCompanion toCompanion(bool nullToAbsent) {
+    return LocalesCompanion(
+      id: Value(id),
+      nombre: Value(nombre),
+      direccion: direccion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(direccion),
+      telefono: telefono == null && nullToAbsent
+          ? const Value.absent()
+          : Value(telefono),
+      tipo: Value(tipo),
+      isActivo: Value(isActivo),
+      syncStatus: Value(syncStatus),
+      lastSyncedAt: lastSyncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSyncedAt),
+    );
+  }
+
+  factory LocalData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LocalData(
+      id: serializer.fromJson<String>(json['id']),
+      nombre: serializer.fromJson<String>(json['nombre']),
+      direccion: serializer.fromJson<String?>(json['direccion']),
+      telefono: serializer.fromJson<String?>(json['telefono']),
+      tipo: serializer.fromJson<String>(json['tipo']),
+      isActivo: serializer.fromJson<bool>(json['isActivo']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
+      lastSyncedAt: serializer.fromJson<DateTime?>(json['lastSyncedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'nombre': serializer.toJson<String>(nombre),
+      'direccion': serializer.toJson<String?>(direccion),
+      'telefono': serializer.toJson<String?>(telefono),
+      'tipo': serializer.toJson<String>(tipo),
+      'isActivo': serializer.toJson<bool>(isActivo),
+      'syncStatus': serializer.toJson<String>(syncStatus),
+      'lastSyncedAt': serializer.toJson<DateTime?>(lastSyncedAt),
+    };
+  }
+
+  LocalData copyWith({
+    String? id,
+    String? nombre,
+    Value<String?> direccion = const Value.absent(),
+    Value<String?> telefono = const Value.absent(),
+    String? tipo,
+    bool? isActivo,
+    String? syncStatus,
+    Value<DateTime?> lastSyncedAt = const Value.absent(),
+  }) => LocalData(
+    id: id ?? this.id,
+    nombre: nombre ?? this.nombre,
+    direccion: direccion.present ? direccion.value : this.direccion,
+    telefono: telefono.present ? telefono.value : this.telefono,
+    tipo: tipo ?? this.tipo,
+    isActivo: isActivo ?? this.isActivo,
+    syncStatus: syncStatus ?? this.syncStatus,
+    lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
+  );
+  LocalData copyWithCompanion(LocalesCompanion data) {
+    return LocalData(
+      id: data.id.present ? data.id.value : this.id,
+      nombre: data.nombre.present ? data.nombre.value : this.nombre,
+      direccion: data.direccion.present ? data.direccion.value : this.direccion,
+      telefono: data.telefono.present ? data.telefono.value : this.telefono,
+      tipo: data.tipo.present ? data.tipo.value : this.tipo,
+      isActivo: data.isActivo.present ? data.isActivo.value : this.isActivo,
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      lastSyncedAt: data.lastSyncedAt.present
+          ? data.lastSyncedAt.value
+          : this.lastSyncedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalData(')
+          ..write('id: $id, ')
+          ..write('nombre: $nombre, ')
+          ..write('direccion: $direccion, ')
+          ..write('telefono: $telefono, ')
+          ..write('tipo: $tipo, ')
+          ..write('isActivo: $isActivo, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('lastSyncedAt: $lastSyncedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    nombre,
+    direccion,
+    telefono,
+    tipo,
+    isActivo,
+    syncStatus,
+    lastSyncedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LocalData &&
+          other.id == this.id &&
+          other.nombre == this.nombre &&
+          other.direccion == this.direccion &&
+          other.telefono == this.telefono &&
+          other.tipo == this.tipo &&
+          other.isActivo == this.isActivo &&
+          other.syncStatus == this.syncStatus &&
+          other.lastSyncedAt == this.lastSyncedAt);
+}
+
+class LocalesCompanion extends UpdateCompanion<LocalData> {
+  final Value<String> id;
+  final Value<String> nombre;
+  final Value<String?> direccion;
+  final Value<String?> telefono;
+  final Value<String> tipo;
+  final Value<bool> isActivo;
+  final Value<String> syncStatus;
+  final Value<DateTime?> lastSyncedAt;
+  final Value<int> rowid;
+  const LocalesCompanion({
+    this.id = const Value.absent(),
+    this.nombre = const Value.absent(),
+    this.direccion = const Value.absent(),
+    this.telefono = const Value.absent(),
+    this.tipo = const Value.absent(),
+    this.isActivo = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.lastSyncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LocalesCompanion.insert({
+    required String id,
+    required String nombre,
+    this.direccion = const Value.absent(),
+    this.telefono = const Value.absent(),
+    this.tipo = const Value.absent(),
+    this.isActivo = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.lastSyncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       nombre = Value(nombre);
+  static Insertable<LocalData> custom({
+    Expression<String>? id,
+    Expression<String>? nombre,
+    Expression<String>? direccion,
+    Expression<String>? telefono,
+    Expression<String>? tipo,
+    Expression<bool>? isActivo,
+    Expression<String>? syncStatus,
+    Expression<DateTime>? lastSyncedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (nombre != null) 'nombre': nombre,
+      if (direccion != null) 'direccion': direccion,
+      if (telefono != null) 'telefono': telefono,
+      if (tipo != null) 'tipo': tipo,
+      if (isActivo != null) 'is_activo': isActivo,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (lastSyncedAt != null) 'last_synced_at': lastSyncedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LocalesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? nombre,
+    Value<String?>? direccion,
+    Value<String?>? telefono,
+    Value<String>? tipo,
+    Value<bool>? isActivo,
+    Value<String>? syncStatus,
+    Value<DateTime?>? lastSyncedAt,
+    Value<int>? rowid,
+  }) {
+    return LocalesCompanion(
+      id: id ?? this.id,
+      nombre: nombre ?? this.nombre,
+      direccion: direccion ?? this.direccion,
+      telefono: telefono ?? this.telefono,
+      tipo: tipo ?? this.tipo,
+      isActivo: isActivo ?? this.isActivo,
+      syncStatus: syncStatus ?? this.syncStatus,
+      lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (nombre.present) {
+      map['nombre'] = Variable<String>(nombre.value);
+    }
+    if (direccion.present) {
+      map['direccion'] = Variable<String>(direccion.value);
+    }
+    if (telefono.present) {
+      map['telefono'] = Variable<String>(telefono.value);
+    }
+    if (tipo.present) {
+      map['tipo'] = Variable<String>(tipo.value);
+    }
+    if (isActivo.present) {
+      map['is_activo'] = Variable<bool>(isActivo.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (lastSyncedAt.present) {
+      map['last_synced_at'] = Variable<DateTime>(lastSyncedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalesCompanion(')
+          ..write('id: $id, ')
+          ..write('nombre: $nombre, ')
+          ..write('direccion: $direccion, ')
+          ..write('telefono: $telefono, ')
+          ..write('tipo: $tipo, ')
+          ..write('isActivo: $isActivo, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $ClientesTable extends Clientes
     with TableInfo<$ClientesTable, ClienteData> {
   @override
@@ -42,6 +556,17 @@ class $ClientesTable extends Clientes
   @override
   late final GeneratedColumn<String> email = GeneratedColumn<String>(
     'email',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _localIdMeta = const VerificationMeta(
+    'localId',
+  );
+  @override
+  late final GeneratedColumn<String> localId = GeneratedColumn<String>(
+    'local_id',
     aliasedName,
     true,
     type: DriftSqlType.string,
@@ -118,6 +643,7 @@ class $ClientesTable extends Clientes
     nombre,
     telefono,
     email,
+    localId,
     esFiado,
     saldoPendiente,
     isActivo,
@@ -161,6 +687,12 @@ class $ClientesTable extends Clientes
       context.handle(
         _emailMeta,
         email.isAcceptableOrUnknown(data['email']!, _emailMeta),
+      );
+    }
+    if (data.containsKey('local_id')) {
+      context.handle(
+        _localIdMeta,
+        localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta),
       );
     }
     if (data.containsKey('es_fiado')) {
@@ -224,6 +756,10 @@ class $ClientesTable extends Clientes
         DriftSqlType.string,
         data['${effectivePrefix}email'],
       ),
+      localId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_id'],
+      ),
       esFiado: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}es_fiado'],
@@ -258,6 +794,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
   final String nombre;
   final String telefono;
   final String? email;
+  final String? localId;
   final bool esFiado;
   final double saldoPendiente;
   final bool isActivo;
@@ -268,6 +805,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
     required this.nombre,
     required this.telefono,
     this.email,
+    this.localId,
     required this.esFiado,
     required this.saldoPendiente,
     required this.isActivo,
@@ -282,6 +820,9 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
     map['telefono'] = Variable<String>(telefono);
     if (!nullToAbsent || email != null) {
       map['email'] = Variable<String>(email);
+    }
+    if (!nullToAbsent || localId != null) {
+      map['local_id'] = Variable<String>(localId);
     }
     map['es_fiado'] = Variable<bool>(esFiado);
     map['saldo_pendiente'] = Variable<double>(saldoPendiente);
@@ -301,6 +842,9 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
       email: email == null && nullToAbsent
           ? const Value.absent()
           : Value(email),
+      localId: localId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localId),
       esFiado: Value(esFiado),
       saldoPendiente: Value(saldoPendiente),
       isActivo: Value(isActivo),
@@ -321,6 +865,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
       nombre: serializer.fromJson<String>(json['nombre']),
       telefono: serializer.fromJson<String>(json['telefono']),
       email: serializer.fromJson<String?>(json['email']),
+      localId: serializer.fromJson<String?>(json['localId']),
       esFiado: serializer.fromJson<bool>(json['esFiado']),
       saldoPendiente: serializer.fromJson<double>(json['saldoPendiente']),
       isActivo: serializer.fromJson<bool>(json['isActivo']),
@@ -336,6 +881,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
       'nombre': serializer.toJson<String>(nombre),
       'telefono': serializer.toJson<String>(telefono),
       'email': serializer.toJson<String?>(email),
+      'localId': serializer.toJson<String?>(localId),
       'esFiado': serializer.toJson<bool>(esFiado),
       'saldoPendiente': serializer.toJson<double>(saldoPendiente),
       'isActivo': serializer.toJson<bool>(isActivo),
@@ -349,6 +895,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
     String? nombre,
     String? telefono,
     Value<String?> email = const Value.absent(),
+    Value<String?> localId = const Value.absent(),
     bool? esFiado,
     double? saldoPendiente,
     bool? isActivo,
@@ -359,6 +906,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
     nombre: nombre ?? this.nombre,
     telefono: telefono ?? this.telefono,
     email: email.present ? email.value : this.email,
+    localId: localId.present ? localId.value : this.localId,
     esFiado: esFiado ?? this.esFiado,
     saldoPendiente: saldoPendiente ?? this.saldoPendiente,
     isActivo: isActivo ?? this.isActivo,
@@ -371,6 +919,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
       nombre: data.nombre.present ? data.nombre.value : this.nombre,
       telefono: data.telefono.present ? data.telefono.value : this.telefono,
       email: data.email.present ? data.email.value : this.email,
+      localId: data.localId.present ? data.localId.value : this.localId,
       esFiado: data.esFiado.present ? data.esFiado.value : this.esFiado,
       saldoPendiente: data.saldoPendiente.present
           ? data.saldoPendiente.value
@@ -392,6 +941,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
           ..write('nombre: $nombre, ')
           ..write('telefono: $telefono, ')
           ..write('email: $email, ')
+          ..write('localId: $localId, ')
           ..write('esFiado: $esFiado, ')
           ..write('saldoPendiente: $saldoPendiente, ')
           ..write('isActivo: $isActivo, ')
@@ -407,6 +957,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
     nombre,
     telefono,
     email,
+    localId,
     esFiado,
     saldoPendiente,
     isActivo,
@@ -421,6 +972,7 @@ class ClienteData extends DataClass implements Insertable<ClienteData> {
           other.nombre == this.nombre &&
           other.telefono == this.telefono &&
           other.email == this.email &&
+          other.localId == this.localId &&
           other.esFiado == this.esFiado &&
           other.saldoPendiente == this.saldoPendiente &&
           other.isActivo == this.isActivo &&
@@ -433,6 +985,7 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
   final Value<String> nombre;
   final Value<String> telefono;
   final Value<String?> email;
+  final Value<String?> localId;
   final Value<bool> esFiado;
   final Value<double> saldoPendiente;
   final Value<bool> isActivo;
@@ -444,6 +997,7 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
     this.nombre = const Value.absent(),
     this.telefono = const Value.absent(),
     this.email = const Value.absent(),
+    this.localId = const Value.absent(),
     this.esFiado = const Value.absent(),
     this.saldoPendiente = const Value.absent(),
     this.isActivo = const Value.absent(),
@@ -456,6 +1010,7 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
     required String nombre,
     required String telefono,
     this.email = const Value.absent(),
+    this.localId = const Value.absent(),
     this.esFiado = const Value.absent(),
     this.saldoPendiente = const Value.absent(),
     this.isActivo = const Value.absent(),
@@ -470,6 +1025,7 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
     Expression<String>? nombre,
     Expression<String>? telefono,
     Expression<String>? email,
+    Expression<String>? localId,
     Expression<bool>? esFiado,
     Expression<double>? saldoPendiente,
     Expression<bool>? isActivo,
@@ -482,6 +1038,7 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
       if (nombre != null) 'nombre': nombre,
       if (telefono != null) 'telefono': telefono,
       if (email != null) 'email': email,
+      if (localId != null) 'local_id': localId,
       if (esFiado != null) 'es_fiado': esFiado,
       if (saldoPendiente != null) 'saldo_pendiente': saldoPendiente,
       if (isActivo != null) 'is_activo': isActivo,
@@ -496,6 +1053,7 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
     Value<String>? nombre,
     Value<String>? telefono,
     Value<String?>? email,
+    Value<String?>? localId,
     Value<bool>? esFiado,
     Value<double>? saldoPendiente,
     Value<bool>? isActivo,
@@ -508,6 +1066,7 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
       nombre: nombre ?? this.nombre,
       telefono: telefono ?? this.telefono,
       email: email ?? this.email,
+      localId: localId ?? this.localId,
       esFiado: esFiado ?? this.esFiado,
       saldoPendiente: saldoPendiente ?? this.saldoPendiente,
       isActivo: isActivo ?? this.isActivo,
@@ -531,6 +1090,9 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
     }
     if (email.present) {
       map['email'] = Variable<String>(email.value);
+    }
+    if (localId.present) {
+      map['local_id'] = Variable<String>(localId.value);
     }
     if (esFiado.present) {
       map['es_fiado'] = Variable<bool>(esFiado.value);
@@ -560,6 +1122,7 @@ class ClientesCompanion extends UpdateCompanion<ClienteData> {
           ..write('nombre: $nombre, ')
           ..write('telefono: $telefono, ')
           ..write('email: $email, ')
+          ..write('localId: $localId, ')
           ..write('esFiado: $esFiado, ')
           ..write('saldoPendiente: $saldoPendiente, ')
           ..write('isActivo: $isActivo, ')
@@ -615,6 +1178,17 @@ class $ProveedoresTable extends Proveedores
         type: DriftSqlType.string,
         requiredDuringInsert: true,
       ).withConverter<List<String>>($ProveedoresTable.$converterdiasVisita);
+  static const VerificationMeta _localIdMeta = const VerificationMeta(
+    'localId',
+  );
+  @override
+  late final GeneratedColumn<String> localId = GeneratedColumn<String>(
+    'local_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isActivoMeta = const VerificationMeta(
     'isActivo',
   );
@@ -659,6 +1233,7 @@ class $ProveedoresTable extends Proveedores
     nombre,
     telefono,
     diasVisita,
+    localId,
     isActivo,
     syncStatus,
     lastSyncedAt,
@@ -695,6 +1270,12 @@ class $ProveedoresTable extends Proveedores
       );
     } else if (isInserting) {
       context.missing(_telefonoMeta);
+    }
+    if (data.containsKey('local_id')) {
+      context.handle(
+        _localIdMeta,
+        localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta),
+      );
     }
     if (data.containsKey('is_activo')) {
       context.handle(
@@ -744,6 +1325,10 @@ class $ProveedoresTable extends Proveedores
           data['${effectivePrefix}dias_visita'],
         )!,
       ),
+      localId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_id'],
+      ),
       isActivo: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_activo'],
@@ -773,6 +1358,7 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
   final String nombre;
   final String telefono;
   final List<String> diasVisita;
+  final String? localId;
   final bool isActivo;
   final String syncStatus;
   final DateTime? lastSyncedAt;
@@ -781,6 +1367,7 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
     required this.nombre,
     required this.telefono,
     required this.diasVisita,
+    this.localId,
     required this.isActivo,
     required this.syncStatus,
     this.lastSyncedAt,
@@ -796,6 +1383,9 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
         $ProveedoresTable.$converterdiasVisita.toSql(diasVisita),
       );
     }
+    if (!nullToAbsent || localId != null) {
+      map['local_id'] = Variable<String>(localId);
+    }
     map['is_activo'] = Variable<bool>(isActivo);
     map['sync_status'] = Variable<String>(syncStatus);
     if (!nullToAbsent || lastSyncedAt != null) {
@@ -810,6 +1400,9 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
       nombre: Value(nombre),
       telefono: Value(telefono),
       diasVisita: Value(diasVisita),
+      localId: localId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localId),
       isActivo: Value(isActivo),
       syncStatus: Value(syncStatus),
       lastSyncedAt: lastSyncedAt == null && nullToAbsent
@@ -828,6 +1421,7 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
       nombre: serializer.fromJson<String>(json['nombre']),
       telefono: serializer.fromJson<String>(json['telefono']),
       diasVisita: serializer.fromJson<List<String>>(json['diasVisita']),
+      localId: serializer.fromJson<String?>(json['localId']),
       isActivo: serializer.fromJson<bool>(json['isActivo']),
       syncStatus: serializer.fromJson<String>(json['syncStatus']),
       lastSyncedAt: serializer.fromJson<DateTime?>(json['lastSyncedAt']),
@@ -841,6 +1435,7 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
       'nombre': serializer.toJson<String>(nombre),
       'telefono': serializer.toJson<String>(telefono),
       'diasVisita': serializer.toJson<List<String>>(diasVisita),
+      'localId': serializer.toJson<String?>(localId),
       'isActivo': serializer.toJson<bool>(isActivo),
       'syncStatus': serializer.toJson<String>(syncStatus),
       'lastSyncedAt': serializer.toJson<DateTime?>(lastSyncedAt),
@@ -852,6 +1447,7 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
     String? nombre,
     String? telefono,
     List<String>? diasVisita,
+    Value<String?> localId = const Value.absent(),
     bool? isActivo,
     String? syncStatus,
     Value<DateTime?> lastSyncedAt = const Value.absent(),
@@ -860,6 +1456,7 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
     nombre: nombre ?? this.nombre,
     telefono: telefono ?? this.telefono,
     diasVisita: diasVisita ?? this.diasVisita,
+    localId: localId.present ? localId.value : this.localId,
     isActivo: isActivo ?? this.isActivo,
     syncStatus: syncStatus ?? this.syncStatus,
     lastSyncedAt: lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
@@ -872,6 +1469,7 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
       diasVisita: data.diasVisita.present
           ? data.diasVisita.value
           : this.diasVisita,
+      localId: data.localId.present ? data.localId.value : this.localId,
       isActivo: data.isActivo.present ? data.isActivo.value : this.isActivo,
       syncStatus: data.syncStatus.present
           ? data.syncStatus.value
@@ -889,6 +1487,7 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
           ..write('nombre: $nombre, ')
           ..write('telefono: $telefono, ')
           ..write('diasVisita: $diasVisita, ')
+          ..write('localId: $localId, ')
           ..write('isActivo: $isActivo, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('lastSyncedAt: $lastSyncedAt')
@@ -902,6 +1501,7 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
     nombre,
     telefono,
     diasVisita,
+    localId,
     isActivo,
     syncStatus,
     lastSyncedAt,
@@ -914,6 +1514,7 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
           other.nombre == this.nombre &&
           other.telefono == this.telefono &&
           other.diasVisita == this.diasVisita &&
+          other.localId == this.localId &&
           other.isActivo == this.isActivo &&
           other.syncStatus == this.syncStatus &&
           other.lastSyncedAt == this.lastSyncedAt);
@@ -924,6 +1525,7 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
   final Value<String> nombre;
   final Value<String> telefono;
   final Value<List<String>> diasVisita;
+  final Value<String?> localId;
   final Value<bool> isActivo;
   final Value<String> syncStatus;
   final Value<DateTime?> lastSyncedAt;
@@ -933,6 +1535,7 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
     this.nombre = const Value.absent(),
     this.telefono = const Value.absent(),
     this.diasVisita = const Value.absent(),
+    this.localId = const Value.absent(),
     this.isActivo = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.lastSyncedAt = const Value.absent(),
@@ -943,6 +1546,7 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
     required String nombre,
     required String telefono,
     required List<String> diasVisita,
+    this.localId = const Value.absent(),
     this.isActivo = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.lastSyncedAt = const Value.absent(),
@@ -956,6 +1560,7 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
     Expression<String>? nombre,
     Expression<String>? telefono,
     Expression<String>? diasVisita,
+    Expression<String>? localId,
     Expression<bool>? isActivo,
     Expression<String>? syncStatus,
     Expression<DateTime>? lastSyncedAt,
@@ -966,6 +1571,7 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
       if (nombre != null) 'nombre': nombre,
       if (telefono != null) 'telefono': telefono,
       if (diasVisita != null) 'dias_visita': diasVisita,
+      if (localId != null) 'local_id': localId,
       if (isActivo != null) 'is_activo': isActivo,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (lastSyncedAt != null) 'last_synced_at': lastSyncedAt,
@@ -978,6 +1584,7 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
     Value<String>? nombre,
     Value<String>? telefono,
     Value<List<String>>? diasVisita,
+    Value<String?>? localId,
     Value<bool>? isActivo,
     Value<String>? syncStatus,
     Value<DateTime?>? lastSyncedAt,
@@ -988,6 +1595,7 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
       nombre: nombre ?? this.nombre,
       telefono: telefono ?? this.telefono,
       diasVisita: diasVisita ?? this.diasVisita,
+      localId: localId ?? this.localId,
       isActivo: isActivo ?? this.isActivo,
       syncStatus: syncStatus ?? this.syncStatus,
       lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
@@ -1012,6 +1620,9 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
         $ProveedoresTable.$converterdiasVisita.toSql(diasVisita.value),
       );
     }
+    if (localId.present) {
+      map['local_id'] = Variable<String>(localId.value);
+    }
     if (isActivo.present) {
       map['is_activo'] = Variable<bool>(isActivo.value);
     }
@@ -1034,6 +1645,7 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
           ..write('nombre: $nombre, ')
           ..write('telefono: $telefono, ')
           ..write('diasVisita: $diasVisita, ')
+          ..write('localId: $localId, ')
           ..write('isActivo: $isActivo, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('lastSyncedAt: $lastSyncedAt, ')
@@ -1108,6 +1720,17 @@ class $ProductosTable extends Productos
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _localIdMeta = const VerificationMeta(
+    'localId',
+  );
+  @override
+  late final GeneratedColumn<String> localId = GeneratedColumn<String>(
+    'local_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _stockMinimoMeta = const VerificationMeta(
     'stockMinimo',
@@ -1200,6 +1823,7 @@ class $ProductosTable extends Productos
     precio,
     categoria,
     proveedorId,
+    localId,
     stockMinimo,
     codigoBarras,
     codigoPersonalizado,
@@ -1267,6 +1891,12 @@ class $ProductosTable extends Productos
       );
     } else if (isInserting) {
       context.missing(_proveedorIdMeta);
+    }
+    if (data.containsKey('local_id')) {
+      context.handle(
+        _localIdMeta,
+        localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta),
+      );
     }
     if (data.containsKey('stock_minimo')) {
       context.handle(
@@ -1358,6 +1988,10 @@ class $ProductosTable extends Productos
         DriftSqlType.string,
         data['${effectivePrefix}proveedor_id'],
       )!,
+      localId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_id'],
+      ),
       stockMinimo: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}stock_minimo'],
@@ -1402,6 +2036,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
   final double precio;
   final String categoria;
   final String proveedorId;
+  final String? localId;
   final int stockMinimo;
   final String? codigoBarras;
   final String? codigoPersonalizado;
@@ -1416,6 +2051,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
     required this.precio,
     required this.categoria,
     required this.proveedorId,
+    this.localId,
     required this.stockMinimo,
     this.codigoBarras,
     this.codigoPersonalizado,
@@ -1433,6 +2069,9 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
     map['precio'] = Variable<double>(precio);
     map['categoria'] = Variable<String>(categoria);
     map['proveedor_id'] = Variable<String>(proveedorId);
+    if (!nullToAbsent || localId != null) {
+      map['local_id'] = Variable<String>(localId);
+    }
     map['stock_minimo'] = Variable<int>(stockMinimo);
     if (!nullToAbsent || codigoBarras != null) {
       map['codigo_barras'] = Variable<String>(codigoBarras);
@@ -1459,6 +2098,9 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
       precio: Value(precio),
       categoria: Value(categoria),
       proveedorId: Value(proveedorId),
+      localId: localId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localId),
       stockMinimo: Value(stockMinimo),
       codigoBarras: codigoBarras == null && nullToAbsent
           ? const Value.absent()
@@ -1489,6 +2131,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
       precio: serializer.fromJson<double>(json['precio']),
       categoria: serializer.fromJson<String>(json['categoria']),
       proveedorId: serializer.fromJson<String>(json['proveedorId']),
+      localId: serializer.fromJson<String?>(json['localId']),
       stockMinimo: serializer.fromJson<int>(json['stockMinimo']),
       codigoBarras: serializer.fromJson<String?>(json['codigoBarras']),
       codigoPersonalizado: serializer.fromJson<String?>(
@@ -1510,6 +2153,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
       'precio': serializer.toJson<double>(precio),
       'categoria': serializer.toJson<String>(categoria),
       'proveedorId': serializer.toJson<String>(proveedorId),
+      'localId': serializer.toJson<String?>(localId),
       'stockMinimo': serializer.toJson<int>(stockMinimo),
       'codigoBarras': serializer.toJson<String?>(codigoBarras),
       'codigoPersonalizado': serializer.toJson<String?>(codigoPersonalizado),
@@ -1527,6 +2171,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
     double? precio,
     String? categoria,
     String? proveedorId,
+    Value<String?> localId = const Value.absent(),
     int? stockMinimo,
     Value<String?> codigoBarras = const Value.absent(),
     Value<String?> codigoPersonalizado = const Value.absent(),
@@ -1541,6 +2186,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
     precio: precio ?? this.precio,
     categoria: categoria ?? this.categoria,
     proveedorId: proveedorId ?? this.proveedorId,
+    localId: localId.present ? localId.value : this.localId,
     stockMinimo: stockMinimo ?? this.stockMinimo,
     codigoBarras: codigoBarras.present ? codigoBarras.value : this.codigoBarras,
     codigoPersonalizado: codigoPersonalizado.present
@@ -1563,6 +2209,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
       proveedorId: data.proveedorId.present
           ? data.proveedorId.value
           : this.proveedorId,
+      localId: data.localId.present ? data.localId.value : this.localId,
       stockMinimo: data.stockMinimo.present
           ? data.stockMinimo.value
           : this.stockMinimo,
@@ -1594,6 +2241,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
           ..write('precio: $precio, ')
           ..write('categoria: $categoria, ')
           ..write('proveedorId: $proveedorId, ')
+          ..write('localId: $localId, ')
           ..write('stockMinimo: $stockMinimo, ')
           ..write('codigoBarras: $codigoBarras, ')
           ..write('codigoPersonalizado: $codigoPersonalizado, ')
@@ -1613,6 +2261,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
     precio,
     categoria,
     proveedorId,
+    localId,
     stockMinimo,
     codigoBarras,
     codigoPersonalizado,
@@ -1631,6 +2280,7 @@ class ProductoData extends DataClass implements Insertable<ProductoData> {
           other.precio == this.precio &&
           other.categoria == this.categoria &&
           other.proveedorId == this.proveedorId &&
+          other.localId == this.localId &&
           other.stockMinimo == this.stockMinimo &&
           other.codigoBarras == this.codigoBarras &&
           other.codigoPersonalizado == this.codigoPersonalizado &&
@@ -1647,6 +2297,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
   final Value<double> precio;
   final Value<String> categoria;
   final Value<String> proveedorId;
+  final Value<String?> localId;
   final Value<int> stockMinimo;
   final Value<String?> codigoBarras;
   final Value<String?> codigoPersonalizado;
@@ -1662,6 +2313,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
     this.precio = const Value.absent(),
     this.categoria = const Value.absent(),
     this.proveedorId = const Value.absent(),
+    this.localId = const Value.absent(),
     this.stockMinimo = const Value.absent(),
     this.codigoBarras = const Value.absent(),
     this.codigoPersonalizado = const Value.absent(),
@@ -1678,6 +2330,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
     required double precio,
     required String categoria,
     required String proveedorId,
+    this.localId = const Value.absent(),
     this.stockMinimo = const Value.absent(),
     this.codigoBarras = const Value.absent(),
     this.codigoPersonalizado = const Value.absent(),
@@ -1699,6 +2352,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
     Expression<double>? precio,
     Expression<String>? categoria,
     Expression<String>? proveedorId,
+    Expression<String>? localId,
     Expression<int>? stockMinimo,
     Expression<String>? codigoBarras,
     Expression<String>? codigoPersonalizado,
@@ -1715,6 +2369,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
       if (precio != null) 'precio': precio,
       if (categoria != null) 'categoria': categoria,
       if (proveedorId != null) 'proveedor_id': proveedorId,
+      if (localId != null) 'local_id': localId,
       if (stockMinimo != null) 'stock_minimo': stockMinimo,
       if (codigoBarras != null) 'codigo_barras': codigoBarras,
       if (codigoPersonalizado != null)
@@ -1734,6 +2389,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
     Value<double>? precio,
     Value<String>? categoria,
     Value<String>? proveedorId,
+    Value<String?>? localId,
     Value<int>? stockMinimo,
     Value<String?>? codigoBarras,
     Value<String?>? codigoPersonalizado,
@@ -1750,6 +2406,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
       precio: precio ?? this.precio,
       categoria: categoria ?? this.categoria,
       proveedorId: proveedorId ?? this.proveedorId,
+      localId: localId ?? this.localId,
       stockMinimo: stockMinimo ?? this.stockMinimo,
       codigoBarras: codigoBarras ?? this.codigoBarras,
       codigoPersonalizado: codigoPersonalizado ?? this.codigoPersonalizado,
@@ -1781,6 +2438,9 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
     }
     if (proveedorId.present) {
       map['proveedor_id'] = Variable<String>(proveedorId.value);
+    }
+    if (localId.present) {
+      map['local_id'] = Variable<String>(localId.value);
     }
     if (stockMinimo.present) {
       map['stock_minimo'] = Variable<int>(stockMinimo.value);
@@ -1818,6 +2478,7 @@ class ProductosCompanion extends UpdateCompanion<ProductoData> {
           ..write('precio: $precio, ')
           ..write('categoria: $categoria, ')
           ..write('proveedorId: $proveedorId, ')
+          ..write('localId: $localId, ')
           ..write('stockMinimo: $stockMinimo, ')
           ..write('codigoBarras: $codigoBarras, ')
           ..write('codigoPersonalizado: $codigoPersonalizado, ')
@@ -1928,6 +2589,17 @@ class $MovimientosTable extends Movimientos
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _localIdMeta = const VerificationMeta(
+    'localId',
+  );
+  @override
+  late final GeneratedColumn<String> localId = GeneratedColumn<String>(
+    'local_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _cantidadMeta = const VerificationMeta(
     'cantidad',
   );
@@ -1999,6 +2671,7 @@ class $MovimientosTable extends Movimientos
     productoId,
     clienteId,
     proveedorId,
+    localId,
     cantidad,
     esFiado,
     productosJson,
@@ -2071,6 +2744,12 @@ class $MovimientosTable extends Movimientos
           data['proveedor_id']!,
           _proveedorIdMeta,
         ),
+      );
+    }
+    if (data.containsKey('local_id')) {
+      context.handle(
+        _localIdMeta,
+        localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta),
       );
     }
     if (data.containsKey('cantidad')) {
@@ -2156,6 +2835,10 @@ class $MovimientosTable extends Movimientos
         DriftSqlType.string,
         data['${effectivePrefix}proveedor_id'],
       ),
+      localId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_id'],
+      ),
       cantidad: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}cantidad'],
@@ -2198,6 +2881,7 @@ class MovimientoData extends DataClass implements Insertable<MovimientoData> {
   final String? productoId;
   final String? clienteId;
   final String? proveedorId;
+  final String? localId;
   final int? cantidad;
   final bool esFiado;
   final String? productosJson;
@@ -2213,6 +2897,7 @@ class MovimientoData extends DataClass implements Insertable<MovimientoData> {
     this.productoId,
     this.clienteId,
     this.proveedorId,
+    this.localId,
     this.cantidad,
     required this.esFiado,
     this.productosJson,
@@ -2240,6 +2925,9 @@ class MovimientoData extends DataClass implements Insertable<MovimientoData> {
     }
     if (!nullToAbsent || proveedorId != null) {
       map['proveedor_id'] = Variable<String>(proveedorId);
+    }
+    if (!nullToAbsent || localId != null) {
+      map['local_id'] = Variable<String>(localId);
     }
     if (!nullToAbsent || cantidad != null) {
       map['cantidad'] = Variable<int>(cantidad);
@@ -2274,6 +2962,9 @@ class MovimientoData extends DataClass implements Insertable<MovimientoData> {
       proveedorId: proveedorId == null && nullToAbsent
           ? const Value.absent()
           : Value(proveedorId),
+      localId: localId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localId),
       cantidad: cantidad == null && nullToAbsent
           ? const Value.absent()
           : Value(cantidad),
@@ -2305,6 +2996,7 @@ class MovimientoData extends DataClass implements Insertable<MovimientoData> {
       productoId: serializer.fromJson<String?>(json['productoId']),
       clienteId: serializer.fromJson<String?>(json['clienteId']),
       proveedorId: serializer.fromJson<String?>(json['proveedorId']),
+      localId: serializer.fromJson<String?>(json['localId']),
       cantidad: serializer.fromJson<int?>(json['cantidad']),
       esFiado: serializer.fromJson<bool>(json['esFiado']),
       productosJson: serializer.fromJson<String?>(json['productosJson']),
@@ -2327,6 +3019,7 @@ class MovimientoData extends DataClass implements Insertable<MovimientoData> {
       'productoId': serializer.toJson<String?>(productoId),
       'clienteId': serializer.toJson<String?>(clienteId),
       'proveedorId': serializer.toJson<String?>(proveedorId),
+      'localId': serializer.toJson<String?>(localId),
       'cantidad': serializer.toJson<int?>(cantidad),
       'esFiado': serializer.toJson<bool>(esFiado),
       'productosJson': serializer.toJson<String?>(productosJson),
@@ -2345,6 +3038,7 @@ class MovimientoData extends DataClass implements Insertable<MovimientoData> {
     Value<String?> productoId = const Value.absent(),
     Value<String?> clienteId = const Value.absent(),
     Value<String?> proveedorId = const Value.absent(),
+    Value<String?> localId = const Value.absent(),
     Value<int?> cantidad = const Value.absent(),
     bool? esFiado,
     Value<String?> productosJson = const Value.absent(),
@@ -2360,6 +3054,7 @@ class MovimientoData extends DataClass implements Insertable<MovimientoData> {
     productoId: productoId.present ? productoId.value : this.productoId,
     clienteId: clienteId.present ? clienteId.value : this.clienteId,
     proveedorId: proveedorId.present ? proveedorId.value : this.proveedorId,
+    localId: localId.present ? localId.value : this.localId,
     cantidad: cantidad.present ? cantidad.value : this.cantidad,
     esFiado: esFiado ?? this.esFiado,
     productosJson: productosJson.present
@@ -2383,6 +3078,7 @@ class MovimientoData extends DataClass implements Insertable<MovimientoData> {
       proveedorId: data.proveedorId.present
           ? data.proveedorId.value
           : this.proveedorId,
+      localId: data.localId.present ? data.localId.value : this.localId,
       cantidad: data.cantidad.present ? data.cantidad.value : this.cantidad,
       esFiado: data.esFiado.present ? data.esFiado.value : this.esFiado,
       productosJson: data.productosJson.present
@@ -2409,6 +3105,7 @@ class MovimientoData extends DataClass implements Insertable<MovimientoData> {
           ..write('productoId: $productoId, ')
           ..write('clienteId: $clienteId, ')
           ..write('proveedorId: $proveedorId, ')
+          ..write('localId: $localId, ')
           ..write('cantidad: $cantidad, ')
           ..write('esFiado: $esFiado, ')
           ..write('productosJson: $productosJson, ')
@@ -2429,6 +3126,7 @@ class MovimientoData extends DataClass implements Insertable<MovimientoData> {
     productoId,
     clienteId,
     proveedorId,
+    localId,
     cantidad,
     esFiado,
     productosJson,
@@ -2448,6 +3146,7 @@ class MovimientoData extends DataClass implements Insertable<MovimientoData> {
           other.productoId == this.productoId &&
           other.clienteId == this.clienteId &&
           other.proveedorId == this.proveedorId &&
+          other.localId == this.localId &&
           other.cantidad == this.cantidad &&
           other.esFiado == this.esFiado &&
           other.productosJson == this.productosJson &&
@@ -2465,6 +3164,7 @@ class MovimientosCompanion extends UpdateCompanion<MovimientoData> {
   final Value<String?> productoId;
   final Value<String?> clienteId;
   final Value<String?> proveedorId;
+  final Value<String?> localId;
   final Value<int?> cantidad;
   final Value<bool> esFiado;
   final Value<String?> productosJson;
@@ -2481,6 +3181,7 @@ class MovimientosCompanion extends UpdateCompanion<MovimientoData> {
     this.productoId = const Value.absent(),
     this.clienteId = const Value.absent(),
     this.proveedorId = const Value.absent(),
+    this.localId = const Value.absent(),
     this.cantidad = const Value.absent(),
     this.esFiado = const Value.absent(),
     this.productosJson = const Value.absent(),
@@ -2498,6 +3199,7 @@ class MovimientosCompanion extends UpdateCompanion<MovimientoData> {
     this.productoId = const Value.absent(),
     this.clienteId = const Value.absent(),
     this.proveedorId = const Value.absent(),
+    this.localId = const Value.absent(),
     this.cantidad = const Value.absent(),
     this.esFiado = const Value.absent(),
     this.productosJson = const Value.absent(),
@@ -2519,6 +3221,7 @@ class MovimientosCompanion extends UpdateCompanion<MovimientoData> {
     Expression<String>? productoId,
     Expression<String>? clienteId,
     Expression<String>? proveedorId,
+    Expression<String>? localId,
     Expression<int>? cantidad,
     Expression<bool>? esFiado,
     Expression<String>? productosJson,
@@ -2536,6 +3239,7 @@ class MovimientosCompanion extends UpdateCompanion<MovimientoData> {
       if (productoId != null) 'producto_id': productoId,
       if (clienteId != null) 'cliente_id': clienteId,
       if (proveedorId != null) 'proveedor_id': proveedorId,
+      if (localId != null) 'local_id': localId,
       if (cantidad != null) 'cantidad': cantidad,
       if (esFiado != null) 'es_fiado': esFiado,
       if (productosJson != null) 'productos_json': productosJson,
@@ -2555,6 +3259,7 @@ class MovimientosCompanion extends UpdateCompanion<MovimientoData> {
     Value<String?>? productoId,
     Value<String?>? clienteId,
     Value<String?>? proveedorId,
+    Value<String?>? localId,
     Value<int?>? cantidad,
     Value<bool>? esFiado,
     Value<String?>? productosJson,
@@ -2572,6 +3277,7 @@ class MovimientosCompanion extends UpdateCompanion<MovimientoData> {
       productoId: productoId ?? this.productoId,
       clienteId: clienteId ?? this.clienteId,
       proveedorId: proveedorId ?? this.proveedorId,
+      localId: localId ?? this.localId,
       cantidad: cantidad ?? this.cantidad,
       esFiado: esFiado ?? this.esFiado,
       productosJson: productosJson ?? this.productosJson,
@@ -2613,6 +3319,9 @@ class MovimientosCompanion extends UpdateCompanion<MovimientoData> {
     if (proveedorId.present) {
       map['proveedor_id'] = Variable<String>(proveedorId.value);
     }
+    if (localId.present) {
+      map['local_id'] = Variable<String>(localId.value);
+    }
     if (cantidad.present) {
       map['cantidad'] = Variable<int>(cantidad.value);
     }
@@ -2646,6 +3355,7 @@ class MovimientosCompanion extends UpdateCompanion<MovimientoData> {
           ..write('productoId: $productoId, ')
           ..write('clienteId: $clienteId, ')
           ..write('proveedorId: $proveedorId, ')
+          ..write('localId: $localId, ')
           ..write('cantidad: $cantidad, ')
           ..write('esFiado: $esFiado, ')
           ..write('productosJson: $productosJson, ')
@@ -2711,6 +3421,17 @@ class $VentasTable extends Ventas with TableInfo<$VentasTable, VentaData> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _localIdMeta = const VerificationMeta(
+    'localId',
+  );
+  @override
+  late final GeneratedColumn<String> localId = GeneratedColumn<String>(
+    'local_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _conceptoMeta = const VerificationMeta(
     'concepto',
   );
@@ -2763,6 +3484,7 @@ class $VentasTable extends Ventas with TableInfo<$VentasTable, VentaData> {
     fecha,
     clienteId,
     clienteNombre,
+    localId,
     concepto,
     productosJson,
     syncStatus,
@@ -2814,6 +3536,12 @@ class $VentasTable extends Ventas with TableInfo<$VentasTable, VentaData> {
           data['cliente_nombre']!,
           _clienteNombreMeta,
         ),
+      );
+    }
+    if (data.containsKey('local_id')) {
+      context.handle(
+        _localIdMeta,
+        localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta),
       );
     }
     if (data.containsKey('concepto')) {
@@ -2875,6 +3603,10 @@ class $VentasTable extends Ventas with TableInfo<$VentasTable, VentaData> {
         DriftSqlType.string,
         data['${effectivePrefix}cliente_nombre'],
       ),
+      localId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_id'],
+      ),
       concepto: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}concepto'],
@@ -2906,6 +3638,7 @@ class VentaData extends DataClass implements Insertable<VentaData> {
   final DateTime fecha;
   final String? clienteId;
   final String? clienteNombre;
+  final String? localId;
   final String? concepto;
   final String? productosJson;
   final String syncStatus;
@@ -2916,6 +3649,7 @@ class VentaData extends DataClass implements Insertable<VentaData> {
     required this.fecha,
     this.clienteId,
     this.clienteNombre,
+    this.localId,
     this.concepto,
     this.productosJson,
     required this.syncStatus,
@@ -2932,6 +3666,9 @@ class VentaData extends DataClass implements Insertable<VentaData> {
     }
     if (!nullToAbsent || clienteNombre != null) {
       map['cliente_nombre'] = Variable<String>(clienteNombre);
+    }
+    if (!nullToAbsent || localId != null) {
+      map['local_id'] = Variable<String>(localId);
     }
     if (!nullToAbsent || concepto != null) {
       map['concepto'] = Variable<String>(concepto);
@@ -2957,6 +3694,9 @@ class VentaData extends DataClass implements Insertable<VentaData> {
       clienteNombre: clienteNombre == null && nullToAbsent
           ? const Value.absent()
           : Value(clienteNombre),
+      localId: localId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localId),
       concepto: concepto == null && nullToAbsent
           ? const Value.absent()
           : Value(concepto),
@@ -2981,6 +3721,7 @@ class VentaData extends DataClass implements Insertable<VentaData> {
       fecha: serializer.fromJson<DateTime>(json['fecha']),
       clienteId: serializer.fromJson<String?>(json['clienteId']),
       clienteNombre: serializer.fromJson<String?>(json['clienteNombre']),
+      localId: serializer.fromJson<String?>(json['localId']),
       concepto: serializer.fromJson<String?>(json['concepto']),
       productosJson: serializer.fromJson<String?>(json['productosJson']),
       syncStatus: serializer.fromJson<String>(json['syncStatus']),
@@ -2996,6 +3737,7 @@ class VentaData extends DataClass implements Insertable<VentaData> {
       'fecha': serializer.toJson<DateTime>(fecha),
       'clienteId': serializer.toJson<String?>(clienteId),
       'clienteNombre': serializer.toJson<String?>(clienteNombre),
+      'localId': serializer.toJson<String?>(localId),
       'concepto': serializer.toJson<String?>(concepto),
       'productosJson': serializer.toJson<String?>(productosJson),
       'syncStatus': serializer.toJson<String>(syncStatus),
@@ -3009,6 +3751,7 @@ class VentaData extends DataClass implements Insertable<VentaData> {
     DateTime? fecha,
     Value<String?> clienteId = const Value.absent(),
     Value<String?> clienteNombre = const Value.absent(),
+    Value<String?> localId = const Value.absent(),
     Value<String?> concepto = const Value.absent(),
     Value<String?> productosJson = const Value.absent(),
     String? syncStatus,
@@ -3021,6 +3764,7 @@ class VentaData extends DataClass implements Insertable<VentaData> {
     clienteNombre: clienteNombre.present
         ? clienteNombre.value
         : this.clienteNombre,
+    localId: localId.present ? localId.value : this.localId,
     concepto: concepto.present ? concepto.value : this.concepto,
     productosJson: productosJson.present
         ? productosJson.value
@@ -3037,6 +3781,7 @@ class VentaData extends DataClass implements Insertable<VentaData> {
       clienteNombre: data.clienteNombre.present
           ? data.clienteNombre.value
           : this.clienteNombre,
+      localId: data.localId.present ? data.localId.value : this.localId,
       concepto: data.concepto.present ? data.concepto.value : this.concepto,
       productosJson: data.productosJson.present
           ? data.productosJson.value
@@ -3058,6 +3803,7 @@ class VentaData extends DataClass implements Insertable<VentaData> {
           ..write('fecha: $fecha, ')
           ..write('clienteId: $clienteId, ')
           ..write('clienteNombre: $clienteNombre, ')
+          ..write('localId: $localId, ')
           ..write('concepto: $concepto, ')
           ..write('productosJson: $productosJson, ')
           ..write('syncStatus: $syncStatus, ')
@@ -3073,6 +3819,7 @@ class VentaData extends DataClass implements Insertable<VentaData> {
     fecha,
     clienteId,
     clienteNombre,
+    localId,
     concepto,
     productosJson,
     syncStatus,
@@ -3087,6 +3834,7 @@ class VentaData extends DataClass implements Insertable<VentaData> {
           other.fecha == this.fecha &&
           other.clienteId == this.clienteId &&
           other.clienteNombre == this.clienteNombre &&
+          other.localId == this.localId &&
           other.concepto == this.concepto &&
           other.productosJson == this.productosJson &&
           other.syncStatus == this.syncStatus &&
@@ -3099,6 +3847,7 @@ class VentasCompanion extends UpdateCompanion<VentaData> {
   final Value<DateTime> fecha;
   final Value<String?> clienteId;
   final Value<String?> clienteNombre;
+  final Value<String?> localId;
   final Value<String?> concepto;
   final Value<String?> productosJson;
   final Value<String> syncStatus;
@@ -3110,6 +3859,7 @@ class VentasCompanion extends UpdateCompanion<VentaData> {
     this.fecha = const Value.absent(),
     this.clienteId = const Value.absent(),
     this.clienteNombre = const Value.absent(),
+    this.localId = const Value.absent(),
     this.concepto = const Value.absent(),
     this.productosJson = const Value.absent(),
     this.syncStatus = const Value.absent(),
@@ -3122,6 +3872,7 @@ class VentasCompanion extends UpdateCompanion<VentaData> {
     required DateTime fecha,
     this.clienteId = const Value.absent(),
     this.clienteNombre = const Value.absent(),
+    this.localId = const Value.absent(),
     this.concepto = const Value.absent(),
     this.productosJson = const Value.absent(),
     this.syncStatus = const Value.absent(),
@@ -3136,6 +3887,7 @@ class VentasCompanion extends UpdateCompanion<VentaData> {
     Expression<DateTime>? fecha,
     Expression<String>? clienteId,
     Expression<String>? clienteNombre,
+    Expression<String>? localId,
     Expression<String>? concepto,
     Expression<String>? productosJson,
     Expression<String>? syncStatus,
@@ -3148,6 +3900,7 @@ class VentasCompanion extends UpdateCompanion<VentaData> {
       if (fecha != null) 'fecha': fecha,
       if (clienteId != null) 'cliente_id': clienteId,
       if (clienteNombre != null) 'cliente_nombre': clienteNombre,
+      if (localId != null) 'local_id': localId,
       if (concepto != null) 'concepto': concepto,
       if (productosJson != null) 'productos_json': productosJson,
       if (syncStatus != null) 'sync_status': syncStatus,
@@ -3162,6 +3915,7 @@ class VentasCompanion extends UpdateCompanion<VentaData> {
     Value<DateTime>? fecha,
     Value<String?>? clienteId,
     Value<String?>? clienteNombre,
+    Value<String?>? localId,
     Value<String?>? concepto,
     Value<String?>? productosJson,
     Value<String>? syncStatus,
@@ -3174,6 +3928,7 @@ class VentasCompanion extends UpdateCompanion<VentaData> {
       fecha: fecha ?? this.fecha,
       clienteId: clienteId ?? this.clienteId,
       clienteNombre: clienteNombre ?? this.clienteNombre,
+      localId: localId ?? this.localId,
       concepto: concepto ?? this.concepto,
       productosJson: productosJson ?? this.productosJson,
       syncStatus: syncStatus ?? this.syncStatus,
@@ -3199,6 +3954,9 @@ class VentasCompanion extends UpdateCompanion<VentaData> {
     }
     if (clienteNombre.present) {
       map['cliente_nombre'] = Variable<String>(clienteNombre.value);
+    }
+    if (localId.present) {
+      map['local_id'] = Variable<String>(localId.value);
     }
     if (concepto.present) {
       map['concepto'] = Variable<String>(concepto.value);
@@ -3226,6 +3984,7 @@ class VentasCompanion extends UpdateCompanion<VentaData> {
           ..write('fecha: $fecha, ')
           ..write('clienteId: $clienteId, ')
           ..write('clienteNombre: $clienteNombre, ')
+          ..write('localId: $localId, ')
           ..write('concepto: $concepto, ')
           ..write('productosJson: $productosJson, ')
           ..write('syncStatus: $syncStatus, ')
@@ -3268,6 +4027,17 @@ class $PedidosProveedorTable extends PedidosProveedor
   @override
   late final GeneratedColumn<String> proveedorNombre = GeneratedColumn<String>(
     'proveedor_nombre',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _localIdMeta = const VerificationMeta(
+    'localId',
+  );
+  @override
+  late final GeneratedColumn<String> localId = GeneratedColumn<String>(
+    'local_id',
     aliasedName,
     true,
     type: DriftSqlType.string,
@@ -3369,6 +4139,7 @@ class $PedidosProveedorTable extends PedidosProveedor
     id,
     proveedorId,
     proveedorNombre,
+    localId,
     fechaPedido,
     fechaEntrega,
     productos,
@@ -3413,6 +4184,12 @@ class $PedidosProveedorTable extends PedidosProveedor
           data['proveedor_nombre']!,
           _proveedorNombreMeta,
         ),
+      );
+    }
+    if (data.containsKey('local_id')) {
+      context.handle(
+        _localIdMeta,
+        localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta),
       );
     }
     if (data.containsKey('fecha_pedido')) {
@@ -3504,6 +4281,10 @@ class $PedidosProveedorTable extends PedidosProveedor
         DriftSqlType.string,
         data['${effectivePrefix}proveedor_nombre'],
       ),
+      localId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_id'],
+      ),
       fechaPedido: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}fecha_pedido'],
@@ -3550,6 +4331,7 @@ class PedidoProveedorData extends DataClass
   final String id;
   final String proveedorId;
   final String? proveedorNombre;
+  final String? localId;
   final DateTime fechaPedido;
   final DateTime fechaEntrega;
   final String productos;
@@ -3562,6 +4344,7 @@ class PedidoProveedorData extends DataClass
     required this.id,
     required this.proveedorId,
     this.proveedorNombre,
+    this.localId,
     required this.fechaPedido,
     required this.fechaEntrega,
     required this.productos,
@@ -3578,6 +4361,9 @@ class PedidoProveedorData extends DataClass
     map['proveedor_id'] = Variable<String>(proveedorId);
     if (!nullToAbsent || proveedorNombre != null) {
       map['proveedor_nombre'] = Variable<String>(proveedorNombre);
+    }
+    if (!nullToAbsent || localId != null) {
+      map['local_id'] = Variable<String>(localId);
     }
     map['fecha_pedido'] = Variable<DateTime>(fechaPedido);
     map['fecha_entrega'] = Variable<DateTime>(fechaEntrega);
@@ -3601,6 +4387,9 @@ class PedidoProveedorData extends DataClass
       proveedorNombre: proveedorNombre == null && nullToAbsent
           ? const Value.absent()
           : Value(proveedorNombre),
+      localId: localId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localId),
       fechaPedido: Value(fechaPedido),
       fechaEntrega: Value(fechaEntrega),
       productos: Value(productos),
@@ -3625,6 +4414,7 @@ class PedidoProveedorData extends DataClass
       id: serializer.fromJson<String>(json['id']),
       proveedorId: serializer.fromJson<String>(json['proveedorId']),
       proveedorNombre: serializer.fromJson<String?>(json['proveedorNombre']),
+      localId: serializer.fromJson<String?>(json['localId']),
       fechaPedido: serializer.fromJson<DateTime>(json['fechaPedido']),
       fechaEntrega: serializer.fromJson<DateTime>(json['fechaEntrega']),
       productos: serializer.fromJson<String>(json['productos']),
@@ -3642,6 +4432,7 @@ class PedidoProveedorData extends DataClass
       'id': serializer.toJson<String>(id),
       'proveedorId': serializer.toJson<String>(proveedorId),
       'proveedorNombre': serializer.toJson<String?>(proveedorNombre),
+      'localId': serializer.toJson<String?>(localId),
       'fechaPedido': serializer.toJson<DateTime>(fechaPedido),
       'fechaEntrega': serializer.toJson<DateTime>(fechaEntrega),
       'productos': serializer.toJson<String>(productos),
@@ -3657,6 +4448,7 @@ class PedidoProveedorData extends DataClass
     String? id,
     String? proveedorId,
     Value<String?> proveedorNombre = const Value.absent(),
+    Value<String?> localId = const Value.absent(),
     DateTime? fechaPedido,
     DateTime? fechaEntrega,
     String? productos,
@@ -3671,6 +4463,7 @@ class PedidoProveedorData extends DataClass
     proveedorNombre: proveedorNombre.present
         ? proveedorNombre.value
         : this.proveedorNombre,
+    localId: localId.present ? localId.value : this.localId,
     fechaPedido: fechaPedido ?? this.fechaPedido,
     fechaEntrega: fechaEntrega ?? this.fechaEntrega,
     productos: productos ?? this.productos,
@@ -3689,6 +4482,7 @@ class PedidoProveedorData extends DataClass
       proveedorNombre: data.proveedorNombre.present
           ? data.proveedorNombre.value
           : this.proveedorNombre,
+      localId: data.localId.present ? data.localId.value : this.localId,
       fechaPedido: data.fechaPedido.present
           ? data.fechaPedido.value
           : this.fechaPedido,
@@ -3718,6 +4512,7 @@ class PedidoProveedorData extends DataClass
           ..write('id: $id, ')
           ..write('proveedorId: $proveedorId, ')
           ..write('proveedorNombre: $proveedorNombre, ')
+          ..write('localId: $localId, ')
           ..write('fechaPedido: $fechaPedido, ')
           ..write('fechaEntrega: $fechaEntrega, ')
           ..write('productos: $productos, ')
@@ -3735,6 +4530,7 @@ class PedidoProveedorData extends DataClass
     id,
     proveedorId,
     proveedorNombre,
+    localId,
     fechaPedido,
     fechaEntrega,
     productos,
@@ -3751,6 +4547,7 @@ class PedidoProveedorData extends DataClass
           other.id == this.id &&
           other.proveedorId == this.proveedorId &&
           other.proveedorNombre == this.proveedorNombre &&
+          other.localId == this.localId &&
           other.fechaPedido == this.fechaPedido &&
           other.fechaEntrega == this.fechaEntrega &&
           other.productos == this.productos &&
@@ -3765,6 +4562,7 @@ class PedidosProveedorCompanion extends UpdateCompanion<PedidoProveedorData> {
   final Value<String> id;
   final Value<String> proveedorId;
   final Value<String?> proveedorNombre;
+  final Value<String?> localId;
   final Value<DateTime> fechaPedido;
   final Value<DateTime> fechaEntrega;
   final Value<String> productos;
@@ -3778,6 +4576,7 @@ class PedidosProveedorCompanion extends UpdateCompanion<PedidoProveedorData> {
     this.id = const Value.absent(),
     this.proveedorId = const Value.absent(),
     this.proveedorNombre = const Value.absent(),
+    this.localId = const Value.absent(),
     this.fechaPedido = const Value.absent(),
     this.fechaEntrega = const Value.absent(),
     this.productos = const Value.absent(),
@@ -3792,6 +4591,7 @@ class PedidosProveedorCompanion extends UpdateCompanion<PedidoProveedorData> {
     required String id,
     required String proveedorId,
     this.proveedorNombre = const Value.absent(),
+    this.localId = const Value.absent(),
     required DateTime fechaPedido,
     required DateTime fechaEntrega,
     required String productos,
@@ -3811,6 +4611,7 @@ class PedidosProveedorCompanion extends UpdateCompanion<PedidoProveedorData> {
     Expression<String>? id,
     Expression<String>? proveedorId,
     Expression<String>? proveedorNombre,
+    Expression<String>? localId,
     Expression<DateTime>? fechaPedido,
     Expression<DateTime>? fechaEntrega,
     Expression<String>? productos,
@@ -3825,6 +4626,7 @@ class PedidosProveedorCompanion extends UpdateCompanion<PedidoProveedorData> {
       if (id != null) 'id': id,
       if (proveedorId != null) 'proveedor_id': proveedorId,
       if (proveedorNombre != null) 'proveedor_nombre': proveedorNombre,
+      if (localId != null) 'local_id': localId,
       if (fechaPedido != null) 'fecha_pedido': fechaPedido,
       if (fechaEntrega != null) 'fecha_entrega': fechaEntrega,
       if (productos != null) 'productos': productos,
@@ -3841,6 +4643,7 @@ class PedidosProveedorCompanion extends UpdateCompanion<PedidoProveedorData> {
     Value<String>? id,
     Value<String>? proveedorId,
     Value<String?>? proveedorNombre,
+    Value<String?>? localId,
     Value<DateTime>? fechaPedido,
     Value<DateTime>? fechaEntrega,
     Value<String>? productos,
@@ -3855,6 +4658,7 @@ class PedidosProveedorCompanion extends UpdateCompanion<PedidoProveedorData> {
       id: id ?? this.id,
       proveedorId: proveedorId ?? this.proveedorId,
       proveedorNombre: proveedorNombre ?? this.proveedorNombre,
+      localId: localId ?? this.localId,
       fechaPedido: fechaPedido ?? this.fechaPedido,
       fechaEntrega: fechaEntrega ?? this.fechaEntrega,
       productos: productos ?? this.productos,
@@ -3878,6 +4682,9 @@ class PedidosProveedorCompanion extends UpdateCompanion<PedidoProveedorData> {
     }
     if (proveedorNombre.present) {
       map['proveedor_nombre'] = Variable<String>(proveedorNombre.value);
+    }
+    if (localId.present) {
+      map['local_id'] = Variable<String>(localId.value);
     }
     if (fechaPedido.present) {
       map['fecha_pedido'] = Variable<DateTime>(fechaPedido.value);
@@ -3915,6 +4722,7 @@ class PedidosProveedorCompanion extends UpdateCompanion<PedidoProveedorData> {
           ..write('id: $id, ')
           ..write('proveedorId: $proveedorId, ')
           ..write('proveedorNombre: $proveedorNombre, ')
+          ..write('localId: $localId, ')
           ..write('fechaPedido: $fechaPedido, ')
           ..write('fechaEntrega: $fechaEntrega, ')
           ..write('productos: $productos, ')
@@ -3932,6 +4740,7 @@ class PedidosProveedorCompanion extends UpdateCompanion<PedidoProveedorData> {
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
+  late final $LocalesTable locales = $LocalesTable(this);
   late final $ClientesTable clientes = $ClientesTable(this);
   late final $ProveedoresTable proveedores = $ProveedoresTable(this);
   late final $ProductosTable productos = $ProductosTable(this);
@@ -3945,6 +4754,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
+    locales,
     clientes,
     proveedores,
     productos,
@@ -3954,12 +4764,268 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   ];
 }
 
+typedef $$LocalesTableCreateCompanionBuilder =
+    LocalesCompanion Function({
+      required String id,
+      required String nombre,
+      Value<String?> direccion,
+      Value<String?> telefono,
+      Value<String> tipo,
+      Value<bool> isActivo,
+      Value<String> syncStatus,
+      Value<DateTime?> lastSyncedAt,
+      Value<int> rowid,
+    });
+typedef $$LocalesTableUpdateCompanionBuilder =
+    LocalesCompanion Function({
+      Value<String> id,
+      Value<String> nombre,
+      Value<String?> direccion,
+      Value<String?> telefono,
+      Value<String> tipo,
+      Value<bool> isActivo,
+      Value<String> syncStatus,
+      Value<DateTime?> lastSyncedAt,
+      Value<int> rowid,
+    });
+
+class $$LocalesTableFilterComposer
+    extends Composer<_$AppDatabase, $LocalesTable> {
+  $$LocalesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nombre => $composableBuilder(
+    column: $table.nombre,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get direccion => $composableBuilder(
+    column: $table.direccion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get telefono => $composableBuilder(
+    column: $table.telefono,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tipo => $composableBuilder(
+    column: $table.tipo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isActivo => $composableBuilder(
+    column: $table.isActivo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$LocalesTableOrderingComposer
+    extends Composer<_$AppDatabase, $LocalesTable> {
+  $$LocalesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nombre => $composableBuilder(
+    column: $table.nombre,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get direccion => $composableBuilder(
+    column: $table.direccion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get telefono => $composableBuilder(
+    column: $table.telefono,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get tipo => $composableBuilder(
+    column: $table.tipo,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isActivo => $composableBuilder(
+    column: $table.isActivo,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LocalesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LocalesTable> {
+  $$LocalesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get nombre =>
+      $composableBuilder(column: $table.nombre, builder: (column) => column);
+
+  GeneratedColumn<String> get direccion =>
+      $composableBuilder(column: $table.direccion, builder: (column) => column);
+
+  GeneratedColumn<String> get telefono =>
+      $composableBuilder(column: $table.telefono, builder: (column) => column);
+
+  GeneratedColumn<String> get tipo =>
+      $composableBuilder(column: $table.tipo, builder: (column) => column);
+
+  GeneratedColumn<bool> get isActivo =>
+      $composableBuilder(column: $table.isActivo, builder: (column) => column);
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get lastSyncedAt => $composableBuilder(
+    column: $table.lastSyncedAt,
+    builder: (column) => column,
+  );
+}
+
+class $$LocalesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LocalesTable,
+          LocalData,
+          $$LocalesTableFilterComposer,
+          $$LocalesTableOrderingComposer,
+          $$LocalesTableAnnotationComposer,
+          $$LocalesTableCreateCompanionBuilder,
+          $$LocalesTableUpdateCompanionBuilder,
+          (LocalData, BaseReferences<_$AppDatabase, $LocalesTable, LocalData>),
+          LocalData,
+          PrefetchHooks Function()
+        > {
+  $$LocalesTableTableManager(_$AppDatabase db, $LocalesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LocalesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LocalesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LocalesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> nombre = const Value.absent(),
+                Value<String?> direccion = const Value.absent(),
+                Value<String?> telefono = const Value.absent(),
+                Value<String> tipo = const Value.absent(),
+                Value<bool> isActivo = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<DateTime?> lastSyncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LocalesCompanion(
+                id: id,
+                nombre: nombre,
+                direccion: direccion,
+                telefono: telefono,
+                tipo: tipo,
+                isActivo: isActivo,
+                syncStatus: syncStatus,
+                lastSyncedAt: lastSyncedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String nombre,
+                Value<String?> direccion = const Value.absent(),
+                Value<String?> telefono = const Value.absent(),
+                Value<String> tipo = const Value.absent(),
+                Value<bool> isActivo = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<DateTime?> lastSyncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LocalesCompanion.insert(
+                id: id,
+                nombre: nombre,
+                direccion: direccion,
+                telefono: telefono,
+                tipo: tipo,
+                isActivo: isActivo,
+                syncStatus: syncStatus,
+                lastSyncedAt: lastSyncedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$LocalesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LocalesTable,
+      LocalData,
+      $$LocalesTableFilterComposer,
+      $$LocalesTableOrderingComposer,
+      $$LocalesTableAnnotationComposer,
+      $$LocalesTableCreateCompanionBuilder,
+      $$LocalesTableUpdateCompanionBuilder,
+      (LocalData, BaseReferences<_$AppDatabase, $LocalesTable, LocalData>),
+      LocalData,
+      PrefetchHooks Function()
+    >;
 typedef $$ClientesTableCreateCompanionBuilder =
     ClientesCompanion Function({
       required String id,
       required String nombre,
       required String telefono,
       Value<String?> email,
+      Value<String?> localId,
       Value<bool> esFiado,
       Value<double> saldoPendiente,
       Value<bool> isActivo,
@@ -3973,6 +5039,7 @@ typedef $$ClientesTableUpdateCompanionBuilder =
       Value<String> nombre,
       Value<String> telefono,
       Value<String?> email,
+      Value<String?> localId,
       Value<bool> esFiado,
       Value<double> saldoPendiente,
       Value<bool> isActivo,
@@ -4007,6 +5074,11 @@ class $$ClientesTableFilterComposer
 
   ColumnFilters<String> get email => $composableBuilder(
     column: $table.email,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get localId => $composableBuilder(
+    column: $table.localId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4065,6 +5137,11 @@ class $$ClientesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get localId => $composableBuilder(
+    column: $table.localId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get esFiado => $composableBuilder(
     column: $table.esFiado,
     builder: (column) => ColumnOrderings(column),
@@ -4111,6 +5188,9 @@ class $$ClientesTableAnnotationComposer
 
   GeneratedColumn<String> get email =>
       $composableBuilder(column: $table.email, builder: (column) => column);
+
+  GeneratedColumn<String> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
 
   GeneratedColumn<bool> get esFiado =>
       $composableBuilder(column: $table.esFiado, builder: (column) => column);
@@ -4169,6 +5249,7 @@ class $$ClientesTableTableManager
                 Value<String> nombre = const Value.absent(),
                 Value<String> telefono = const Value.absent(),
                 Value<String?> email = const Value.absent(),
+                Value<String?> localId = const Value.absent(),
                 Value<bool> esFiado = const Value.absent(),
                 Value<double> saldoPendiente = const Value.absent(),
                 Value<bool> isActivo = const Value.absent(),
@@ -4180,6 +5261,7 @@ class $$ClientesTableTableManager
                 nombre: nombre,
                 telefono: telefono,
                 email: email,
+                localId: localId,
                 esFiado: esFiado,
                 saldoPendiente: saldoPendiente,
                 isActivo: isActivo,
@@ -4193,6 +5275,7 @@ class $$ClientesTableTableManager
                 required String nombre,
                 required String telefono,
                 Value<String?> email = const Value.absent(),
+                Value<String?> localId = const Value.absent(),
                 Value<bool> esFiado = const Value.absent(),
                 Value<double> saldoPendiente = const Value.absent(),
                 Value<bool> isActivo = const Value.absent(),
@@ -4204,6 +5287,7 @@ class $$ClientesTableTableManager
                 nombre: nombre,
                 telefono: telefono,
                 email: email,
+                localId: localId,
                 esFiado: esFiado,
                 saldoPendiente: saldoPendiente,
                 isActivo: isActivo,
@@ -4239,6 +5323,7 @@ typedef $$ProveedoresTableCreateCompanionBuilder =
       required String nombre,
       required String telefono,
       required List<String> diasVisita,
+      Value<String?> localId,
       Value<bool> isActivo,
       Value<String> syncStatus,
       Value<DateTime?> lastSyncedAt,
@@ -4250,6 +5335,7 @@ typedef $$ProveedoresTableUpdateCompanionBuilder =
       Value<String> nombre,
       Value<String> telefono,
       Value<List<String>> diasVisita,
+      Value<String?> localId,
       Value<bool> isActivo,
       Value<String> syncStatus,
       Value<DateTime?> lastSyncedAt,
@@ -4284,6 +5370,11 @@ class $$ProveedoresTableFilterComposer
   get diasVisita => $composableBuilder(
     column: $table.diasVisita,
     builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get localId => $composableBuilder(
+    column: $table.localId,
+    builder: (column) => ColumnFilters(column),
   );
 
   ColumnFilters<bool> get isActivo => $composableBuilder(
@@ -4331,6 +5422,11 @@ class $$ProveedoresTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get localId => $composableBuilder(
+    column: $table.localId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isActivo => $composableBuilder(
     column: $table.isActivo,
     builder: (column) => ColumnOrderings(column),
@@ -4370,6 +5466,9 @@ class $$ProveedoresTableAnnotationComposer
         column: $table.diasVisita,
         builder: (column) => column,
       );
+
+  GeneratedColumn<String> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
 
   GeneratedColumn<bool> get isActivo =>
       $composableBuilder(column: $table.isActivo, builder: (column) => column);
@@ -4420,6 +5519,7 @@ class $$ProveedoresTableTableManager
                 Value<String> nombre = const Value.absent(),
                 Value<String> telefono = const Value.absent(),
                 Value<List<String>> diasVisita = const Value.absent(),
+                Value<String?> localId = const Value.absent(),
                 Value<bool> isActivo = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
                 Value<DateTime?> lastSyncedAt = const Value.absent(),
@@ -4429,6 +5529,7 @@ class $$ProveedoresTableTableManager
                 nombre: nombre,
                 telefono: telefono,
                 diasVisita: diasVisita,
+                localId: localId,
                 isActivo: isActivo,
                 syncStatus: syncStatus,
                 lastSyncedAt: lastSyncedAt,
@@ -4440,6 +5541,7 @@ class $$ProveedoresTableTableManager
                 required String nombre,
                 required String telefono,
                 required List<String> diasVisita,
+                Value<String?> localId = const Value.absent(),
                 Value<bool> isActivo = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
                 Value<DateTime?> lastSyncedAt = const Value.absent(),
@@ -4449,6 +5551,7 @@ class $$ProveedoresTableTableManager
                 nombre: nombre,
                 telefono: telefono,
                 diasVisita: diasVisita,
+                localId: localId,
                 isActivo: isActivo,
                 syncStatus: syncStatus,
                 lastSyncedAt: lastSyncedAt,
@@ -4487,6 +5590,7 @@ typedef $$ProductosTableCreateCompanionBuilder =
       required double precio,
       required String categoria,
       required String proveedorId,
+      Value<String?> localId,
       Value<int> stockMinimo,
       Value<String?> codigoBarras,
       Value<String?> codigoPersonalizado,
@@ -4504,6 +5608,7 @@ typedef $$ProductosTableUpdateCompanionBuilder =
       Value<double> precio,
       Value<String> categoria,
       Value<String> proveedorId,
+      Value<String?> localId,
       Value<int> stockMinimo,
       Value<String?> codigoBarras,
       Value<String?> codigoPersonalizado,
@@ -4550,6 +5655,11 @@ class $$ProductosTableFilterComposer
 
   ColumnFilters<String> get proveedorId => $composableBuilder(
     column: $table.proveedorId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get localId => $composableBuilder(
+    column: $table.localId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4628,6 +5738,11 @@ class $$ProductosTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get localId => $composableBuilder(
+    column: $table.localId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get stockMinimo => $composableBuilder(
     column: $table.stockMinimo,
     builder: (column) => ColumnOrderings(column),
@@ -4692,6 +5807,9 @@ class $$ProductosTableAnnotationComposer
     column: $table.proveedorId,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
 
   GeneratedColumn<int> get stockMinimo => $composableBuilder(
     column: $table.stockMinimo,
@@ -4764,6 +5882,7 @@ class $$ProductosTableTableManager
                 Value<double> precio = const Value.absent(),
                 Value<String> categoria = const Value.absent(),
                 Value<String> proveedorId = const Value.absent(),
+                Value<String?> localId = const Value.absent(),
                 Value<int> stockMinimo = const Value.absent(),
                 Value<String?> codigoBarras = const Value.absent(),
                 Value<String?> codigoPersonalizado = const Value.absent(),
@@ -4779,6 +5898,7 @@ class $$ProductosTableTableManager
                 precio: precio,
                 categoria: categoria,
                 proveedorId: proveedorId,
+                localId: localId,
                 stockMinimo: stockMinimo,
                 codigoBarras: codigoBarras,
                 codigoPersonalizado: codigoPersonalizado,
@@ -4796,6 +5916,7 @@ class $$ProductosTableTableManager
                 required double precio,
                 required String categoria,
                 required String proveedorId,
+                Value<String?> localId = const Value.absent(),
                 Value<int> stockMinimo = const Value.absent(),
                 Value<String?> codigoBarras = const Value.absent(),
                 Value<String?> codigoPersonalizado = const Value.absent(),
@@ -4811,6 +5932,7 @@ class $$ProductosTableTableManager
                 precio: precio,
                 categoria: categoria,
                 proveedorId: proveedorId,
+                localId: localId,
                 stockMinimo: stockMinimo,
                 codigoBarras: codigoBarras,
                 codigoPersonalizado: codigoPersonalizado,
@@ -4856,6 +5978,7 @@ typedef $$MovimientosTableCreateCompanionBuilder =
       Value<String?> productoId,
       Value<String?> clienteId,
       Value<String?> proveedorId,
+      Value<String?> localId,
       Value<int?> cantidad,
       Value<bool> esFiado,
       Value<String?> productosJson,
@@ -4874,6 +5997,7 @@ typedef $$MovimientosTableUpdateCompanionBuilder =
       Value<String?> productoId,
       Value<String?> clienteId,
       Value<String?> proveedorId,
+      Value<String?> localId,
       Value<int?> cantidad,
       Value<bool> esFiado,
       Value<String?> productosJson,
@@ -4934,6 +6058,11 @@ class $$MovimientosTableFilterComposer
 
   ColumnFilters<String> get proveedorId => $composableBuilder(
     column: $table.proveedorId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get localId => $composableBuilder(
+    column: $table.localId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5017,6 +6146,11 @@ class $$MovimientosTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get localId => $composableBuilder(
+    column: $table.localId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get cantidad => $composableBuilder(
     column: $table.cantidad,
     builder: (column) => ColumnOrderings(column),
@@ -5083,6 +6217,9 @@ class $$MovimientosTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
+
   GeneratedColumn<int> get cantidad =>
       $composableBuilder(column: $table.cantidad, builder: (column) => column);
 
@@ -5145,6 +6282,7 @@ class $$MovimientosTableTableManager
                 Value<String?> productoId = const Value.absent(),
                 Value<String?> clienteId = const Value.absent(),
                 Value<String?> proveedorId = const Value.absent(),
+                Value<String?> localId = const Value.absent(),
                 Value<int?> cantidad = const Value.absent(),
                 Value<bool> esFiado = const Value.absent(),
                 Value<String?> productosJson = const Value.absent(),
@@ -5161,6 +6299,7 @@ class $$MovimientosTableTableManager
                 productoId: productoId,
                 clienteId: clienteId,
                 proveedorId: proveedorId,
+                localId: localId,
                 cantidad: cantidad,
                 esFiado: esFiado,
                 productosJson: productosJson,
@@ -5179,6 +6318,7 @@ class $$MovimientosTableTableManager
                 Value<String?> productoId = const Value.absent(),
                 Value<String?> clienteId = const Value.absent(),
                 Value<String?> proveedorId = const Value.absent(),
+                Value<String?> localId = const Value.absent(),
                 Value<int?> cantidad = const Value.absent(),
                 Value<bool> esFiado = const Value.absent(),
                 Value<String?> productosJson = const Value.absent(),
@@ -5195,6 +6335,7 @@ class $$MovimientosTableTableManager
                 productoId: productoId,
                 clienteId: clienteId,
                 proveedorId: proveedorId,
+                localId: localId,
                 cantidad: cantidad,
                 esFiado: esFiado,
                 productosJson: productosJson,
@@ -5234,6 +6375,7 @@ typedef $$VentasTableCreateCompanionBuilder =
       required DateTime fecha,
       Value<String?> clienteId,
       Value<String?> clienteNombre,
+      Value<String?> localId,
       Value<String?> concepto,
       Value<String?> productosJson,
       Value<String> syncStatus,
@@ -5247,6 +6389,7 @@ typedef $$VentasTableUpdateCompanionBuilder =
       Value<DateTime> fecha,
       Value<String?> clienteId,
       Value<String?> clienteNombre,
+      Value<String?> localId,
       Value<String?> concepto,
       Value<String?> productosJson,
       Value<String> syncStatus,
@@ -5285,6 +6428,11 @@ class $$VentasTableFilterComposer
 
   ColumnFilters<String> get clienteNombre => $composableBuilder(
     column: $table.clienteNombre,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get localId => $composableBuilder(
+    column: $table.localId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5343,6 +6491,11 @@ class $$VentasTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get localId => $composableBuilder(
+    column: $table.localId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get concepto => $composableBuilder(
     column: $table.concepto,
     builder: (column) => ColumnOrderings(column),
@@ -5389,6 +6542,9 @@ class $$VentasTableAnnotationComposer
     column: $table.clienteNombre,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
 
   GeneratedColumn<String> get concepto =>
       $composableBuilder(column: $table.concepto, builder: (column) => column);
@@ -5442,6 +6598,7 @@ class $$VentasTableTableManager
                 Value<DateTime> fecha = const Value.absent(),
                 Value<String?> clienteId = const Value.absent(),
                 Value<String?> clienteNombre = const Value.absent(),
+                Value<String?> localId = const Value.absent(),
                 Value<String?> concepto = const Value.absent(),
                 Value<String?> productosJson = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
@@ -5453,6 +6610,7 @@ class $$VentasTableTableManager
                 fecha: fecha,
                 clienteId: clienteId,
                 clienteNombre: clienteNombre,
+                localId: localId,
                 concepto: concepto,
                 productosJson: productosJson,
                 syncStatus: syncStatus,
@@ -5466,6 +6624,7 @@ class $$VentasTableTableManager
                 required DateTime fecha,
                 Value<String?> clienteId = const Value.absent(),
                 Value<String?> clienteNombre = const Value.absent(),
+                Value<String?> localId = const Value.absent(),
                 Value<String?> concepto = const Value.absent(),
                 Value<String?> productosJson = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
@@ -5477,6 +6636,7 @@ class $$VentasTableTableManager
                 fecha: fecha,
                 clienteId: clienteId,
                 clienteNombre: clienteNombre,
+                localId: localId,
                 concepto: concepto,
                 productosJson: productosJson,
                 syncStatus: syncStatus,
@@ -5510,6 +6670,7 @@ typedef $$PedidosProveedorTableCreateCompanionBuilder =
       required String id,
       required String proveedorId,
       Value<String?> proveedorNombre,
+      Value<String?> localId,
       required DateTime fechaPedido,
       required DateTime fechaEntrega,
       required String productos,
@@ -5525,6 +6686,7 @@ typedef $$PedidosProveedorTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> proveedorId,
       Value<String?> proveedorNombre,
+      Value<String?> localId,
       Value<DateTime> fechaPedido,
       Value<DateTime> fechaEntrega,
       Value<String> productos,
@@ -5557,6 +6719,11 @@ class $$PedidosProveedorTableFilterComposer
 
   ColumnFilters<String> get proveedorNombre => $composableBuilder(
     column: $table.proveedorNombre,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get localId => $composableBuilder(
+    column: $table.localId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5625,6 +6792,11 @@ class $$PedidosProveedorTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get localId => $composableBuilder(
+    column: $table.localId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get fechaPedido => $composableBuilder(
     column: $table.fechaPedido,
     builder: (column) => ColumnOrderings(column),
@@ -5687,6 +6859,9 @@ class $$PedidosProveedorTableAnnotationComposer
     column: $table.proveedorNombre,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
 
   GeneratedColumn<DateTime> get fechaPedido => $composableBuilder(
     column: $table.fechaPedido,
@@ -5765,6 +6940,7 @@ class $$PedidosProveedorTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> proveedorId = const Value.absent(),
                 Value<String?> proveedorNombre = const Value.absent(),
+                Value<String?> localId = const Value.absent(),
                 Value<DateTime> fechaPedido = const Value.absent(),
                 Value<DateTime> fechaEntrega = const Value.absent(),
                 Value<String> productos = const Value.absent(),
@@ -5778,6 +6954,7 @@ class $$PedidosProveedorTableTableManager
                 id: id,
                 proveedorId: proveedorId,
                 proveedorNombre: proveedorNombre,
+                localId: localId,
                 fechaPedido: fechaPedido,
                 fechaEntrega: fechaEntrega,
                 productos: productos,
@@ -5793,6 +6970,7 @@ class $$PedidosProveedorTableTableManager
                 required String id,
                 required String proveedorId,
                 Value<String?> proveedorNombre = const Value.absent(),
+                Value<String?> localId = const Value.absent(),
                 required DateTime fechaPedido,
                 required DateTime fechaEntrega,
                 required String productos,
@@ -5806,6 +6984,7 @@ class $$PedidosProveedorTableTableManager
                 id: id,
                 proveedorId: proveedorId,
                 proveedorNombre: proveedorNombre,
+                localId: localId,
                 fechaPedido: fechaPedido,
                 fechaEntrega: fechaEntrega,
                 productos: productos,
@@ -5849,6 +7028,8 @@ typedef $$PedidosProveedorTableProcessedTableManager =
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
+  $$LocalesTableTableManager get locales =>
+      $$LocalesTableTableManager(_db, _db.locales);
   $$ClientesTableTableManager get clientes =>
       $$ClientesTableTableManager(_db, _db.clientes);
   $$ProveedoresTableTableManager get proveedores =>

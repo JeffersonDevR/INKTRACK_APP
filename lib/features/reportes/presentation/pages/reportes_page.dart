@@ -28,7 +28,8 @@ class _ReportesPageState extends State<ReportesPage> {
     final viewModel = context.read<MovimientosViewModel>();
     final now = DateTime.now();
     final initialRange = DateTimeRange(
-      start: viewModel.startDateFilter ?? now.subtract(const Duration(days: 30)),
+      start:
+          viewModel.startDateFilter ?? now.subtract(const Duration(days: 30)),
       end: viewModel.endDateFilter ?? now,
     );
 
@@ -62,9 +63,15 @@ class _ReportesPageState extends State<ReportesPage> {
       body: Consumer3<MovimientosViewModel, InventarioViewModel, ClientesViewModel>(
         builder: (context, movVM, invVM, cliVM, child) {
           final isDark = Theme.of(context).brightness == Brightness.dark;
-          final filteredMovs = movVM.items.where((m) {
-            if (movVM.startDateFilter != null && m.fecha.isBefore(movVM.startDateFilter!)) return false;
-            if (movVM.endDateFilter != null && m.fecha.isAfter(movVM.endDateFilter!.add(const Duration(days: 1)))) return false;
+          final filteredMovs = movVM.historialCompleto.where((m) {
+            if (movVM.startDateFilter != null &&
+                m.fecha.isBefore(movVM.startDateFilter!))
+              return false;
+            if (movVM.endDateFilter != null &&
+                m.fecha.isAfter(
+                  movVM.endDateFilter!.add(const Duration(days: 1)),
+                ))
+              return false;
             return true;
           }).toList();
 
@@ -75,13 +82,19 @@ class _ReportesPageState extends State<ReportesPage> {
               .where((m) => m.tipo == MovimientoType.egreso)
               .fold(0.0, (sum, m) => sum + m.monto);
           final ventasRealizadas = filteredMovs
-              .where((m) => m.tipo == MovimientoType.ingreso) // Count all income as sales for KPI
+              .where(
+                (m) => m.tipo == MovimientoType.ingreso,
+              ) // Count all income as sales for KPI
               .length;
           final utilidadNeta = totalIngresos - totalEgresos;
 
           // Data for charts
           final expensesByCategory = _groupExpensesByCategory(filteredMovs);
-          final weeklyData = _groupWeeklyData(filteredMovs, movVM.startDateFilter, movVM.endDateFilter);
+          final weeklyData = _groupWeeklyData(
+            filteredMovs,
+            movVM.startDateFilter,
+            movVM.endDateFilter,
+          );
 
           return CustomScrollView(
             slivers: [
@@ -114,16 +127,31 @@ class _ReportesPageState extends State<ReportesPage> {
                         onTap: () => _selectDateRange(context),
                         borderRadius: BorderRadius.circular(16),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                           decoration: BoxDecoration(
-                            color: isDark ? AppTheme.darkCard : AppTheme.borderLightColor.withValues(alpha: 0.5),
+                            color: isDark
+                                ? AppTheme.darkCard
+                                : AppTheme.borderLightColor.withValues(
+                                    alpha: 0.5,
+                                  ),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: isDark ? AppTheme.darkBorder : AppTheme.borderColor),
+                            border: Border.all(
+                              color: isDark
+                                  ? AppTheme.darkBorder
+                                  : AppTheme.borderColor,
+                            ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.calendar_today_rounded, size: 18, color: AppTheme.secondaryColor),
+                              const Icon(
+                                Icons.calendar_today_rounded,
+                                size: 18,
+                                color: AppTheme.secondaryColor,
+                              ),
                               const SizedBox(width: 12),
                               Text(
                                 movVM.startDateFilter != null
@@ -135,7 +163,11 @@ class _ReportesPageState extends State<ReportesPage> {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: AppTheme.textTertiary),
+                              const Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                size: 18,
+                                color: AppTheme.textTertiary,
+                              ),
                             ],
                           ),
                         ),
@@ -178,7 +210,11 @@ class _ReportesPageState extends State<ReportesPage> {
                       ),
                       _buildChartCard(
                         title: 'Distribución de Gastos',
-                        child: _buildPieChart(expensesByCategory, totalEgresos, isDark),
+                        child: _buildPieChart(
+                          expensesByCategory,
+                          totalEgresos,
+                          isDark,
+                        ),
                         isDark: isDark,
                       ),
                       const SizedBox(height: 100),
@@ -234,7 +270,9 @@ class _ReportesPageState extends State<ReportesPage> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
-                    color: valueColor ?? (isDark ? Colors.white : AppTheme.textPrimary),
+                    color:
+                        valueColor ??
+                        (isDark ? Colors.white : AppTheme.textPrimary),
                   ),
                 ),
               ],
@@ -245,7 +283,11 @@ class _ReportesPageState extends State<ReportesPage> {
     );
   }
 
-  Widget _buildChartCard({required String title, required Widget child, required bool isDark}) {
+  Widget _buildChartCard({
+    required String title,
+    required Widget child,
+    required bool isDark,
+  }) {
     return AppCard(
       margin: const EdgeInsets.only(bottom: 16),
       color: isDark ? AppTheme.darkCard : Colors.white,
@@ -276,7 +318,11 @@ class _ReportesPageState extends State<ReportesPage> {
     return data;
   }
 
-  List<Map<String, double>> _groupWeeklyData(List<Movimiento> movs, DateTime? start, DateTime? end) {
+  List<Map<String, double>> _groupWeeklyData(
+    List<Movimiento> movs,
+    DateTime? start,
+    DateTime? end,
+  ) {
     final s = start ?? DateTime.now().subtract(const Duration(days: 30));
     final e = end ?? DateTime.now();
 
@@ -284,7 +330,10 @@ class _ReportesPageState extends State<ReportesPage> {
     final duration = e.difference(s).inDays;
     final chunkDays = (duration / 4).ceil();
 
-    List<Map<String, double>> groups = List.generate(4, (_) => {'ventas': 0.0, 'gastos': 0.0});
+    List<Map<String, double>> groups = List.generate(
+      4,
+      (_) => {'ventas': 0.0, 'gastos': 0.0},
+    );
 
     for (var m in movs) {
       final diff = m.fecha.difference(s).inDays;
@@ -293,9 +342,11 @@ class _ReportesPageState extends State<ReportesPage> {
       if (groupIndex < 0) groupIndex = 0;
 
       if (m.tipo == MovimientoType.ingreso) {
-        groups[groupIndex]['ventas'] = (groups[groupIndex]['ventas'] ?? 0) + m.monto;
+        groups[groupIndex]['ventas'] =
+            (groups[groupIndex]['ventas'] ?? 0) + m.monto;
       } else if (m.tipo == MovimientoType.egreso) {
-        groups[groupIndex]['gastos'] = (groups[groupIndex]['gastos'] ?? 0) + m.monto;
+        groups[groupIndex]['gastos'] =
+            (groups[groupIndex]['gastos'] ?? 0) + m.monto;
       }
     }
     return groups;
@@ -328,13 +379,23 @@ class _ReportesPageState extends State<ReportesPage> {
               },
             ),
           ),
-          leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          leftTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
         ),
         borderData: FlBorderData(show: false),
         barGroups: data.asMap().entries.map((e) {
-          return _makeGroupData(e.key, (e.value['ventas']! / maxVal) * 20, (e.value['gastos']! / maxVal) * 20);
+          return _makeGroupData(
+            e.key,
+            (e.value['ventas']! / maxVal) * 20,
+            (e.value['gastos']! / maxVal) * 20,
+          );
         }).toList(),
       ),
     );
@@ -345,13 +406,27 @@ class _ReportesPageState extends State<ReportesPage> {
       barsSpace: 4,
       x: x,
       barRods: [
-        BarChartRodData(toY: y1, color: AppTheme.primaryColor.withValues(alpha: 0.4), width: 12, borderRadius: BorderRadius.circular(4)),
-        BarChartRodData(toY: y2, color: AppTheme.secondaryColor, width: 12, borderRadius: BorderRadius.circular(4)),
+        BarChartRodData(
+          toY: y1,
+          color: AppTheme.primaryColor.withValues(alpha: 0.4),
+          width: 12,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        BarChartRodData(
+          toY: y2,
+          color: AppTheme.secondaryColor,
+          width: 12,
+          borderRadius: BorderRadius.circular(4),
+        ),
       ],
     );
   }
 
-  Widget _buildPieChart(Map<String, double> categoryData, double total, bool isDark) {
+  Widget _buildPieChart(
+    Map<String, double> categoryData,
+    double total,
+    bool isDark,
+  ) {
     if (total == 0) return const Center(child: Text('Sin gastos registrados'));
 
     final List<Color> colors = [
@@ -391,11 +466,22 @@ class _ReportesPageState extends State<ReportesPage> {
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                  ),
+                ),
                 const SizedBox(width: 6),
                 Text(
                   '${e.value.key} ($percentage%)',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textSecondary,
+                  ),
                 ),
               ],
             );

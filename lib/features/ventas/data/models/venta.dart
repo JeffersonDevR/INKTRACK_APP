@@ -8,6 +8,7 @@ class Venta implements HasId {
   final DateTime fecha;
   final String? clienteId;
   final String? productoId;
+  final String? localId;
   final int cantidad;
   final bool esFiado;
 
@@ -24,6 +25,7 @@ class Venta implements HasId {
     required this.fecha,
     this.clienteId,
     this.productoId,
+    this.localId,
     this.cantidad = 0,
     this.esFiado = false,
     this.clienteNombre,
@@ -51,6 +53,7 @@ class Venta implements HasId {
     DateTime? fecha,
     String? clienteId,
     String? productoId,
+    String? localId,
     int? cantidad,
     bool? esFiado,
     String? clienteNombre,
@@ -63,6 +66,7 @@ class Venta implements HasId {
       fecha: fecha ?? this.fecha,
       clienteId: clienteId ?? this.clienteId,
       productoId: productoId ?? this.productoId,
+      localId: localId ?? this.localId,
       cantidad: cantidad ?? this.cantidad,
       esFiado: esFiado ?? this.esFiado,
       clienteNombre: clienteNombre ?? this.clienteNombre,

@@ -31,6 +31,9 @@ class DriftPedidosProveedorRepository implements PedidosProveedorRepository {
             id: item.id,
             proveedorId: item.proveedorId,
             proveedorNombre: Value(item.proveedorNombre),
+            localId: item.localId != null
+                ? Value(item.localId)
+                : const Value.absent(),
             fechaPedido: item.fechaPedido,
             fechaEntrega: item.fechaEntrega,
             productos: item.productosJson,
@@ -50,6 +53,9 @@ class DriftPedidosProveedorRepository implements PedidosProveedorRepository {
       PedidosProveedorCompanion(
         proveedorId: Value(item.proveedorId),
         proveedorNombre: Value(item.proveedorNombre),
+        localId: item.localId != null
+            ? Value(item.localId)
+            : const Value.absent(),
         fechaPedido: Value(item.fechaPedido),
         fechaEntrega: Value(item.fechaEntrega),
         productos: Value(item.productosJson),
@@ -109,6 +115,7 @@ class DriftPedidosProveedorRepository implements PedidosProveedorRepository {
       id: data.id,
       proveedorId: data.proveedorId,
       proveedorNombre: data.proveedorNombre,
+      localId: data.localId,
       fechaPedido: data.fechaPedido,
       fechaEntrega: data.fechaEntrega,
       productos: PedidoProveedor.productosFromJson(data.productos),

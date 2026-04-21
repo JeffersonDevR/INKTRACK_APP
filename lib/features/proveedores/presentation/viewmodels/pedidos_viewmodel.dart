@@ -8,23 +8,34 @@ import '../../../movimientos/data/models/movimiento.dart';
 
 class PedidosProveedorViewModel extends BaseCrudViewModel<PedidoProveedor> {
   final PedidosProveedorRepository _repository;
+  String? _localId;
 
   PedidosProveedorViewModel(this._repository) {
     _loadPedidos();
   }
 
+  void setLocalId(String? localId) {
+    _localId = localId;
+    notifyListeners();
+  }
+
+  List<PedidoProveedor> get _pedidosFiltrados {
+    if (_localId == null) return items;
+    return items.where((p) => p.localId == _localId).toList();
+  }
+
   List<PedidoProveedor> get pedidosPendientes {
-    return items.where((p) => !p.isEntregado).toList();
+    return _pedidosFiltrados.where((p) => !p.isEntregado).toList();
   }
 
   List<PedidoProveedor> get pedidosEntregados {
-    return items.where((p) => p.isEntregado).toList();
+    return _pedidosFiltrados.where((p) => p.isEntregado).toList();
   }
 
   List<PedidoProveedor> get pedidosConAlerta {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    return items.where((p) {
+    return _pedidosFiltrados.where((p) {
       if (p.isEntregado) return false;
       final entrega = DateTime(
         p.fechaEntrega.year,
@@ -66,6 +77,7 @@ class PedidosProveedorViewModel extends BaseCrudViewModel<PedidoProveedor> {
       id: IdUtils.generateTimestampId(),
       proveedorId: proveedorId,
       proveedorNombre: proveedorNombre,
+      localId: _localId,
       fechaPedido: DateTime.now(),
       fechaEntrega: fechaEntrega,
       productos: productos,

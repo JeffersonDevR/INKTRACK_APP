@@ -4,7 +4,9 @@ import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedore
 import 'package:InkTrack/features/proveedores/data/models/proveedor.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
+import 'package:InkTrack/features/proveedores/presentation/viewmodels/pedidos_viewmodel.dart';
 import 'proveedor_form_page.dart';
+import 'pedidos_proveedor_page.dart';
 
 class ProveedoresPage extends StatelessWidget {
   const ProveedoresPage({super.key});
@@ -176,6 +178,16 @@ class ProveedoresPage extends StatelessWidget {
                                   ProveedorFormPage(proveedor: proveedor),
                             ),
                           );
+                        } else if (value == 'view_pedidos') {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PedidosProveedorPage(
+                                showAll: true,
+                                proveedorId: proveedor.id,
+                              ),
+                            ),
+                          );
                         } else if (value == 'delete') {
                           _showDeleteDialog(context, proveedor);
                         } else if (value == 'reactivate') {
@@ -185,6 +197,20 @@ class ProveedoresPage extends StatelessWidget {
                         }
                       },
                       itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'view_pedidos',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.local_shipping_rounded,
+                                size: 20,
+                                color: AppTheme.primaryColor,
+                              ),
+                              const SizedBox(width: 8),
+                              const Text('Ver pedidos'),
+                            ],
+                          ),
+                        ),
                         const PopupMenuItem(
                           value: 'edit',
                           child: Row(

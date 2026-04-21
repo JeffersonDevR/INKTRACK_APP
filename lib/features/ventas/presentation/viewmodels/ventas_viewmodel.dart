@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 class VentasViewModel extends BaseCrudViewModel<Venta> {
   final VentasRepository _repository;
   final ScannerService? _scannerService;
+  String? _localId;
 
   bool _isScanning = false;
   bool get isScanning => _isScanning;
@@ -26,7 +27,17 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
     _loadVentas();
   }
 
-  List<Venta> get ventas => items;
+  void setLocalId(String? localId) {
+    _localId = localId;
+    notifyListeners();
+  }
+
+  List<Venta> get _ventasFiltradas {
+    if (_localId == null) return items;
+    return items.where((v) => v.localId == _localId).toList();
+  }
+
+  List<Venta> get ventas => _ventasFiltradas;
 
   Future<void> _loadVentas() async {
     clearAll();
@@ -44,7 +55,7 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
 
   double get totalVentasDia {
     final now = DateTime.now();
-    return items
+    return _ventasFiltradas
         .where(
           (venta) =>
               venta.fecha.year == now.year &&

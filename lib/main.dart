@@ -10,12 +10,14 @@ import 'package:InkTrack/core/data/local/database.dart';
 import 'package:InkTrack/core/services/auth_service.dart';
 import 'package:InkTrack/core/services/supabase_sync_service.dart';
 import 'package:InkTrack/core/services/theme_provider.dart';
+import 'package:InkTrack/core/services/notification_service.dart';
 import 'package:InkTrack/features/clientes/data/repositories/drift_clientes_repository.dart';
 import 'package:InkTrack/features/proveedores/data/repositories/drift_proveedores_repository.dart';
 import 'package:InkTrack/features/inventario/data/repositories/drift_productos_repository.dart';
 import 'package:InkTrack/features/movimientos/data/repositories/drift_movimientos_repository.dart';
 import 'package:InkTrack/features/ventas/data/repositories/drift_ventas_repository.dart';
 import 'package:InkTrack/features/proveedores/data/repositories/drift_pedidos_repository.dart';
+import 'package:InkTrack/features/locales/data/repositories/drift_locales_repository.dart';
 
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
@@ -23,6 +25,7 @@ import 'package:InkTrack/features/proveedores/presentation/viewmodels/pedidos_vi
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/features/ventas/presentation/viewmodels/ventas_viewmodel.dart';
+import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmodel.dart';
 import 'package:InkTrack/core/services/scanner_service.dart';
 import 'package:InkTrack/features/home/presentation/pages/main_layout_page.dart';
 import 'package:InkTrack/features/auth/presentation/pages/login_page.dart';
@@ -42,6 +45,8 @@ Future<void> main() async {
         'sb_publishable_VXorai6dwJNKR1hcsvWV3Q_n2XEEP2p';
 
     await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
+
+    await NotificationService().initialize();
 
     final database = AppDatabase();
     final supabase = Supabase.instance.client;
@@ -144,6 +149,7 @@ class _InkTrackAppState extends State<InkTrackApp> {
     final movimientosRepo = DriftMovimientosRepository(widget.database);
     final ventasRepo = DriftVentasRepository(widget.database);
     final pedidosRepo = DriftPedidosProveedorRepository(widget.database);
+    final localesRepo = DriftLocalesRepository(widget.database);
 
     return MultiProvider(
       providers: [
@@ -155,6 +161,7 @@ class _InkTrackAppState extends State<InkTrackApp> {
         Provider.value(value: movimientosRepo),
         Provider.value(value: ventasRepo),
         Provider.value(value: pedidosRepo),
+        Provider.value(value: localesRepo),
         Provider(create: (_) => ScannerService()),
         Provider(
           create: (_) => SupabaseSyncService(
@@ -170,6 +177,14 @@ class _InkTrackAppState extends State<InkTrackApp> {
         ChangeNotifierProvider(create: (_) => ClientesViewModel(clientesRepo)),
         ChangeNotifierProvider(
           create: (_) => ProveedoresViewModel(proveedoresRepo),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => LocalesViewModel(
+            localesRepo,
+            productosRepo: productosRepo,
+            clientesRepo: clientesRepo,
+            proveedoresRepo: proveedoresRepo,
+          ),
         ),
         ChangeNotifierProvider(
           create: (_) => PedidosProveedorViewModel(pedidosRepo),

@@ -195,7 +195,7 @@ class HomePage extends StatelessWidget {
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 16),
-                      TrendChart(movimientos: movVM.items),
+                      TrendChart(movimientos: movVM.historialCompleto),
                       const SizedBox(height: 32),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,

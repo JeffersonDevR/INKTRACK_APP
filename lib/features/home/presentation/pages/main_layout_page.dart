@@ -25,10 +25,15 @@ import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimiento
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/pedidos_viewmodel.dart';
+import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
+import 'package:InkTrack/features/ventas/presentation/viewmodels/ventas_viewmodel.dart';
 import 'package:InkTrack/core/services/pdf_export_service.dart';
 import 'package:InkTrack/core/services/excel_export_service.dart';
 import 'package:InkTrack/core/services/auth_service.dart';
+import 'package:InkTrack/core/services/notification_service.dart';
 import 'package:InkTrack/features/auth/presentation/pages/profile_page.dart';
+import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmodel.dart';
+import 'package:InkTrack/features/locales/presentation/pages/locales_page.dart';
 
 class MainLayoutPage extends StatefulWidget {
   final AuthService? authService;
@@ -41,6 +46,90 @@ class MainLayoutPage extends StatefulWidget {
 
 class _MainLayoutPageState extends State<MainLayoutPage> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkPedidosNotificaciones();
+    _syncLocalToViewModels();
+  }
+
+  void _syncLocalToViewModels() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final localesVM = context.read<LocalesViewModel>();
+      final invVM = context.read<InventarioViewModel>();
+      final cliVM = context.read<ClientesViewModel>();
+      final provVM = context.read<ProveedoresViewModel>();
+      final pedVM = context.read<PedidosProveedorViewModel>();
+      final movVM = context.read<MovimientosViewModel>();
+      final ventVM = context.read<VentasViewModel>();
+
+      final datosSinLocal =
+          invVM.items.any((p) => p.localId == null) ||
+          cliVM.items.any((c) => c.localId == null) ||
+          provVM.items.any((p) => p.localId == null);
+
+      if (localesVM.localIdSeleccionado == null && localesVM.items.isNotEmpty) {
+        localesVM.seleccionarLocal(localesVM.items.first.id);
+      }
+
+      if (datosSinLocal &&
+          localesVM.localIdSeleccionado != null &&
+          localesVM.hayLocalesCargados) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Importante'),
+            content: const Text(
+              'Tienes datos sin asignar a un local. '
+              '¿Deseas asignarlos al local actual?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('No'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  localesVM.migrarDatosExistentes(
+                    invVM: invVM,
+                    cliVM: cliVM,
+                    provVM: provVM,
+                    context: context,
+                  );
+                  Navigator.pop(ctx);
+                },
+                child: const Text('Sí'),
+              ),
+            ],
+          ),
+        );
+      }
+
+      invVM.setLocalId(localesVM.localIdSeleccionado);
+      cliVM.setLocalId(localesVM.localIdSeleccionado);
+      provVM.setLocalId(localesVM.localIdSeleccionado);
+      pedVM.setLocalId(localesVM.localIdSeleccionado);
+      movVM.setLocalId(localesVM.localIdSeleccionado);
+      ventVM.setLocalId(localesVM.localIdSeleccionado);
+
+      localesVM.addListener(() {
+        invVM.setLocalId(localesVM.localIdSeleccionado);
+        cliVM.setLocalId(localesVM.localIdSeleccionado);
+        provVM.setLocalId(localesVM.localIdSeleccionado);
+        pedVM.setLocalId(localesVM.localIdSeleccionado);
+        movVM.setLocalId(localesVM.localIdSeleccionado);
+        ventVM.setLocalId(localesVM.localIdSeleccionado);
+      });
+    });
+  }
+
+  Future<void> _checkPedidosNotificaciones() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final pedidosVM = context.read<PedidosProveedorViewModel>();
+      NotificationService().checkAndNotify(pedidosVM.items);
+    });
+  }
 
   final List<Widget> _pages = const [
     HomePage(),
@@ -440,6 +529,54 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                 ),
               ],
             ),
+          ),
+          // Local Selector below user
+          Consumer<LocalesViewModel>(
+            builder: (context, localesVM, child) {
+              final localActual = localesVM.localActual;
+              return InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LocalesPage()),
+                  );
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        localActual?.tipo == 'bodega'
+                            ? Icons.warehouse_rounded
+                            : Icons.store_rounded,
+                        size: 14,
+                        color: AppTheme.secondaryColor,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        localActual?.nombre ?? 'Sin local',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: AppTheme.secondaryColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      Icon(
+                        Icons.arrow_drop_down,
+                        size: 16,
+                        color: AppTheme.secondaryColor,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
           _buildAlertasBanner(context),
           Expanded(

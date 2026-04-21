@@ -9,12 +9,28 @@ import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
 
 part 'database.g.dart';
 
+@DataClassName('LocalData')
+class Locales extends Table {
+  TextColumn get id => text()();
+  TextColumn get nombre => text()();
+  TextColumn get direccion => text().nullable()();
+  TextColumn get telefono => text().nullable()();
+  TextColumn get tipo => text().withDefault(const Constant('tienda'))();
+  BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
+  DateTimeColumn get lastSyncedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 @DataClassName('ClienteData')
 class Clientes extends Table {
   TextColumn get id => text()();
   TextColumn get nombre => text()();
   TextColumn get telefono => text()();
   TextColumn get email => text().nullable()();
+  TextColumn get localId => text().nullable()();
   BoolColumn get esFiado => boolean().withDefault(const Constant(false))();
   RealColumn get saldoPendiente => real().withDefault(const Constant(0.0))();
   BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
@@ -31,6 +47,7 @@ class Proveedores extends Table {
   TextColumn get nombre => text()();
   TextColumn get telefono => text()();
   TextColumn get diasVisita => text().map(const StringListConverter())();
+  TextColumn get localId => text().nullable()();
   BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
   DateTimeColumn get lastSyncedAt => dateTime().nullable()();
@@ -47,6 +64,7 @@ class Productos extends Table {
   RealColumn get precio => real()();
   TextColumn get categoria => text()();
   TextColumn get proveedorId => text()();
+  TextColumn get localId => text().nullable()();
   IntColumn get stockMinimo => integer().withDefault(const Constant(5))();
   TextColumn get codigoBarras => text().nullable()();
   TextColumn get codigoPersonalizado => text().nullable()();
@@ -70,6 +88,7 @@ class Movimientos extends Table {
   TextColumn get productoId => text().nullable()();
   TextColumn get clienteId => text().nullable()();
   TextColumn get proveedorId => text().nullable()();
+  TextColumn get localId => text().nullable()();
   IntColumn get cantidad => integer().nullable()();
   BoolColumn get esFiado => boolean().withDefault(const Constant(false))();
   TextColumn get productosJson => text().nullable()();
@@ -90,6 +109,7 @@ class Ventas extends Table {
   DateTimeColumn get fecha => dateTime()();
   TextColumn get clienteId => text().nullable()();
   TextColumn get clienteNombre => text().nullable()();
+  TextColumn get localId => text().nullable()();
   TextColumn get concepto => text().nullable()();
   TextColumn get productosJson => text().nullable()();
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
@@ -104,6 +124,7 @@ class PedidosProveedor extends Table {
   TextColumn get id => text()();
   TextColumn get proveedorId => text()();
   TextColumn get proveedorNombre => text().nullable()();
+  TextColumn get localId => text().nullable()();
   DateTimeColumn get fechaPedido => dateTime()();
   DateTimeColumn get fechaEntrega => dateTime()();
   TextColumn get productos => text()();
@@ -133,6 +154,7 @@ class StringListConverter extends TypeConverter<List<String>, String> {
 
 @DriftDatabase(
   tables: [
+    Locales,
     Clientes,
     Proveedores,
     Productos,
@@ -145,7 +167,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -206,6 +228,31 @@ class AppDatabase extends _$AppDatabase {
         }
       } catch (e) {
         debugPrint("Migration v7 skip: $e");
+      }
+      try {
+        if (from < 9) {
+          await m.createTable(locales);
+        }
+      } catch (e) {
+        debugPrint("Migration v9 skip: $e");
+      }
+      try {
+        if (from < 9) {
+          await m.addColumn(productos, productos.localId);
+          await m.addColumn(clientes, clientes.localId);
+          await m.addColumn(proveedores, proveedores.localId);
+        }
+      } catch (e) {
+        debugPrint("Migration v9 columns skip: $e");
+      }
+      try {
+        if (from < 10) {
+          await m.addColumn(movimientos, movimientos.localId);
+          await m.addColumn(ventas, ventas.localId);
+          await m.addColumn(pedidosProveedor, pedidosProveedor.localId);
+        }
+      } catch (e) {
+        debugPrint("Migration v10 skip: $e");
       }
     },
     beforeOpen: (details) async {

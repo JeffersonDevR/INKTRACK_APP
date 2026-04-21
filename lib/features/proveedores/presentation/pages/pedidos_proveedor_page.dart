@@ -10,31 +10,44 @@ import 'crear_pedido_page.dart';
 
 class PedidosProveedorPage extends StatelessWidget {
   final bool showAll;
+  final String? proveedorId;
 
-  const PedidosProveedorPage({super.key, this.showAll = true});
+  const PedidosProveedorPage({
+    super.key,
+    this.showAll = true,
+    this.proveedorId,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Consumer<PedidosProveedorViewModel>(
       builder: (context, viewModel, child) {
-        final pedidos = showAll ? viewModel.items : viewModel.pedidosPendientes;
+        var pedidos = showAll ? viewModel.items : viewModel.pedidosPendientes;
+
+        if (proveedorId != null) {
+          pedidos = pedidos.where((p) => p.proveedorId == proveedorId).toList();
+        }
+
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              showAll ? 'Pedidos a Proveedores' : 'Pedidos Pendientes',
+              proveedorId != null
+                  ? 'Pedidos del Proveedor'
+                  : (showAll ? 'Pedidos a Proveedores' : 'Pedidos Pendientes'),
             ),
             actions: [
-              IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CrearPedidoPage(),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.add),
-              ),
+              if (proveedorId == null)
+                IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CrearPedidoPage(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.add),
+                ),
             ],
           ),
           body: pedidos.isEmpty

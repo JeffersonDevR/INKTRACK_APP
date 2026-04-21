@@ -48,6 +48,9 @@ class DriftProductosRepository implements ProductosRepository {
             categoria: item.categoria,
             proveedorId: item.proveedorId,
             stockMinimo: Value(item.stockMinimo),
+            localId: item.localId != null
+                ? Value(item.localId)
+                : const Value.absent(),
             codigoBarras: Value(item.codigoBarras),
             codigoPersonalizado: Value(item.codigoPersonalizado),
             proveedorNombre: Value(item.proveedorNombre),
@@ -67,6 +70,9 @@ class DriftProductosRepository implements ProductosRepository {
         categoria: Value(item.categoria),
         proveedorId: Value(item.proveedorId),
         stockMinimo: Value(item.stockMinimo),
+        localId: item.localId != null
+            ? Value(item.localId)
+            : const Value.absent(),
         codigoBarras: Value(item.codigoBarras),
         codigoPersonalizado: Value(item.codigoPersonalizado),
         proveedorNombre: Value(item.proveedorNombre),
@@ -140,6 +146,7 @@ class DriftProductosRepository implements ProductosRepository {
       categoria: data.categoria,
       proveedorId: data.proveedorId,
       stockMinimo: data.stockMinimo,
+      localId: data.localId,
       codigoBarras: data.codigoBarras,
       codigoPersonalizado: data.codigoPersonalizado,
       proveedorNombre: data.proveedorNombre,

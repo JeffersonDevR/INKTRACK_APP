@@ -11,6 +11,7 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
+supabase_locales_migration.sql
 
 # IntelliJ related
 *.iml
@@ -101,3 +102,4 @@ ios
 linux
 windows
 web
+flutter_project_analysis_prompt.md

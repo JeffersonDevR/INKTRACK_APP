@@ -7,6 +7,7 @@ import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedore
 import 'package:InkTrack/core/input_formatters.dart';
 import 'package:InkTrack/core/utils/ean13_generator.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
+import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmodel.dart';
 
 const String _kCustomProveedorValue = '__custom__';
 const String _kNewCategoryValue = '__new_category__';
@@ -28,9 +29,11 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
   final _precioController = TextEditingController();
   final _stockMinimoController = TextEditingController(text: '5');
   final _codigoBarrasController = TextEditingController();
+  final _codigoPersonalizadoController = TextEditingController();
   final _proveedorNombreController = TextEditingController();
   String? _proveedorId;
   String? _categoria;
+  bool _vincularBarcode = false;
 
   @override
   void initState() {
@@ -46,6 +49,10 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
           : widget.producto!.proveedorId;
       if (widget.producto!.codigoBarras != null) {
         _codigoBarrasController.text = widget.producto!.codigoBarras!;
+      }
+      if (widget.producto!.codigoPersonalizado != null) {
+        _codigoPersonalizadoController.text =
+            widget.producto!.codigoPersonalizado!;
       }
       if (widget.producto!.proveedorNombre != null) {
         _proveedorNombreController.text = widget.producto!.proveedorNombre!;
@@ -69,11 +76,29 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
     _precioController.dispose();
     _stockMinimoController.dispose();
     _codigoBarrasController.dispose();
+    _codigoPersonalizadoController.dispose();
     _proveedorNombreController.dispose();
     super.dispose();
   }
 
   bool get _useCustomProveedor => _proveedorId == _kCustomProveedorValue;
+
+  void _vincularCodigoPersonalizado() {
+    if (_codigoPersonalizadoController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Ingrese un código personalizado primero'),
+          backgroundColor: AppTheme.warningColor,
+        ),
+      );
+      return;
+    }
+    final barcode = Ean13Generator.generate();
+    setState(() {
+      _codigoBarrasController.text = barcode;
+      _vincularBarcode = true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,15 +135,44 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                 },
               ),
               const SizedBox(height: 16),
+              TextFormField(
+                controller: _codigoPersonalizadoController,
+                decoration: InputDecoration(
+                  labelText: 'Código personalizado',
+                  hintText: 'Código del cliente/proveedor',
+                  helperText: 'Ej. ZAP-001, PAP-045 (opcional)',
+                  suffixIcon: _codigoPersonalizadoController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.link, size: 20),
+                          onPressed: _vincularCodigoPersonalizado,
+                          tooltip: 'Vincular a código de barras',
+                        )
+                      : null,
+                ),
+                maxLength: 30,
+                onChanged: (_) => setState(() {}),
+              ),
+              const SizedBox(height: 16),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Expanded(
                     child: TextFormField(
                       controller: _codigoBarrasController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Código de barras (EAN-13)',
-                        hintText: 'Se genera automáticamente',
+                        hintText: _vincularBarcode
+                            ? 'Vinculado al código personalizado'
+                            : 'Se genera automáticamente',
+                        helperText: _vincularBarcode
+                            ? 'Código: ${_codigoBarrasController.text}'
+                            : null,
+                        suffixIcon: _codigoBarrasController.text.isNotEmpty
+                            ? const Icon(
+                                Icons.qr_code,
+                                color: AppTheme.successColor,
+                              )
+                            : null,
                       ),
                       readOnly: true,
                     ),
@@ -372,8 +426,13 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
         : null;
     final codigo = _codigoBarrasController.text.trim();
     final codigoBarras = codigo.isEmpty ? null : codigo;
+    final codigoPersonalizado =
+        _codigoPersonalizadoController.text.trim().isEmpty
+        ? null
+        : _codigoPersonalizadoController.text.trim();
 
     final viewModel = context.read<InventarioViewModel>();
+    final localesVM = context.read<LocalesViewModel>();
     final precio = double.parse(_precioController.text.replaceAll(',', '.'));
 
     final producto = Producto(
@@ -384,7 +443,9 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
       categoria: _categoria ?? 'Otros',
       stockMinimo: int.parse(_stockMinimoController.text),
       proveedorId: proveedorId.isEmpty ? '' : proveedorId,
+      localId: widget.producto?.localId ?? localesVM.localIdSeleccionado,
       codigoBarras: codigoBarras,
+      codigoPersonalizado: codigoPersonalizado,
       proveedorNombre: proveedorNombre,
       isActivo: widget.producto?.isActivo ?? true,
     );

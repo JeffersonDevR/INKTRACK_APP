@@ -6,6 +6,7 @@ class Cliente implements HasId {
   final String nombre;
   final String telefono;
   final String? email;
+  final String? localId;
   final bool esFiado;
   final double saldoPendiente;
   final bool isActivo;
@@ -15,6 +16,7 @@ class Cliente implements HasId {
     required this.nombre,
     required this.telefono,
     this.email,
+    this.localId,
     this.esFiado = false,
     this.saldoPendiente = 0.0,
     this.isActivo = true,
@@ -25,6 +27,7 @@ class Cliente implements HasId {
     String? nombre,
     String? telefono,
     String? email,
+    String? localId,
     bool? esFiado,
     double? saldoPendiente,
     bool? isActivo,
@@ -34,6 +37,7 @@ class Cliente implements HasId {
       nombre: nombre ?? this.nombre,
       telefono: telefono ?? this.telefono,
       email: email ?? this.email,
+      localId: localId ?? this.localId,
       esFiado: esFiado ?? this.esFiado,
       saldoPendiente: saldoPendiente ?? this.saldoPendiente,
       isActivo: isActivo ?? this.isActivo,

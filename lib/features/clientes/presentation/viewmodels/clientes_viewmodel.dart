@@ -7,9 +7,15 @@ import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
 
 class ClientesViewModel extends BaseCrudViewModel<Cliente> {
   final ClientesRepository _repository;
+  String? _localId;
 
   ClientesViewModel(this._repository) {
     _loadClientes();
+  }
+
+  void setLocalId(String? localId) {
+    _localId = localId;
+    notifyListeners();
   }
 
   bool _showInactive = false;
@@ -21,18 +27,39 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
   }
 
   List<Cliente> get clientes {
-    if (_showInactive) {
-      return items;
+    if (_localId == null) {
+      return _showInactive
+          ? items.toList()
+          : items.where((c) => c.isActivo).toList();
     }
-    return items.where((c) => c.isActivo).toList();
+    var result = items.where((c) => c.localId == _localId).toList();
+    if (!_showInactive) {
+      result = result.where((c) => c.isActivo).toList();
+    }
+    return result;
   }
 
-  int get totalInactivos => items.where((c) => !c.isActivo).length;
+  int get totalInactivos => _localId != null
+      ? items.where((c) => !c.isActivo && c.localId == _localId).length
+      : items.where((c) => !c.isActivo).length;
 
-  double get totalDeuda =>
-      items.fold(0.0, (sum, item) => sum + item.saldoPendiente);
-  int get totalClientes => items.length;
-  int get clientesConDeuda => items.where((c) => c.saldoPendiente > 0).length;
+  double get totalDeuda {
+    final base = _localId != null
+        ? items.where((c) => c.localId == _localId)
+        : items;
+    return base.fold(0.0, (sum, item) => sum + item.saldoPendiente);
+  }
+
+  int get totalClientes => _localId != null
+      ? items.where((c) => c.localId == _localId).length
+      : items.length;
+
+  int get clientesConDeuda {
+    final base = _localId != null
+        ? items.where((c) => c.localId == _localId)
+        : items;
+    return base.where((c) => c.saldoPendiente > 0).length;
+  }
 
   Future<void> _loadClientes() async {
     clearAll();
@@ -65,6 +92,7 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
     required String email,
     bool esFiado = false,
     MovimientosViewModel? movimientosVM,
+    String? localId,
   }) async {
     if (checkDuplicado(nombre, telefono)) {
       throw Exception('El cliente ya existe (mismo nombre y teléfono)');
@@ -75,6 +103,7 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
       nombre: nombre,
       telefono: telefono,
       email: email,
+      localId: localId ?? _localId,
       esFiado: esFiado,
     );
 

@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
-import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/features/clientes/data/models/cliente.dart';
+import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmodel.dart';
+import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/core/input_formatters.dart';
 
 class ClienteFormPage extends StatefulWidget {
@@ -136,11 +137,13 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
 
       try {
         if (widget.cliente == null) {
+          final localesVM = context.read<LocalesViewModel>();
           await viewModel.agregar(
             nombre: _nombreController.text,
             telefono: _telefonoController.text,
             email: _emailController.text,
             esFiado: false,
+            localId: localesVM.localIdSeleccionado,
             movimientosVM: context.read<MovimientosViewModel>(),
           );
         } else {

@@ -36,6 +36,9 @@ class DriftMovimientosRepository implements MovimientosRepository {
             productoId: Value(item.productoId),
             clienteId: Value(item.clienteId),
             proveedorId: Value(item.proveedorId),
+            localId: item.localId != null
+                ? Value(item.localId)
+                : const Value.absent(),
             cantidad: Value(item.cantidad),
             esFiado: Value(item.esFiado),
             productosJson: Value(item.productosJson),
@@ -56,6 +59,9 @@ class DriftMovimientosRepository implements MovimientosRepository {
         productoId: Value(item.productoId),
         clienteId: Value(item.clienteId),
         proveedorId: Value(item.proveedorId),
+        localId: item.localId != null
+            ? Value(item.localId)
+            : const Value.absent(),
         cantidad: Value(item.cantidad),
         esFiado: Value(item.esFiado),
         productosJson: Value(item.productosJson),
@@ -80,6 +86,7 @@ class DriftMovimientosRepository implements MovimientosRepository {
       productoId: data.productoId,
       clienteId: data.clienteId,
       proveedorId: data.proveedorId,
+      localId: data.localId,
       cantidad: data.cantidad,
       esFiado: data.esFiado,
       productosJson: data.productosJson,
