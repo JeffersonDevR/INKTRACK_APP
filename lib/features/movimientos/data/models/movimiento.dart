@@ -47,7 +47,7 @@ class Movimiento implements HasId {
     }
   }
 
-  bool get isMultiProducto => productos != null && productos.isNotEmpty;
+  bool get isMultiProducto => productos.isNotEmpty;
 
   Movimiento copyWith({
     String? id,

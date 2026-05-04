@@ -305,11 +305,6 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
         final alertas = pedidosVM.pedidosConAlerta;
         if (alertas.isEmpty) return const SizedBox.shrink();
 
-        final currencyFormat = NumberFormat.currency(
-          symbol: '\$',
-          decimalDigits: 0,
-        );
-
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(

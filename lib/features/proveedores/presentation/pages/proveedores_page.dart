@@ -4,7 +4,6 @@ import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedore
 import 'package:InkTrack/features/proveedores/data/models/proveedor.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
-import 'package:InkTrack/features/proveedores/presentation/viewmodels/pedidos_viewmodel.dart';
 import 'proveedor_form_page.dart';
 import 'pedidos_proveedor_page.dart';
 

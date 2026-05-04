@@ -45,7 +45,7 @@ class Venta implements HasId {
     }
   }
 
-  bool get isMultiProducto => productos != null && productos.isNotEmpty;
+  bool get isMultiProducto => productos.isNotEmpty;
 
   Venta copyWith({
     String? id,

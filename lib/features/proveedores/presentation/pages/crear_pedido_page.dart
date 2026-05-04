@@ -419,9 +419,7 @@ class _ProductoPedido {
 }
 
 class _AgregarProductoSheet extends StatefulWidget {
-  final _ProductoPedido? initialProducto;
-
-  const _AgregarProductoSheet({this.initialProducto});
+  const _AgregarProductoSheet({super.key});
 
   @override
   State<_AgregarProductoSheet> createState() => _AgregarProductoSheetState();
@@ -446,8 +444,6 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
       maxChildSize: 0.9,

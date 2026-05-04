@@ -58,11 +58,13 @@ class MovimientosViewModel extends BaseCrudViewModel<Movimiento> {
   double get balance => totalIngresos - totalEgresos;
 
   List<Movimiento> get filteredItems {
-    var base = _itemsFiltrados;
-    if (startDateFilter == null)
-      return base..sort((a, b) => b.fecha.compareTo(a.fecha));
+    var base = [..._itemsFiltrados];
+    if (startDateFilter == null) {
+      base.sort((a, b) => b.fecha.compareTo(a.fecha));
+      return base;
+    }
 
-    return base.where((m) {
+    final result = base.where((m) {
       final mDate = DateTime(m.fecha.year, m.fecha.month, m.fecha.day);
       final startDate = DateTime(
         startDateFilter!.year,
@@ -80,7 +82,9 @@ class MovimientosViewModel extends BaseCrudViewModel<Movimiento> {
       final isAfterStart = !mDate.isBefore(startDate);
       final isBeforeEnd = endDate == null || !mDate.isAfter(endDate);
       return isAfterStart && isBeforeEnd;
-    }).toList()..sort((a, b) => b.fecha.compareTo(a.fecha));
+    }).toList();
+    result.sort((a, b) => b.fecha.compareTo(a.fecha));
+    return result;
   }
 
   double get totalIngresosFiltered => filteredItems

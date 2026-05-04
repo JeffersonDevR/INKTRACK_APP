@@ -20,7 +20,7 @@ class NotificationService {
     if (_initialized) return;
 
     const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
+      '@mipmap/launcher_icon',
     );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -53,8 +53,6 @@ class NotificationService {
 
   List<PedidoProveedor> getPedidosProximos(List<PedidoProveedor> todos) {
     final now = DateTime.now();
-    final manana = DateTime(now.year, now.month, now.day + 1);
-
     return todos.where((p) {
       if (p.isEntregado) return false;
       final entrega = DateTime(
@@ -102,7 +100,7 @@ class NotificationService {
       channelDescription: _channelDesc,
       importance: Importance.high,
       priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
+      icon: '@mipmap/launcher_icon',
     );
 
     const iosDetails = DarwinNotificationDetails(
