@@ -4,6 +4,7 @@ import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedore
 import 'package:InkTrack/features/proveedores/data/models/proveedor.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 import 'proveedor_form_page.dart';
 import 'pedidos_proveedor_page.dart';
 
@@ -25,13 +26,14 @@ class ProveedoresPage extends StatelessWidget {
     ProveedoresViewModel viewModel,
     bool showInactive,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     return CustomScrollView(
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
           sliver: SliverToBoxAdapter(
             child: FinancialSummaryHeader(
-              title: 'Resumen\nProveedores',
+              title: l10n.resumenProveedores,
               actions: [
                 IconButton(
                   onPressed: () => viewModel.toggleShowInactive(),
@@ -41,7 +43,7 @@ class ProveedoresPage extends StatelessWidget {
                         ? AppTheme.warningColor
                         : AppTheme.textSecondary,
                   ),
-                  tooltip: showInactive ? 'Ocultar inactivos' : 'Ver inactivos',
+                  tooltip: showInactive ? 'Hide inactive' : 'View inactive',
                 ),
               ],
               totalIngresos: viewModel.proveedores.length.toDouble(),
@@ -50,9 +52,9 @@ class ProveedoresPage extends StatelessWidget {
                   .length
                   .toDouble(),
               balance: 0,
-              label1: 'Total',
-              label2: 'Con Ruta',
-              label3: 'Estadísticas',
+              label1: l10n.total,
+              label2: 'With Route',
+              label3: 'Statistics',
               icon1: Icons.local_shipping_rounded,
               icon2: Icons.route_rounded,
               icon3: Icons.bar_chart_rounded,
@@ -66,7 +68,7 @@ class ProveedoresPage extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           sliver: SliverToBoxAdapter(
             child: Text(
-              'Listado de Proveedores',
+              l10n.listadoProveedores,
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
@@ -118,8 +120,8 @@ class ProveedoresPage extends StatelessWidget {
                                   : Colors.grey.shade400,
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: Text(
-                              'INACTIVO',
+                            child: const Text(
+                              'INACTIVE',
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w900,
@@ -144,8 +146,7 @@ class ProveedoresPage extends StatelessWidget {
                               Icon(
                                 Icons.calendar_today_rounded,
                                 size: 14,
-                                color:
-                                    AppTheme.infoColor, // Blue = neutral info
+                                color: AppTheme.infoColor,
                               ),
                               const SizedBox(width: 4),
                               Flexible(
@@ -153,7 +154,7 @@ class ProveedoresPage extends StatelessWidget {
                                   fit: BoxFit.scaleDown,
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    'Visita: ${proveedor.diasVisitaShort}',
+                                    'Visit: ${proveedor.diasVisitaShort}',
                                     style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
                                           color: AppTheme.infoColor,
@@ -206,22 +207,22 @@ class ProveedoresPage extends StatelessWidget {
                                 color: AppTheme.primaryColor,
                               ),
                               const SizedBox(width: 8),
-                              const Text('Ver pedidos'),
+                              Text(l10n.verPedidos),
                             ],
                           ),
                         ),
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'edit',
                           child: Row(
                             children: [
                               Icon(Icons.edit_outlined, size: 20),
-                              SizedBox(width: 8),
-                              Text('Editar'),
+                              const SizedBox(width: 8),
+                              Text(l10n.editar),
                             ],
                           ),
                         ),
                         if (isInactive)
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'reactivate',
                             child: Row(
                               children: [
@@ -230,9 +231,9 @@ class ProveedoresPage extends StatelessWidget {
                                   size: 20,
                                   color: AppTheme.successColor,
                                 ),
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 Text(
-                                  'Reactivar',
+                                  'Reactivate',
                                   style: TextStyle(
                                     color: AppTheme.successColor,
                                   ),
@@ -252,7 +253,7 @@ class ProveedoresPage extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Eliminar',
+                                  l10n.eliminar,
                                   style: TextStyle(color: AppTheme.errorColor),
                                 ),
                               ],
@@ -270,17 +271,18 @@ class ProveedoresPage extends StatelessWidget {
   }
 
   void _showDeleteDialog(BuildContext context, Proveedor proveedor) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar proveedor'),
+        title: Text('Delete ${l10n.proveedor}'),
         content: Text(
-          '¿Eliminar a ${proveedor.nombre}?\n(Se marcará como inactivo para trazabilidad)',
+          'Delete ${proveedor.nombre}?\n(It will be marked as inactive for traceability)',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: Text(l10n.cancelar),
           ),
           TextButton(
             onPressed: () {
@@ -288,7 +290,7 @@ class ProveedoresPage extends StatelessWidget {
               Navigator.pop(ctx);
             },
             style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
-            child: const Text('Eliminar'),
+            child: Text(l10n.eliminar),
           ),
         ],
       ),
@@ -300,6 +302,7 @@ class _EmptyProveedores extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -315,12 +318,12 @@ class _EmptyProveedores extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'No hay proveedores',
+              l10n.noDataAvailable,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              'Registra proveedores para asociarlos a productos del inventario.',
+              'Register suppliers to associate them with inventory products.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium,
             ),

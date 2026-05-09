@@ -10,7 +10,10 @@ import 'package:InkTrack/core/data/local/database.dart';
 import 'package:InkTrack/core/services/auth_service.dart';
 import 'package:InkTrack/core/services/supabase_sync_service.dart';
 import 'package:InkTrack/core/services/theme_provider.dart';
+import 'package:InkTrack/core/services/locale_provider.dart';
 import 'package:InkTrack/core/services/notification_service.dart';
+import 'package:InkTrack/core/services/scanner_service.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:InkTrack/features/clientes/data/repositories/drift_clientes_repository.dart';
 import 'package:InkTrack/features/proveedores/data/repositories/drift_proveedores_repository.dart';
 import 'package:InkTrack/features/inventario/data/repositories/drift_productos_repository.dart';
@@ -26,7 +29,6 @@ import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/features/ventas/presentation/viewmodels/ventas_viewmodel.dart';
 import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmodel.dart';
-import 'package:InkTrack/core/services/scanner_service.dart';
 import 'package:InkTrack/features/home/presentation/pages/main_layout_page.dart';
 import 'package:InkTrack/features/auth/presentation/pages/login_page.dart';
 import 'package:InkTrack/features/locales/presentation/pages/onboarding_local_page.dart';
@@ -275,15 +277,19 @@ class _InkTrackAppState extends State<InkTrackApp> {
           create: (_) => MovimientosViewModel(_movimientosRepo),
         ),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => LocaleProvider()),
       ],
-      child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, child) {
+      child: Consumer2<ThemeProvider, LocaleProvider>(
+        builder: (context, themeProvider, localeProvider, child) {
           return MaterialApp(
             title: 'InkTrack',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,
+            locale: localeProvider.locale,
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
             home: _isLoggedIn
                 ? MainLayoutPage(authService: widget.authService)
                 : LoginPage(onLoginSuccess: _handleLoginSuccess),

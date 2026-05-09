@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:InkTrack/core/services/auth_service.dart';
 import 'package:InkTrack/core/services/theme_provider.dart';
+import 'package:InkTrack/core/services/locale_provider.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -12,13 +14,14 @@ class ProfilePage extends StatelessWidget {
     final authService = context.read<AuthService>();
     final user = authService.currentUser;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: isDark
           ? AppTheme.darkBackground
           : AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Perfil'),
+        title: Text(l10n.perfil),
         backgroundColor: Colors.transparent,
         elevation: 0,
         foregroundColor: isDark
@@ -44,7 +47,7 @@ class ProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              user?.email ?? 'Usuario',
+              user?.email ?? l10n.usuario,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary,
@@ -58,9 +61,9 @@ class ProfilePage extends StatelessWidget {
                 color: AppTheme.primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Text(
-                'Admin',
-                style: TextStyle(
+              child: Text(
+                l10n.admin,
+                style: const TextStyle(
                   color: AppTheme.primaryColor,
                   fontWeight: FontWeight.bold,
                 ),
@@ -70,15 +73,15 @@ class ProfilePage extends StatelessWidget {
             _buildInfoCard(
               context,
               icon: Icons.email_outlined,
-              title: 'Email',
-              value: user?.email ?? 'No disponible',
+              title: l10n.email,
+              value: user?.email ?? l10n.noDisponible,
             ),
             const SizedBox(height: 16),
             _buildInfoCard(
               context,
               icon: Icons.fingerprint,
-              title: 'ID de Usuario',
-              value: user?.id.substring(0, 8) ?? 'No disponible',
+              title: l10n.userId,
+              value: user?.id.substring(0, 8) ?? l10n.noDisponible,
             ),
             const SizedBox(height: 24),
             Consumer<ThemeProvider>(
@@ -112,7 +115,7 @@ class ProfilePage extends StatelessWidget {
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            'Modo Oscuro',
+                            l10n.modoOscuro,
                             style: Theme.of(context).textTheme.bodyLarge
                                 ?.copyWith(
                                   color: isDark
@@ -132,6 +135,87 @@ class ProfilePage extends StatelessWidget {
                 );
               },
             ),
+            const SizedBox(height: 12),
+            Consumer<LocaleProvider>(
+              builder: (context, localeProvider, child) {
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppTheme.darkSurface
+                        : AppTheme.surfaceColor,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark
+                          ? AppTheme.darkBorder
+                          : AppTheme.borderLightColor,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.language, color: AppTheme.primaryColor),
+                          const SizedBox(width: 12),
+                          Text(
+                            l10n.idioma,
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(
+                                  color: isDark
+                                      ? AppTheme.darkTextPrimary
+                                      : null,
+                                ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'ES',
+                            style: TextStyle(
+                              color: !localeProvider.isEnglish
+                                  ? AppTheme.primaryColor
+                                  : (isDark
+                                        ? AppTheme.darkTextSecondary
+                                        : Colors.grey),
+                              fontWeight: !localeProvider.isEnglish
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              fontSize: 12,
+                            ),
+                          ),
+                          Switch(
+                            value: localeProvider.isEnglish,
+                            onChanged: (_) => localeProvider.toggleLanguage(),
+                            activeTrackColor: AppTheme.primaryColor,
+                          ),
+                          Text(
+                            'EN',
+                            style: TextStyle(
+                              color: localeProvider.isEnglish
+                                  ? AppTheme.primaryColor
+                                  : (isDark
+                                        ? AppTheme.darkTextSecondary
+                                        : Colors.grey),
+                              fontWeight: localeProvider.isEnglish
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
             const SizedBox(height: 40),
             SizedBox(
               width: double.infinity,
@@ -141,21 +225,19 @@ class ProfilePage extends StatelessWidget {
                   final confirmed = await showDialog<bool>(
                     context: context,
                     builder: (ctx) => AlertDialog(
-                      title: const Text('Cerrar Sesión'),
-                      content: const Text(
-                        '¿Estás seguro de que quieres cerrar sesión?',
-                      ),
+                      title: Text(l10n.cerrarSesionTitulo),
+                      content: Text(l10n.cerrarSesionPregunta),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(ctx, false),
-                          child: const Text('Cancelar'),
+                          child: Text(l10n.cancelar),
                         ),
                         ElevatedButton(
                           onPressed: () => Navigator.pop(ctx, true),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.errorColor,
                           ),
-                          child: const Text('Cerrar Sesión'),
+                          child: Text(l10n.cerrarSesion),
                         ),
                       ],
                     ),
@@ -171,7 +253,7 @@ class ProfilePage extends StatelessWidget {
                   }
                 },
                 icon: const Icon(Icons.logout),
-                label: const Text('Cerrar Sesión'),
+                label: Text(l10n.cerrarSesion),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.errorColor,
                   foregroundColor: Colors.white,

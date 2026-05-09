@@ -9,6 +9,7 @@ import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
 import 'package:InkTrack/core/widgets/app_card.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class ReportesPage extends StatefulWidget {
@@ -59,6 +60,7 @@ class _ReportesPageState extends State<ReportesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: Consumer3<MovimientosViewModel, InventarioViewModel, ClientesViewModel>(
         builder: (context, movVM, invVM, cliVM, child) {
@@ -82,13 +84,10 @@ class _ReportesPageState extends State<ReportesPage> {
               .where((m) => m.tipo == MovimientoType.egreso)
               .fold(0.0, (sum, m) => sum + m.monto);
           final ventasRealizadas = filteredMovs
-              .where(
-                (m) => m.tipo == MovimientoType.ingreso,
-              ) // Count all income as sales for KPI
+              .where((m) => m.tipo == MovimientoType.ingreso)
               .length;
           final utilidadNeta = totalIngresos - totalEgresos;
 
-          // Data for charts
           final expensesByCategory = _groupExpensesByCategory(filteredMovs);
           final weeklyData = _groupWeeklyData(
             filteredMovs,
@@ -105,7 +104,7 @@ class _ReportesPageState extends State<ReportesPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Reportes Financieros',
+                        l10n.reportesFinancieros,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 28,
                           fontWeight: FontWeight.w800,
@@ -114,7 +113,7 @@ class _ReportesPageState extends State<ReportesPage> {
                         ),
                       ),
                       Text(
-                        'PERIODO DE ANÁLISIS',
+                        l10n.periodoDeAnalisis,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
@@ -156,7 +155,7 @@ class _ReportesPageState extends State<ReportesPage> {
                               Text(
                                 movVM.startDateFilter != null
                                     ? '${DateFormat('dd MMM').format(movVM.startDateFilter!)} – ${DateFormat('dd MMM').format(movVM.endDateFilter!)}'
-                                    : 'Seleccionar Período',
+                                    : l10n.seleccionarPeriodo,
                                 style: GoogleFonts.plusJakartaSans(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 14,
@@ -174,28 +173,28 @@ class _ReportesPageState extends State<ReportesPage> {
                       ),
                       const SizedBox(height: 24),
                       _buildMetricCard(
-                        label: 'INGRESOS TOTALES',
+                        label: l10n.ingresosTotales,
                         value: NumberFormatter.formatCurrency(totalIngresos),
                         icon: Icons.account_balance_wallet_rounded,
                         color: AppTheme.primaryColor,
                         isDark: isDark,
                       ),
                       _buildMetricCard(
-                        label: 'EGRESOS TOTALES',
+                        label: l10n.egresosTotales,
                         value: NumberFormatter.formatCurrency(totalEgresos),
                         icon: Icons.shopping_cart_rounded,
                         color: AppTheme.secondaryColor,
                         isDark: isDark,
                       ),
                       _buildMetricCard(
-                        label: 'VENTAS REALIZADAS',
+                        label: l10n.ventasRealizadas,
                         value: ventasRealizadas.toString(),
                         icon: Icons.local_offer_rounded,
                         color: AppTheme.secondaryColor,
                         isDark: isDark,
                       ),
                       _buildMetricCard(
-                        label: 'UTILIDAD NETA',
+                        label: l10n.utilidadNeta,
                         value: NumberFormatter.formatCurrency(utilidadNeta),
                         icon: Icons.account_balance_rounded,
                         color: AppTheme.successColor,
@@ -204,16 +203,17 @@ class _ReportesPageState extends State<ReportesPage> {
                       ),
                       const SizedBox(height: 16),
                       _buildChartCard(
-                        title: 'Ventas vs Gastos',
+                        title: l10n.ventasVsGastos,
                         child: _buildBarChart(weeklyData, isDark),
                         isDark: isDark,
                       ),
                       _buildChartCard(
-                        title: 'Distribución de Gastos',
+                        title: l10n.distribucionGastos,
                         child: _buildPieChart(
                           expensesByCategory,
                           totalEgresos,
                           isDark,
+                          l10n: l10n,
                         ),
                         isDark: isDark,
                       ),
@@ -309,10 +309,13 @@ class _ReportesPageState extends State<ReportesPage> {
     );
   }
 
-  Map<String, double> _groupExpensesByCategory(List<Movimiento> movs) {
+  Map<String, double> _groupExpensesByCategory(
+    List<Movimiento> movs, {
+    AppLocalizations? l10n,
+  }) {
     final Map<String, double> data = {};
     for (var m in movs.where((m) => m.tipo == MovimientoType.egreso)) {
-      final cat = m.categoria ?? 'Sin Categoría';
+      final cat = m.categoria ?? (l10n?.sinCategoria ?? 'No Category');
       data[cat] = (data[cat] ?? 0) + m.monto;
     }
     return data;
@@ -326,7 +329,6 @@ class _ReportesPageState extends State<ReportesPage> {
     final s = start ?? DateTime.now().subtract(const Duration(days: 30));
     final e = end ?? DateTime.now();
 
-    // Divide the period into 4 "weeks" or chunks for display
     final duration = e.difference(s).inDays;
     final chunkDays = (duration / 4).ceil();
 
@@ -369,7 +371,7 @@ class _ReportesPageState extends State<ReportesPage> {
               showTitles: true,
               getTitlesWidget: (value, meta) {
                 return Text(
-                  'SEM ${value.toInt() + 1}',
+                  'W${value.toInt() + 1}',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
@@ -425,9 +427,13 @@ class _ReportesPageState extends State<ReportesPage> {
   Widget _buildPieChart(
     Map<String, double> categoryData,
     double total,
-    bool isDark,
-  ) {
-    if (total == 0) return const Center(child: Text('Sin gastos registrados'));
+    bool isDark, {
+    AppLocalizations? l10n,
+  }) {
+    if (total == 0)
+      return Center(
+        child: Text(l10n?.sinGastosRegistrados ?? 'No recorded expenses'),
+      );
 
     final List<Color> colors = [
       AppTheme.primaryColor.withValues(alpha: 0.4),

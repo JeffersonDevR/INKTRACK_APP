@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:InkTrack/features/ventas/presentation/viewmodels/ventas_viewmodel.dart';
 import 'package:InkTrack/features/ventas/data/models/venta.dart';
 import 'package:InkTrack/features/clientes/data/models/cliente.dart';
@@ -107,6 +108,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
   }
 
   Future<int?> _showCantidadDialog(Producto producto) async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: '1');
     return showDialog<int>(
       context: context,
@@ -115,11 +117,13 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Precio unitario: \$${producto.precio.toStringAsFixed(2)}'),
+            Text(
+              '${l10n.precioUnitario}: \$${producto.precio.toStringAsFixed(2)}',
+            ),
             const SizedBox(height: 16),
             TextField(
               controller: controller,
-              decoration: const InputDecoration(labelText: 'Cantidad'),
+              decoration: InputDecoration(labelText: l10n.cantidad),
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               autofocus: true,
@@ -129,7 +133,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: Text(l10n.cancelar),
           ),
           FilledButton(
             onPressed: () {
@@ -138,7 +142,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                 Navigator.pop(ctx, cantidad);
               }
             },
-            child: const Text('Agregar'),
+            child: Text(l10n.agregar),
           ),
         ],
       ),
@@ -160,12 +164,13 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
     final inventarioVM = context.read<InventarioViewModel>();
     final localesVM = context.read<LocalesViewModel>();
     final localIdSeleccionado = localesVM.localIdSeleccionado;
+    final l10n = AppLocalizations.of(context)!;
     for (final prod in _productos) {
       final product = inventarioVM.getById(prod.productoId);
       if (product != null && !product.isActivo) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('El producto "${product.nombre}" está inactivo'),
+            content: Text(l10n.productoInactivo(product.nombre)),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -175,7 +180,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'No hay suficiente stock de "${product.nombre}". Disponible: ${product.cantidad}',
+              l10n.noHaySuficienteStock(product.nombre, product.cantidad),
             ),
             backgroundColor: AppTheme.errorColor,
           ),
@@ -219,8 +224,8 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
     );
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Venta registrada con éxito'),
+      SnackBar(
+        content: Text(l10n.ventaRegistradaExitoMsg),
         backgroundColor: AppTheme.successColor,
       ),
     );
@@ -268,13 +273,14 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
       }
 
       if (foundSomething) {
-        String message = 'Datos detectados:';
+        final l10n = AppLocalizations.of(context)!;
+        String message = l10n.datosDetectados;
         if (result.amount != null) {
           message +=
-              '\n- Monto: ${NumberFormatter.formatCurrency(result.amount!)}';
+              '\n- ${l10n.monto}: ${NumberFormatter.formatCurrency(result.amount!)}';
         }
         if (result.clientName != null) {
-          message += '\n- Cliente: ${result.clientName}';
+          message += '\n- ${l10n.cliente}: ${result.clientName}';
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -284,9 +290,10 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
           ),
         );
       } else {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No se detectaron datos claros. Intente de nuevo.'),
+          SnackBar(
+            content: Text(l10n.noSeDetectaronDatos),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -295,6 +302,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
   }
 
   void _showScanMenu() {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -306,7 +314,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Escanear Nota / Recibo',
+              l10n.escanearNotaRecibo,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 24),
@@ -316,7 +324,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                 Expanded(
                   child: _ScanOption(
                     icon: Icons.camera_alt_rounded,
-                    label: 'Cámara',
+                    label: l10n.camara,
                     onTap: () {
                       Navigator.pop(ctx);
                       _pickAndScanImage(ImageSource.camera);
@@ -326,7 +334,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                 Expanded(
                   child: _ScanOption(
                     icon: Icons.photo_library_rounded,
-                    label: 'Galería',
+                    label: l10n.galeria,
                     onTap: () {
                       Navigator.pop(ctx);
                       _pickAndScanImage(ImageSource.gallery);
@@ -343,31 +351,32 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final currencyFormat = NumberFormat.currency(
       symbol: '\$',
       decimalDigits: 2,
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Registrar Venta')),
+      appBar: AppBar(title: Text(l10n.registrarVenta)),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(24.0),
           children: [
-            Text('Concepto', style: Theme.of(context).textTheme.titleMedium),
+            Text(l10n.concepto, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
             TextFormField(
               controller: _conceptoController,
-              decoration: const InputDecoration(
-                labelText: 'Concepto',
+              decoration: InputDecoration(
+                labelText: l10n.concepto,
                 hintText: 'Ej. Tatuaje ',
               ),
               textCapitalization: TextCapitalization.sentences,
               inputFormatters: [InputFormatters.textOnly],
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Ingrese el concepto';
+                  return l10n.ingreseConceptoVenta;
                 }
                 return null;
               },
@@ -378,7 +387,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
               children: [
                 Expanded(
                   child: Text(
-                    'Monto de la venta',
+                    l10n.montoTotal,
                     style: Theme.of(context).textTheme.titleMedium,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -398,7 +407,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                         Icons.document_scanner_rounded,
                         size: 18,
                       ),
-                      label: const Text('Escanear'),
+                      label: Text(l10n.escanear),
                     );
                   },
                 ),
@@ -407,8 +416,8 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _montoController,
-              decoration: const InputDecoration(
-                labelText: 'Monto',
+              decoration: InputDecoration(
+                labelText: l10n.monto,
                 prefixText: '\$ ',
                 hintText: '0.00',
               ),
@@ -420,30 +429,30 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
               onChanged: (_) => setState(() {}),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Ingrese el monto';
+                  return l10n.ingreseMontoVenta;
                 }
                 final number = NumberFormatter.parseAmount(value);
                 if (number <= 0) {
-                  return 'El monto debe ser mayor a 0';
+                  return l10n.montoMayorCero;
                 }
                 if (number > 999999999) {
-                  return 'Máximo 999,999,999';
+                  return l10n.maximoMonto;
                 }
                 return null;
               },
             ),
             const SizedBox(height: 24),
             Text(
-              'Cliente (opcional)',
+              l10n.clienteOpcional2,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 12),
             Consumer<ClientesViewModel>(
               builder: (context, clientesViewModel, child) {
                 final items = <DropdownMenuItem<String>>[
-                  const DropdownMenuItem(
+                  DropdownMenuItem(
                     value: null,
-                    child: Text('Sin cliente (venta general)'),
+                    child: Text(l10n.sinClienteVentaGeneral),
                   ),
                   ...clientesViewModel.clientes.map((cliente) {
                     return DropdownMenuItem(
@@ -451,14 +460,14 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                       child: Text(cliente.nombre),
                     );
                   }),
-                  const DropdownMenuItem(
+                  DropdownMenuItem(
                     value: _kWriteNameValue,
-                    child: Text('Escribir nombre del cliente'),
+                    child: Text(l10n.escribirNombreCliente),
                   ),
                 ];
                 return DropdownButtonFormField<String>(
                   initialValue: _clienteId,
-                  decoration: const InputDecoration(labelText: 'Cliente'),
+                  decoration: InputDecoration(labelText: l10n.cliente),
                   items: items,
                   onChanged: (value) {
                     setState(() {
@@ -475,16 +484,16 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _clienteNombreController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre del cliente',
-                  hintText: 'Ej. Juan Pérez',
+                decoration: InputDecoration(
+                  labelText: l10n.nombre,
+                  hintText: l10n.ejemploNombre,
                 ),
                 textCapitalization: TextCapitalization.words,
                 inputFormatters: [InputFormatters.textOnly],
                 validator: (value) {
                   if (_clienteId == _kWriteNameValue &&
                       (value == null || value.trim().isEmpty)) {
-                    return 'Ingrese el nombre del cliente';
+                    return l10n.ingreseNombreCliente;
                   }
                   return null;
                 },
@@ -495,7 +504,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Productos',
+                  l10n.productos,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Row(
@@ -503,12 +512,12 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                     TextButton.icon(
                       onPressed: _escanearProducto,
                       icon: const Icon(Icons.qr_code_scanner, size: 18),
-                      label: const Text('Escanear'),
+                      label: Text(l10n.escanear),
                     ),
                     TextButton.icon(
                       onPressed: _agregarProducto,
                       icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Agregar'),
+                      label: Text(l10n.agregar),
                     ),
                   ],
                 ),
@@ -527,10 +536,10 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                         color: AppTheme.textSecondary.withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 8),
-                      const Text('No hay productos'),
+                      Text(l10n.noHayProductos),
                       const SizedBox(height: 4),
                       Text(
-                        'Escanee o agregue productos del inventario',
+                        l10n.escaneeOAgregueProductos,
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -574,10 +583,8 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
             const SizedBox(height: 24),
             if (_clienteId != null) ...[
               SwitchListTile(
-                title: const Text('Venta a crédito (Fiado)'),
-                subtitle: const Text(
-                  'Aumentará el saldo pendiente del cliente',
-                ),
+                title: Text(l10n.ventaCreditoFiado),
+                subtitle: Text(l10n.aumentaraSaldoPendiente),
                 value: _esFiado,
                 onChanged: (value) {
                   setState(() => _esFiado = value);
@@ -593,9 +600,9 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Total Productos',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      Text(
+                        l10n.totalProductos,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       Text(
                         currencyFormat.format(_montoTotal),
@@ -613,7 +620,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
               height: 52,
               child: ElevatedButton(
                 onPressed: _guardarVenta,
-                child: const Text('Guardar venta'),
+                child: Text(l10n.guardarVenta),
               ),
             ),
           ],
@@ -664,6 +671,7 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
       maxChildSize: 0.9,
@@ -678,7 +686,7 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
               children: [
                 Expanded(
                   child: Text(
-                    'Agregar Producto',
+                    l10n.agregarProductoTitle,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
@@ -691,9 +699,9 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
             const SizedBox(height: 16),
             TextField(
               controller: _busquedaController,
-              decoration: const InputDecoration(
-                labelText: 'Buscar producto',
-                prefixIcon: Icon(Icons.search),
+              decoration: InputDecoration(
+                labelText: l10n.buscarProductoPlaceholder,
+                prefixIcon: const Icon(Icons.search),
               ),
               onChanged: (_) => setState(() {}),
             ),
@@ -723,7 +731,8 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
                         return ListTile(
                           title: Text(producto.nombre),
                           subtitle: Text(
-                            'Stock: ${producto.cantidad} • \$${producto.precio.toStringAsFixed(2)}',
+                            l10n.stockLabel(producto.cantidad) +
+                                ' • \$${producto.precio.toStringAsFixed(2)}',
                           ),
                           onTap: () {
                             setState(() {
@@ -761,15 +770,15 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
                   const SizedBox(height: 16),
                   TextField(
                     controller: _cantidadController,
-                    decoration: const InputDecoration(labelText: 'Cantidad'),
+                    decoration: InputDecoration(labelText: l10n.cantidad),
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _precioController,
-                    decoration: const InputDecoration(
-                      labelText: 'Precio Unitario',
+                    decoration: InputDecoration(
+                      labelText: l10n.precioUnitario,
                       prefixText: '\$ ',
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
@@ -800,7 +809,7 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
                           );
                         }
                       },
-                      child: const Text('Agregar'),
+                      child: Text(l10n.agregar),
                     ),
                   ),
                 ],

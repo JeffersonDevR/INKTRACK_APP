@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 
 enum FabTab { home, clientes, proveedores, inventario, reportes }
 
@@ -75,6 +76,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
   @override
   Widget build(BuildContext context) {
     final isReportes = widget.currentTab == FabTab.reportes;
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -83,7 +85,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
         if (isReportes) ...[
           _buildSpeedDialOption(
             icon: Icons.table_chart,
-            label: 'Excel',
+            label: l10n.excel,
             color: Colors.green,
             onTap: () {
               _toggle();
@@ -94,7 +96,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
           const SizedBox(height: 8),
           _buildSpeedDialOption(
             icon: Icons.picture_as_pdf,
-            label: 'PDF',
+            label: l10n.pdf,
             color: Colors.red,
             onTap: () {
               _toggle();
@@ -105,7 +107,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
           const SizedBox(height: 8),
           _buildSpeedDialOption(
             icon: Icons.bar_chart,
-            label: 'Reportes',
+            label: l10n.reportes,
             color: AppTheme.primaryColor,
             onTap: () {
               _toggle();
@@ -116,7 +118,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
           const SizedBox(height: 8),
           _buildSpeedDialOption(
             icon: Icons.arrow_upward,
-            label: 'Egreso',
+            label: l10n.egreso,
             color: AppTheme.errorColor,
             onTap: () {
               _toggle();
@@ -127,7 +129,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
           const SizedBox(height: 8),
           _buildSpeedDialOption(
             icon: Icons.arrow_downward,
-            label: 'Ingreso',
+            label: l10n.ingreso,
             color: AppTheme.secondaryColor,
             onTap: () {
               _toggle();
@@ -139,7 +141,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
           if (widget.currentTab == FabTab.home) ...[
             _buildSpeedDialOption(
               icon: Icons.document_scanner,
-              label: 'OCR',
+              label: l10n.ocr,
               color: AppTheme.accentColor,
               onTap: () {
                 _toggle();
@@ -151,7 +153,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
           ],
           _buildSpeedDialOption(
             icon: Icons.qr_code_scanner,
-            label: 'Código',
+            label: l10n.codigo,
             color: AppTheme.primaryColor,
             onTap: () {
               _toggle();
@@ -162,7 +164,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
           const SizedBox(height: 8),
           _buildSpeedDialOption(
             icon: Icons.add_box,
-            label: 'Producto',
+            label: l10n.producto,
             color: AppTheme.primaryColor,
             onTap: () {
               _toggle();
@@ -174,7 +176,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
             const SizedBox(height: 8),
             _buildSpeedDialOption(
               icon: Icons.person_add,
-              label: 'Cliente',
+              label: l10n.cliente,
               color: AppTheme.primaryColor,
               onTap: () {
                 _toggle();
@@ -187,7 +189,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
             const SizedBox(height: 8),
             _buildSpeedDialOption(
               icon: Icons.local_shipping,
-              label: 'Proveedor',
+              label: l10n.proveedor,
               color: AppTheme.primaryColor,
               onTap: () {
                 _toggle();
@@ -198,7 +200,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
             const SizedBox(height: 8),
             _buildSpeedDialOption(
               icon: Icons.shopping_cart,
-              label: 'Nuevo Pedido',
+              label: l10n.nuevoPedido,
               color: AppTheme.secondaryColor,
               onTap: () {
                 _toggle();
@@ -211,7 +213,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
             const SizedBox(height: 8),
             _buildSpeedDialOption(
               icon: Icons.inventory,
-              label: 'Restock',
+              label: l10n.restock,
               color: AppTheme.secondaryColor,
               onTap: () {
                 _toggle();
@@ -223,7 +225,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
           const SizedBox(height: 8),
           _buildSpeedDialOption(
             icon: Icons.bar_chart,
-            label: 'Reportes',
+            label: l10n.reportes,
             color: AppTheme.primaryColor,
             onTap: () {
               _toggle();
@@ -234,7 +236,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
           const SizedBox(height: 8),
           _buildSpeedDialOption(
             icon: Icons.arrow_upward,
-            label: 'Egreso',
+            label: l10n.egreso,
             color: AppTheme.errorColor,
             onTap: () {
               _toggle();
@@ -245,7 +247,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
           const SizedBox(height: 8),
           _buildSpeedDialOption(
             icon: Icons.arrow_downward,
-            label: 'Ingreso',
+            label: l10n.ingreso,
             color: AppTheme.secondaryColor,
             onTap: () {
               _toggle();

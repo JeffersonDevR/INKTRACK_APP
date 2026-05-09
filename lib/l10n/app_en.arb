@@ -1,0 +1,1488 @@
+{
+  "@@locale": "en",
+  "appTitle": "InkTrack",
+  "@appTitle": {
+    "description": "The application name"
+  },
+  "home": "Home",
+  "@home": {
+    "description": "Home tab label"
+  },
+  "clientes": "Clients",
+  "@clientes": {
+    "description": "Clients tab label"
+  },
+  "proveedores": "Suppliers",
+  "@proveedores": {
+    "description": "Suppliers tab label"
+  },
+  "inventario": "Inventory",
+  "@inventario": {
+    "description": "Inventory tab label"
+  },
+  "stock": "Stock",
+  "@stock": {
+    "description": "Stock tab label"
+  },
+  "reportes": "Reports",
+  "@reportes": {
+    "description": "Reports tab label"
+  },
+  "perfil": "Profile",
+  "@perfil": {
+    "description": "Profile page title"
+  },
+  "modoOscuro": "Dark Mode",
+  "@modoOscuro": {
+    "description": "Dark mode toggle label"
+  },
+  "cerrarSesion": "Logout",
+  "@cerrarSesion": {
+    "description": "Logout button label"
+  },
+  "email": "Email",
+  "@email": {
+    "description": "Email field label"
+  },
+  "cancelar": "Cancel",
+  "@cancelar": {
+    "description": "Cancel button label"
+  },
+  "guardar": "Save",
+  "@guardar": {
+    "description": "Save button label"
+  },
+  "idioma": "Language",
+  "@idioma": {
+    "description": "Language toggle label"
+  },
+  "usuario": "User",
+  "@usuario": {
+    "description": "User label"
+  },
+  "admin": "Admin",
+  "@admin": {
+    "description": "Admin role label"
+  },
+  "userId": "User ID",
+  "@userId": {
+    "description": "User ID label"
+  },
+  "noDisponible": "Not available",
+  "@noDisponible": {
+    "description": "Not available text"
+  },
+  "cerrarSesionTitulo": "Logout",
+  "@cerrarSesionTitulo": {
+    "description": "Logout dialog title"
+  },
+  "cerrarSesionPregunta": "Are you sure you want to logout?",
+  "@cerrarSesionPregunta": {
+    "description": "Logout confirmation message"
+  },
+  "panelDeInicio": "Home Panel",
+  "@panelDeInicio": {
+    "description": "Home panel header"
+  },
+  "gestionDeClientes": "Client Management",
+  "@gestionDeClientes": {
+    "description": "Client management header"
+  },
+  "proveedoresHeader": "Suppliers",
+  "@proveedoresHeader": {
+    "description": "Suppliers header"
+  },
+  "controlDeInventario": "Inventory Control",
+  "@controlDeInventario": {
+    "description": "Inventory control header"
+  },
+  "reportesDeNegocio": "Business Reports",
+  "@reportesDeNegocio": {
+    "description": "Business reports header"
+  },
+  "sinLocal": "No location selected",
+  "@sinLocal": {
+    "description": "No local selected text"
+  },
+  "movimientos": "Movements",
+  "@movimientos": {
+    "description": "Movements label"
+  },
+  "productos": "Products",
+  "@productos": {
+    "description": "Products label"
+  },
+  "excel": "Excel",
+  "@excel": {
+    "description": "Excel export label"
+  },
+  "pdf": "PDF",
+  "@pdf": {
+    "description": "PDF export label"
+  },
+  "egreso": "Withdrawal",
+  "@egreso": {
+    "description": "Withdrawal label"
+  },
+  "ingreso": "Deposit",
+  "@ingreso": {
+    "description": "Deposit label"
+  },
+  "ocr": "OCR",
+  "@ocr": {
+    "description": "OCR scan label"
+  },
+  "codigo": "Barcode",
+  "@codigo": {
+    "description": "Barcode scan label"
+  },
+  "producto": "Product",
+  "@producto": {
+    "description": "Product label"
+  },
+  "cliente": "Client",
+  "@cliente": {
+    "description": "Client label"
+  },
+  "proveedor": "Supplier",
+  "@proveedor": {
+    "description": "Supplier label"
+  },
+  "nuevoPedido": "New Order",
+  "@nuevoPedido": {
+    "description": "New order label"
+  },
+  "restock": "Restock",
+  "@restock": {
+    "description": "Restock label"
+  },
+  "clientesTitulo": "Clients",
+  "@clientesTitulo": {
+    "description": "Clients page title"
+  },
+  "proveedoresTitulo": "Suppliers",
+  "@proveedoresTitulo": {
+    "description": "Suppliers page title"
+  },
+  "inventarioTitulo": "Inventory",
+  "@inventarioTitulo": {
+    "description": "Inventory page title"
+  },
+  "reportesTitulo": "Reports",
+  "@reportesTitulo": {
+    "description": "Reports page title"
+  },
+  "pdfExportado": "PDF exported: {filename}",
+  "@pdfExportado": {
+    "description": "PDF export success message",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "excelExportado": "Excel exported: {filename}",
+  "@excelExportado": {
+    "description": "Excel export success message",
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "errorAlExportarPdf": "Error exporting PDF: {error}",
+  "@errorAlExportarPdf": {
+    "description": "PDF export error message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorAlExportarExcel": "Error exporting Excel: {error}",
+  "@errorAlExportarExcel": {
+    "description": "Excel export error message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "entregasPendientes": "{count, plural, =1{1 pending delivery} other{{count} pending deliveries}}",
+  "@entregasPendientes": {
+    "description": "Pending deliveries message",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "verPedidos": "View Orders",
+  "@verPedidos": {
+    "description": "View orders button"
+  },
+  "detalleMovimiento": "Movement Detail",
+  "@detalleMovimiento": {
+    "description": "Movement detail dialog title"
+  },
+  "concepto": "Concept",
+  "@concepto": {
+    "description": "Concept label"
+  },
+  "monto": "Amount",
+  "@monto": {
+    "description": "Amount label"
+  },
+  "fecha": "Date",
+  "@fecha": {
+    "description": "Date label"
+  },
+  "categoria": "Category",
+  "@categoria": {
+    "description": "Category label"
+  },
+  "tipo": "Type",
+  "@tipo": {
+    "description": "Type label"
+  },
+  "resultados": "Results",
+  "@resultados": {
+    "description": "Results title"
+  },
+  "acumuladoTotal": "Total Accumulated",
+  "@acumuladoTotal": {
+    "description": "Total accumulated title"
+  },
+  "ventasTotales": "Total Sales",
+  "@ventasTotales": {
+    "description": "Total sales label"
+  },
+  "gastosTotales": "Total Expenses",
+  "@gastosTotales": {
+    "description": "Total expenses label"
+  },
+  "patrimonio": "Equity",
+  "@patrimonio": {
+    "description": "Equity label"
+  },
+  "balanceNeto": "Net Balance",
+  "@balanceNeto": {
+    "description": "Net balance label"
+  },
+  "tendenciaFlujo": "Cash Flow Trend",
+  "@tendenciaFlujo": {
+    "description": "Cash flow trend title"
+  },
+  "actividadReciente": "Recent Activity",
+  "@actividadReciente": {
+    "description": "Recent activity title"
+  },
+  "resultadosFiltro": "Filter Results",
+  "@resultadosFiltro": {
+    "description": "Filter results title"
+  },
+  "limpiar": "Clear",
+  "@limpiar": {
+    "description": "Clear button label"
+  },
+  "noHayActividadRegistrada": "No activity recorded",
+  "@noHayActividadRegistrada": {
+    "description": "No activity message"
+  },
+  "tusMovimientosApareceranAqui": "Your movements will appear here",
+  "@tusMovimientosApareceranAqui": {
+    "description": "Empty state subtitle"
+  },
+  "ingreso": "Income",
+  "@ingreso": {
+    "description": "Income type label"
+  },
+  "egresoTipo": "Expense",
+  "@egresoTipo": {
+    "description": "Expense type label"
+  },
+  "actividad": "Activity",
+  "@actividad": {
+    "description": "Activity type label"
+  },
+  "resumenFinanciero": "Financial\nSummary",
+  "@resumenFinanciero": {
+    "description": "Financial summary title"
+  },
+  "hoy": "Today",
+  "@hoy": {
+    "description": "Today label"
+  },
+  "si": "Yes",
+  "@si": {
+    "description": "Yes label"
+  },
+  "no": "No",
+  "@no": {
+    "description": "No label"
+  },
+  "inicio": "Start",
+  "@inicio": {
+    "description": "Start label"
+  },
+  "fin": "End",
+  "@fin": {
+    "description": "End label"
+  },
+  "periodo": "Period: {start} - {end}",
+  "@periodo": {
+    "description": "Period label for exports",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "inventarioHoja": "Inventory",
+  "@inventarioHoja": {
+    "description": "Inventory sheet name"
+  },
+  "clientesHoja": "Clients",
+  "@clientesHoja": {
+    "description": "Clients sheet name"
+  },
+  "nombre": "Name",
+  "@nombre": {
+    "description": "Name label"
+  },
+  "precio": "Price",
+  "@precio": {
+    "description": "Price label"
+  },
+  "valorTotal": "Total Value",
+  "@valorTotal": {
+    "description": "Total value label"
+  },
+  "clientesCategoria": "Clients",
+  "@clientesCategoria": {
+    "description": "Clients category"
+  },
+  "proveedoresCategoria": "Suppliers",
+  "@proveedoresCategoria": {
+    "description": "Suppliers category"
+  },
+  "fiado": "On Credit",
+  "@fiado": {
+    "description": "On credit label"
+  },
+  "miercoles": "Wed",
+  "@miercoles": {
+    "description": "Wednesday abbreviation"
+  },
+  "resumenProveedores": "Supplier\nSummary",
+  "@resumenProveedores": {
+    "description": "Suppliers summary title"
+  },
+  "total": "Total",
+  "@total": {
+    "description": "Total label"
+  },
+  "listadoProveedores": "Suppliers List",
+  "@listadoProveedores": {
+    "description": "Suppliers list title"
+  },
+  "editar": "Edit",
+  "@editar": {
+    "description": "Edit button"
+  },
+  "eliminar": "Delete",
+  "@eliminar": {
+    "description": "Delete button"
+  },
+  "crear": "Create",
+  "@crear": {
+    "description": "Create button"
+  },
+  "actualizar": "Update",
+  "@actualizar": {
+    "description": "Update button"
+  },
+  "agregar": "Add",
+  "@agregar": {
+    "description": "Add button"
+  },
+  "buscar": "Search",
+  "@buscar": {
+    "description": "Search placeholder"
+  },
+  "filtro": "Filter",
+  "@filtro": {
+    "description": "Filter label"
+  },
+  "productos": "Products",
+  "@productos": {
+    "description": "Products label"
+  },
+  "catalogoProductos": "Product Catalog",
+  "@catalogoProductos": {
+    "description": "Product catalog title"
+  },
+  "controlDeInventarioTitle": "Inventory\nControl",
+  "@controlDeInventarioTitle": {
+    "description": "Inventory control title"
+  },
+  "valorStock": "Stock Value",
+  "@valorStock": {
+    "description": "Stock value label"
+  },
+  "deudaTotal": "Total Debt",
+  "@deudaTotal": {
+    "description": "Total debt label"
+  },
+  "listadoClientes": "Clients List",
+  "@listadoClientes": {
+    "description": "Clients list title"
+  },
+  "pedidosProveedores": "Supplier Orders",
+  "@pedidosProveedores": {
+    "description": "Supplier orders title"
+  },
+  "pedidosPendientes": "Pending Orders",
+  "@pedidosPendientes": {
+    "description": "Pending orders title"
+  },
+  "nuevoIngreso": "New Income",
+  "@nuevoIngreso": {
+    "description": "New income title"
+  },
+  "nuevoEgreso": "New Expense",
+  "@nuevoEgreso": {
+    "description": "New expense title"
+  },
+  "montoTotal": "Total Amount",
+  "@montoTotal": {
+    "description": "Total amount label"
+  },
+  "totalProductos": "Total Products",
+  "@totalProductos": {
+    "description": "Total products label"
+  },
+  "nuevoPedidoProveedor": "New Supplier Order",
+  "@nuevoPedidoProveedor": {
+    "description": "New supplier order title"
+  },
+  "seleccionarProveedor": "Select Supplier",
+  "@seleccionarProveedor": {
+    "description": "Select supplier label"
+  },
+  "fechaEntrega": "Delivery Date",
+  "@fechaEntrega": {
+    "description": "Delivery date label"
+  },
+  "estado": "Status",
+  "@estado": {
+    "description": "Status label"
+  },
+  "estadoPendiente": "Pending",
+  "@estadoPendiente": {
+    "description": "Pending status"
+  },
+  "estadoCompletado": "Completed",
+  "@estadoCompletado": {
+    "description": "Completed status"
+  },
+  "estadoCancelado": "Cancelled",
+  "@estadoCancelado": {
+    "description": "Cancelled status"
+  },
+  "noDataAvailable": "No data available",
+  "@noDataAvailable": {
+    "description": "No data message"
+  },
+  "onCredit": "On Credit",
+  "@onCredit": {
+    "description": "On credit label"
+  },
+  "cash": "Cash",
+  "@cash": {
+    "description": "Cash label"
+  },
+  "registrarVenta": "Register Sale",
+  "@registrarVenta": {
+    "description": "Register sale title"
+  },
+  "carrito": "Cart",
+  "@carrito": {
+    "description": "Cart label"
+  },
+  "finalizarVenta": "Finalize Sale",
+  "@finalizarVenta": {
+    "description": "Finalize sale button"
+  },
+  "cobrar": "Charge",
+  "@cobrar": {
+    "description": "Charge button"
+  },
+  "efectivo": "Cash",
+  "@efectivo": {
+    "description": "Cash payment"
+  },
+  "transferencia": "Transfer",
+  "@transferencia": {
+    "description": "Transfer payment"
+  },
+  "pagoMixto": "Mixed Payment",
+  "@pagoMixto": {
+    "description": "Mixed payment"
+  },
+  "contenido": "Content",
+  "@contenido": {
+    "description": "Content label"
+  },
+  "observaciones": "Observations",
+  "@observaciones": {
+    "description": "Observations label"
+  },
+  "descripcion": "Description",
+  "@descripcion": {
+    "description": "Description label"
+  },
+  "nombre": "Name",
+  "@nombre": {
+    "description": "Name label"
+  },
+  "telefono": "Phone",
+  "@telefono": {
+    "description": "Phone label"
+  },
+  "direccion": "Address",
+  "@direccion": {
+    "description": "Address label"
+  },
+  "notas": "Notes",
+  "@notas": {
+    "description": "Notes label"
+  },
+  "tipo": "Type",
+  "@tipo": {
+    "description": "Type label"
+  },
+  "bodega": "Warehouse",
+  "@bodega": {
+    "description": "Warehouse label"
+  },
+  "local": "Store",
+  "@local": {
+    "description": "Store label"
+  },
+  "resetData": "Reset Data",
+  "@resetData": {
+    "description": "Reset data button"
+  },
+  "resetearData": "This will delete ALL app data (products, clients, suppliers, sales, movements, locations).",
+  "@resetearData": {
+    "description": "Reset data confirmation message"
+  },
+  "resetDataTitle": "Reset All Data",
+  "@resetDataTitle": {
+    "description": "Reset data dialog title"
+  },
+  "noLocales": "No locations registered",
+  "@noLocales": {
+    "description": "No locations message"
+  },
+  "datosIncorrectos": "Incorrect data",
+  "@datosIncorrectos": {
+    "description": "Incorrect data message"
+  },
+  "nombreRequerido": "Name is required",
+  "@nombreRequerido": {
+    "description": "Name required message"
+  },
+  "camposRequeridos": "Required fields",
+  "@camposRequeridos": {
+    "description": "Required fields message"
+  },
+  "verificarInformacion": "Please verify the information",
+  "@verificarInformacion": {
+    "description": "Verify information message"
+  },
+  "seleccionarLocal": "Select Location",
+  "@seleccionarLocal": {
+    "description": "Select location prompt"
+  },
+  "ubicacion": "Location",
+  "@ubicacion": {
+    "description": "Location label"
+  },
+  "stockMinimo": "Min Stock",
+  "@stockMinimo": {
+    "description": "Minimum stock label"
+  },
+  "stockActual": "Current Stock",
+  "@stockActual": {
+    "description": "Current stock label"
+  },
+  "codigoBarras": "Barcode",
+  "@codigoBarras": {
+    "description": "Barcode label"
+  },
+  "precioVenta": "Sale Price",
+  "@precioVenta": {
+    "description": "Sale price label"
+  },
+  "precioCompra": "Purchase Price",
+  "@precioCompra": {
+    "description": "Purchase price label"
+  },
+  "ganancia": "Profit",
+  "@ganancia": {
+    "description": "Profit label"
+  },
+  "categoria": "Category",
+  "@categoria": {
+    "description": "Category label"
+  },
+  "nuevoProducto": "New Product",
+  "@nuevoProducto": {
+    "description": "New product title"
+  },
+  "nuevoCliente": "New Client",
+  "@nuevoCliente": {
+    "description": "New client title"
+  },
+  "nuevoProveedor": "New Supplier",
+  "@nuevoProveedor": {
+    "description": "New supplier title"
+  },
+  "saldoPendiente": "Pending Balance",
+  "@saldoPendiente": {
+    "description": "Pending balance label"
+  },
+  "abonar": "Pay",
+  "@abonar": {
+    "description": "Pay button"
+  },
+  "abono": "Payment",
+  "@abono": {
+    "description": "Payment label"
+  },
+  "abonos": "Payments",
+  "@abonos": {
+    "description": "Payments label"
+  },
+  "abonoAgregado": "Payment added",
+  "@abonoAgregado": {
+    "description": "Payment added message"
+  },
+  "errorAgregarAbono": "Error adding payment",
+  "@errorAgregarAbono": {
+    "description": "Error adding payment message"
+  },
+  "montoAbono": "Payment Amount",
+  "@montoAbono": {
+    "description": "Payment amount label"
+  },
+  "deudaPendiente": "Pending Debt",
+  "@deudaPendiente": {
+    "description": "Pending debt label"
+  },
+  "deudaActual": "Current Debt",
+  "@deudaActual": {
+    "description": "Current debt label"
+  },
+  "nuevoMovimiento": "New Movement",
+  "@nuevoMovimiento": {
+    "description": "New movement title"
+  },
+  "conceptoMovimiento": "Movement Concept",
+  "@conceptoMovimiento": {
+    "description": "Movement concept label"
+  },
+  "movimientoAgregado": "Movement added",
+  "@movimientoAgregado": {
+    "description": "Movement added message"
+  },
+  "errorAgregarMovimiento": "Error adding movement",
+  "@errorAgregarMovimiento": {
+    "description": "Error adding movement message"
+  },
+  "misLocales": "My Locations",
+  "@misLocales": {
+    "description": "My locations title"
+  },
+  "agregarLocal": "Add Location",
+  "@agregarLocal": {
+    "description": "Add location button"
+  },
+  "eliminarTodosLosDatos": "Delete All Data",
+  "@eliminarTodosLosDatos": {
+    "description": "Delete all data button"
+  },
+  "agregaTuPrimeraTienda": "Add your first store or location",
+  "@agregaTuPrimeraTienda": {
+    "description": "Add first store message"
+  },
+  "actual": "Current",
+  "@actual": {
+    "description": "Current label"
+  },
+  "seleccionar": "Select",
+  "@seleccionar": {
+    "description": "Select button"
+  },
+  "nuevoLocal": "New Location",
+  "@nuevoLocal": {
+    "description": "New location title"
+  },
+  "editarLocal": "Edit Location",
+  "@editarLocal": {
+    "description": "Edit location title"
+  },
+  "nombre": "Name",
+  "@nombre": {
+    "description": "Name label"
+  },
+  "direccion": "Address",
+  "@direccion": {
+    "description": "Address label"
+  },
+  "telefono": "Phone",
+  "@telefono": {
+    "description": "Phone label"
+  },
+  "tipo": "Type",
+  "@tipo": {
+    "description": "Type label"
+  },
+  "tienda": "Store",
+  "@tienda": {
+    "description": "Store type"
+  },
+  "bodega": "Warehouse",
+  "@bodega": {
+    "description": "Warehouse type"
+  },
+  "oficina": "Office",
+  "@oficina": {
+    "description": "Office type"
+  },
+  "crear": "Create",
+  "@crear": {
+    "description": "Create button"
+  },
+  "noHayPedidos": "No orders",
+  "@noHayPedidos": {
+    "description": "No orders message"
+  },
+  "creaUnPedidoProveedor": "Create a supplier order to receive delivery alerts.",
+  "@creaUnPedidoProveedor": {
+    "description": "Create order message"
+  },
+  "pedidosDelProveedor": "Supplier Orders",
+  "@pedidosDelProveedor": {
+    "description": "Supplier orders title"
+  },
+  "stock": "Stock",
+  "@stock": {
+    "description": "Stock label"
+  },
+  "bajo": "Low",
+  "@bajo": {
+    "description": "Low label"
+  },
+  "editarProducto": "Edit Product",
+  "@editarProducto": {
+    "description": "Edit product title"
+  },
+  "desactivarProducto": "Deactivate Product",
+  "@desactivarProducto": {
+    "description": "Deactivate product dialog title"
+  },
+  "reactivarProducto": "Reactivate Product",
+  "@reactivarProducto": {
+    "description": "Reactivate product dialog title"
+  },
+  "reactivarEnCatalogo": "Reactivate \"{name}\" in the catalog?",
+  "@reactivarEnCatalogo": {
+    "description": "Reactivate product dialog content",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "inventarioVacio": "Empty inventory",
+  "@inventarioVacio": {
+    "description": "Empty inventory message"
+  },
+  "comienzaAgregandoProductos": "Start by adding products manually or scanning barcodes.",
+  "@comienzaAgregandoProductos": {
+    "description": "Start adding products message"
+  },
+  "errorAlGuardar": "Error saving",
+  "@errorAlGuardar": {
+    "description": "Error saving message"
+  },
+  "productoGuardado": "Product saved",
+  "@productoGuardado": {
+    "description": "Product saved message"
+  },
+  "stockMinimo": "Min Stock",
+  "@stockMinimo": {
+    "description": "Minimum stock label"
+  },
+  "stockActual": "Current Stock",
+  "@stockActual": {
+    "description": "Current stock label"
+  },
+  "codigoBarras": "Barcode",
+  "@codigoBarras": {
+    "description": "Barcode label"
+  },
+  "precioVenta": "Sale Price",
+  "@precioVenta": {
+    "description": "Sale price label"
+  },
+  "precioCompra": "Purchase Price",
+  "@precioCompra": {
+    "description": "Purchase price label"
+  },
+  "ganancia": "Profit",
+  "@ganancia": {
+    "description": "Profit label"
+  },
+  "categoriaProducto": "Category",
+  "@categoriaProducto": {
+    "description": "Category label"
+  },
+  "proveedorProducto": "Supplier",
+  "@proveedorProducto": {
+    "description": "Supplier label"
+  },
+  "sinProveedor": "No supplier",
+  "@sinProveedor": {
+    "description": "No supplier message"
+  },
+  "seleccionarProveedor": "Select Supplier",
+  "@seleccionarProveedor": {
+    "description": "Select supplier label"
+  },
+  "escanerCodigoBarras": "Barcode Scanner",
+  "@escanerCodigoBarras": {
+    "description": "Barcode scanner title"
+  },
+  "subiendoCambios": "Uploading changes...",
+  "@subiendoCambios": {
+    "description": "Uploading message"
+  },
+  "descargandoDeLaNube": "Downloading from cloud...",
+  "@descargandoDeLaNube": {
+    "description": "Downloading message"
+  },
+  "sincronizandoTodo": "Syncing everything...",
+  "@sincronizandoTodo": {
+    "description": "Syncing message"
+  },
+  "subirCambios": "Upload Changes",
+  "@subirCambios": {
+    "description": "Upload changes button"
+  },
+  "descargarDeLaNube": "Download from Cloud",
+  "@descargarDeLaNube": {
+    "description": "Download from cloud button"
+  },
+  "sincronizarTodo": "Sync All",
+  "@sincronizarTodo": {
+    "description": "Sync all button"
+  },
+  "reportesFinancieros": "Financial Reports",
+  "@reportesFinancieros": {
+    "description": "Financial reports title"
+  },
+  "periodoDeAnalisis": "ANALYSIS PERIOD",
+  "@periodoDeAnalisis": {
+    "description": "Analysis period label"
+  },
+  "seleccionarPeriodo": "Select Period",
+  "@seleccionarPeriodo": {
+    "description": "Select period button"
+  },
+  "ingresosTotales": "TOTAL INCOME",
+  "@ingresosTotales": {
+    "description": "Total income label"
+  },
+  "egresosTotales": "TOTAL EXPENSES",
+  "@egresosTotales": {
+    "description": "Total expenses label"
+  },
+  "ventasRealizadas": "COMPLETED SALES",
+  "@ventasRealizadas": {
+    "description": "Completed sales label"
+  },
+  "utilidadNeta": "NET PROFIT",
+  "@utilidadNeta": {
+    "description": "Net profit label"
+  },
+  "ventasVsGastos": "Sales vs Expenses",
+  "@ventasVsGastos": {
+    "description": "Sales vs expenses chart title"
+  },
+  "distribucionGastos": "Expense Distribution",
+  "@distribucionGastos": {
+    "description": "Expense distribution chart title"
+  },
+  "sinCategoria": "No Category",
+  "@sinCategoria": {
+    "description": "No category label"
+  },
+  "semana": "WEEK {number}",
+  "@semana": {
+    "description": "Week label",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "sinGastosRegistrados": "No recorded expenses",
+  "@sinGastosRegistrados": {
+    "description": "No recorded expenses message"
+  },
+  "nuevoProveedor": "New Supplier",
+  "@nuevoProveedor": {
+    "description": "New supplier title"
+  },
+  "editarProveedor": "Edit Supplier",
+  "@editarProveedor": {
+    "description": "Edit supplier title"
+  },
+  "nuevoCliente": "New Client",
+  "@nuevoCliente": {
+    "description": "New client title"
+  },
+  "editarCliente": "Edit Client",
+  "@editarCliente": {
+    "description": "Edit client title"
+  },
+  "nuevoProducto": "New Product",
+  "@nuevoProducto": {
+    "description": "New product title"
+  },
+  "editarProducto": "Edit Product",
+  "@editarProducto": {
+    "description": "Edit product title"
+  },
+  "nuevoMovimiento": "New Movement",
+  "@nuevoMovimiento": {
+    "description": "New movement title"
+  },
+  "guardarActualizar": "Update",
+  "@guardarActualizar": {
+    "description": "Save/Update button"
+  },
+  "cantidad": "Quantity",
+  "@cantidad": {
+    "description": "Quantity label"
+  },
+  "agregarProducto": "Add Product",
+  "@agregarProducto": {
+    "description": "Add product button"
+  },
+  "montoTotal": "Total Amount",
+  "@montoTotal": {
+    "description": "Total amount label"
+  },
+  "fecha": "Date",
+  "@fecha": {
+    "description": "Date label"
+  },
+  "escanerCodigoBarras": "Barcode Scanner",
+  "@escanerCodigoBarras": {
+    "description": "Barcode scanner title"
+  },
+  "telefono": "Phone",
+  "@telefono": {
+    "description": "Phone label"
+  },
+  "email": "Email",
+  "@email": {
+    "description": "Email label"
+  },
+  "direccion": "Address",
+  "@direccion": {
+    "description": "Address label"
+  },
+  "notas": "Notes",
+  "@notas": {
+    "description": "Notes label"
+  },
+  "observaciones": "Observations",
+  "@observaciones": {
+    "description": "Observations label"
+  },
+  "descripcion": "Description",
+  "@descripcion": {
+    "description": "Description label"
+  },
+  "categoria": "Category",
+  "@categoria": {
+    "description": "Category label"
+  },
+  "proveedor": "Supplier",
+  "@proveedor": {
+    "description": "Supplier label"
+  },
+  "sinProveedor": "No supplier",
+  "@sinProveedor": {
+    "description": "No supplier message"
+  },
+  "seleccionarProveedor": "Select Supplier",
+  "@seleccionarProveedor": {
+    "description": "Select supplier label"
+  },
+  "stockMinimo": "Min Stock",
+  "@stockMinimo": {
+    "description": "Minimum stock label"
+  },
+  "stockActual": "Current Stock",
+  "@stockActual": {
+    "description": "Current stock label"
+  },
+  "codigoBarras": "Barcode",
+  "@codigoBarras": {
+    "description": "Barcode label"
+  },
+  "precioVenta": "Sale Price",
+  "@precioVenta": {
+    "description": "Sale price label"
+  },
+  "precioCompra": "Purchase Price",
+  "@precioCompra": {
+    "description": "Purchase price label"
+  },
+  "ganancia": "Profit",
+  "@ganancia": {
+    "description": "Profit label"
+  },
+  "escanearCodigoBarras": "Scan Barcode",
+  "@escanearCodigoBarras": {
+    "description": "Scan barcode button"
+  },
+  "buscarProducto": "Search Product",
+  "@buscarProducto": {
+    "description": "Search product placeholder"
+  },
+  "registrarVenta": "Register Sale",
+  "@registrarVenta": {
+    "description": "Register sale title"
+  },
+  "carrito": "Cart",
+  "@carrito": {
+    "description": "Cart label"
+  },
+  "totalProductos": "Total Products",
+  "@totalProductos": {
+    "description": "Total products label"
+  },
+  "monto": "Amount",
+  "@monto": {
+    "description": "Amount label"
+  },
+  "concepto": "Concept",
+  "@concepto": {
+    "description": "Concept label"
+  },
+  "ingreso": "Income",
+  "@ingreso": {
+    "description": "Income type label"
+  },
+  "egreso": "Expense",
+  "@egreso": {
+    "description": "Expense type label"
+  },
+  "nuevoIngreso": "New Income",
+  "@nuevoIngreso": {
+    "description": "New income title"
+  },
+  "nuevoEgreso": "New Expense",
+  "@nuevoEgreso": {
+    "description": "New expense title"
+  },
+  "errorAlGuardar": "Error saving",
+  "@errorAlGuardar": {
+    "description": "Error saving message"
+  },
+  "guardadoExitoso": "Saved successfully",
+  "@guardadoExitoso": {
+    "description": "Saved successfully message"
+  },
+  "nuevoCliente": "New Client",
+  "@nuevoCliente": {
+    "description": "New client title"
+  },
+  "editarCliente": "Edit Client",
+  "@editarCliente": {
+    "description": "Edit client title"
+  },
+  "ingreseNombre": "Please enter the name",
+  "@ingreseNombre": {
+    "description": "Please enter name message"
+  },
+  "minimo2Caracteres": "Minimum 2 characters",
+  "@minimo2Caracteres": {
+    "description": "Minimum 2 characters message"
+  },
+  "ingreseTelefono": "Please enter the phone",
+  "@ingreseTelefono": {
+    "description": "Please enter phone message"
+  },
+  "telefono10Digitos": "The phone must be exactly 10 digits",
+  "@telefono10Digitos": {
+    "description": "Phone 10 digits message"
+  },
+  "digitos10SinEspacios": "10 digits without spaces",
+  "@digitos10SinEspacios": {
+    "description": "10 digits no spaces hint"
+  },
+  "ingreseEmail": "Please enter the email",
+  "@ingreseEmail": {
+    "description": "Please enter email message"
+  },
+  "ingreseEmailValido": "Please enter a valid email",
+  "@ingreseEmailValido": {
+    "description": "Please enter valid email message"
+  },
+  "diasVisita": "Visit days",
+  "@diasVisita": {
+    "description": "Visit days label"
+  },
+  "lunes": "Monday",
+  "@lunes": {
+    "description": "Monday label"
+  },
+  "martes": "Tuesday",
+  "@martes": {
+    "description": "Tuesday label"
+  },
+  "miercoles": "Wednesday",
+  "@miercoles": {
+    "description": "Wednesday label"
+  },
+  "jueves": "Thursday",
+  "@jueves": {
+    "description": "Thursday label"
+  },
+  "viernes": "Friday",
+  "@viernes": {
+    "description": "Friday label"
+  },
+  "sabado": "Saturday",
+  "@sabado": {
+    "description": "Saturday label"
+  },
+  "domingo": "Sunday",
+  "@domingo": {
+    "description": "Sunday label"
+  },
+  "nuevaCategoria": "New category",
+  "@nuevaCategoria": {
+    "description": "New category label"
+  },
+  "nombreCategoria": "Category name",
+  "@nombreCategoria": {
+    "description": "Category name label"
+  },
+  "seleccioneCategoria": "Select a category",
+  "@seleccioneCategoria": {
+    "description": "Select category hint"
+  },
+  "seleccioneOCreeCategoria": "Select or create a category",
+  "@seleccioneOCreeCategoria": {
+    "description": "Select or create category message"
+  },
+  "ingreseMonto": "Enter an amount",
+  "@ingreseMonto": {
+    "description": "Enter amount message"
+  },
+  "montoInvalido": "Invalid amount",
+  "@montoInvalido": {
+    "description": "Invalid amount message"
+  },
+  "ingreseConcepto": "Enter a concept",
+  "@ingreseConcepto": {
+    "description": "Enter concept message"
+  },
+  "clienteOpcional": "Client (Optional)",
+  "@clienteOpcional": {
+    "description": "Client optional label"
+  },
+  "ninguno": "None",
+  "@ninguno": {
+    "description": "None label"
+  },
+  "ventaFiada": "Credit Sale",
+  "@ventaFiada": {
+    "description": "Credit sale label"
+  },
+  "anadirSaldoPendiente": "Add to client's pending balance",
+  "@anadirSaldoPendiente": {
+    "description": "Add to pending balance message"
+  },
+  "calculadoAutomaticamente": "Calculated automatically",
+  "@calculadoAutomaticamente": {
+    "description": "Calculated automatically hint"
+  },
+  "sinClienteVentaGeneral": "No client (general sale)",
+  "@sinClienteVentaGeneral": {
+    "description": "No client general sale label"
+  },
+  "escribirNombreCliente": "Write client name",
+  "@escribirNombreCliente": {
+    "description": "Write client name label"
+  },
+  "ingreseNombreCliente": "Enter the client name",
+  "@ingreseNombreCliente": {
+    "description": "Enter client name message"
+  },
+  "ventaCreditoFiado": "Credit sale (Fiado)",
+  "@ventaCreditoFiado": {
+    "description": "Credit sale fiado label"
+  },
+  "aumentaraSaldoPendiente": "Will increase the client's pending balance",
+  "@aumentaraSaldoPendiente": {
+    "description": "Will increase pending balance message"
+  },
+  "noHayProductos": "No products",
+  "@noHayProductos": {
+    "description": "No products message"
+  },
+  "escaneeOAgregueProductos": "Scan or add products from inventory",
+  "@escaneeOAgregueProductos": {
+    "description": "Scan or add products message"
+  },
+  "ingreseMontoVenta": "Enter the amount",
+  "@ingreseMontoVenta": {
+    "description": "Enter sale amount message"
+  },
+  "montoMayorCero": "Amount must be greater than 0",
+  "@montoMayorCero": {
+    "description": "Amount must be greater than 0 message"
+  },
+  "precioUnitario": "Unit price",
+  "@precioUnitario": {
+    "description": "Unit price label"
+  },
+  "escanearNotaRecibo": "Scan Note / Receipt",
+  "@escanearNotaRecibo": {
+    "description": "Scan note receipt title"
+  },
+  "camara": "Camera",
+  "@camara": {
+    "description": "Camera label"
+  },
+  "galeria": "Gallery",
+  "@galeria": {
+    "description": "Gallery label"
+  },
+  "datosDetectados": "Detected data:",
+  "@datosDetectados": {
+    "description": "Detected data message"
+  },
+  "montoDetectado": "Amount: {amount}",
+  "@montoDetectado": {
+    "description": "Detected amount message",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "clienteDetectado": "Client: {name}",
+  "@clienteDetectado": {
+    "description": "Detected client message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noSeDetectaronDatos": "No clear data detected. Try again.",
+  "@noSeDetectaronDatos": {
+    "description": "No data detected message"
+  },
+  "ingreseConceptoVenta": "Enter the concept",
+  "@ingreseConceptoVenta": {
+    "description": "Enter sale concept message"
+  },
+  "productoInactivo": "Product \"{name}\" is inactive",
+  "@productoInactivo": {
+    "description": "Product inactive message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noHaySuficienteStock": "Not enough stock of \"{name}\". Available: {available}",
+  "@noHaySuficienteStock": {
+    "description": "Not enough stock message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "available": {
+        "type": "int"
+      }
+    }
+  },
+  "ventaRegistradaExito": "Sale registered successfully",
+  "@ventaRegistradaExito": {
+    "description": "Sale registered successfully message"
+  },
+  "escanear": "Scan",
+  "@escanear": {
+    "description": "Scan button label"
+  },
+  "agregarProductoTitle": "Add Product",
+  "@agregarProductoTitle": {
+    "description": "Add product sheet title"
+  },
+  "buscarProductoPlaceholder": "Search product",
+  "@buscarProductoPlaceholder": {
+    "description": "Search product placeholder"
+  },
+  "stockLabel": "Stock: {stock}",
+  "@stockLabel": {
+    "description": "Stock label with value",
+    "placeholders": {
+      "stock": {
+        "type": "int"
+      }
+    }
+  },
+  "ejemploNombre": "Ex. John Doe",
+  "@ejemploNombre": {
+    "description": "Example name hint"
+  },
+  "ejemploTelefono": "Ex. 3001234567",
+  "@ejemploTelefono": {
+    "description": "Example phone hint"
+  },
+  "ejemploEmail": "example@email.com",
+  "@ejemploEmail": {
+    "description": "Example email hint"
+  },
+  "proveedorOpcional": "Supplier (Optional)",
+  "@proveedorOpcional": {
+    "description": "Supplier optional label"
+  },
+  "clienteOpcionalLabel": "Client (Optional)",
+  "@clienteOpcionalLabel": {
+    "description": "Client optional label"
+  },
+  "ingreseElMonto": "Enter the amount",
+  "@ingreseElMonto": {
+    "description": "Enter the amount message"
+  },
+  "maximoMonto": "Maximum 999,999,999",
+  "@maximoMonto": {
+    "description": "Maximum amount message"
+  },
+  "clienteOpcional2": "Client (optional)",
+  "@clienteOpcional2": {
+    "description": "Client optional label"
+  },
+  "guardarVenta": "Save sale",
+  "@guardarVenta": {
+    "description": "Save sale button label"
+  },
+  "ventaRegistradaExitoMsg": "Sale registered successfully",
+  "@ventaRegistradaExitoMsg": {
+    "description": "Sale registered successfully message"
+  },
+  "productoNoEncontrado": "Product not found in inventory",
+  "@productoNoEncontrado": {
+    "description": "Product not found message"
+  },
+  "restockLabel": "Restock: {name}",
+  "@restockLabel": {
+    "description": "Restock label",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "escanearCodigoTitulo": "Scan Code",
+  "@escanearCodigoTitulo": {
+    "description": "Scan code title"
+  },
+  "historialMovimientos": "Movement History",
+  "@historialMovimientos": {
+    "description": "Movement history title"
+  },
+  "recentRecords": "Recent Records",
+  "@recentRecords": {
+    "description": "Recent records label"
+  },
+  "resultadosFiltroTitle": "Filtered Results",
+  "@resultadosFiltroTitle": {
+    "description": "Filtered results label"
+  },
+  "totalItems": "Total: {count}",
+  "@totalItems": {
+    "description": "Total items label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "limpiarFiltro": "Clear Filter",
+  "@limpiarFiltro": {
+    "description": "Clear filter button"
+  },
+  "eliminarRegistro": "Delete Record",
+  "@eliminarRegistro": {
+    "description": "Delete record dialog title"
+  },
+  "confirmarEliminarRegistro": "Are you sure you want to permanently delete this record?",
+  "@confirmarEliminarRegistro": {
+    "description": "Delete record confirmation message"
+  },
+  "historialVacio": "Empty history",
+  "@historialVacio": {
+    "description": "Empty history title"
+  },
+  "noHayRegistros": "No income or expense records yet.",
+  "@noHayRegistros": {
+    "description": "No records message"
+  },
+  "editarRegistro": "Edit",
+  "@editarRegistro": {
+    "description": "Edit record label"
+  },
+  "movementHistoryTitle": "Movement History",
+  "@movementHistoryTitle": {
+    "description": "Movement history title"
+  },
+  "clearFilterBtn": "Clear Filter",
+  "@clearFilterBtn": {
+    "description": "Clear filter button label"
+  },
+  "emptyHistoryTitle": "Empty history",
+  "@emptyHistoryTitle": {
+    "description": "Empty history title"
+  },
+  "noRecordsYet": "No income or expense records yet.",
+  "@noRecordsYet": {
+    "description": "No records yet message"
+  },
+  "deleteRecordTitle": "Delete Record",
+  "@deleteRecordTitle": {
+    "description": "Delete record dialog title"
+  },
+  "confirmDeleteRecord": "Are you sure you want to permanently delete this record?",
+  "@confirmDeleteRecord": {
+    "description": "Delete record confirmation message"
+  }
+}

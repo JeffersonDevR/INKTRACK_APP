@@ -10,6 +10,7 @@ import 'package:InkTrack/core/widgets/financial_summary_header.dart';
 import 'package:InkTrack/core/widgets/trend_chart.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
 import 'package:InkTrack/core/widgets/app_card.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -48,6 +49,7 @@ class HomePage extends StatelessWidget {
 
   void _showMovimientoDetalle(BuildContext context, mov_model.Movimiento mov) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -80,7 +82,7 @@ class HomePage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Detalle de movimiento',
+                    l10n.detalleMovimiento,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   IconButton(
@@ -100,10 +102,10 @@ class HomePage extends StatelessWidget {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    _DetailRow(label: 'Concepto', value: mov.concepto),
+                    _DetailRow(label: l10n.concepto, value: mov.concepto),
                     const Divider(height: 32),
                     _DetailRow(
-                      label: 'Monto',
+                      label: l10n.monto,
                       value: NumberFormatter.formatCompact(mov.monto),
                       valueStyle: TextStyle(
                         fontSize: 20,
@@ -117,21 +119,21 @@ class HomePage extends StatelessWidget {
                     ),
                     const Divider(height: 32),
                     _DetailRow(
-                      label: 'Fecha',
+                      label: l10n.fecha,
                       value: DateFormat('dd/MM/yyyy HH:mm').format(mov.fecha),
                     ),
                     if (mov.categoria != null) ...[
                       const Divider(height: 32),
-                      _DetailRow(label: 'Categoría', value: mov.categoria!),
+                      _DetailRow(label: l10n.categoria, value: mov.categoria!),
                     ],
                     const Divider(height: 32),
                     _DetailRow(
-                      label: 'Tipo',
+                      label: l10n.tipo,
                       value: mov.tipo == mov_model.MovimientoType.ingreso
-                          ? 'Ingreso'
+                          ? l10n.ingreso
                           : mov.tipo == mov_model.MovimientoType.egreso
-                          ? 'Egreso'
-                          : 'Actividad',
+                          ? l10n.egresoTipo
+                          : l10n.actividad,
                     ),
                   ],
                 ),
@@ -145,12 +147,13 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: Consumer2<MovimientosViewModel, InventarioViewModel>(
         builder: (context, movVM, invVM, child) {
           final isFiltered = movVM.startDateFilter != null;
           final summary = FinancialSummaryHeader(
-            title: isFiltered ? 'Resultados' : 'Acumulado Total',
+            title: isFiltered ? l10n.resultados : l10n.acumuladoTotal,
             totalIngresos: isFiltered
                 ? movVM.totalIngresosFiltered
                 : movVM.totalIngresos,
@@ -161,9 +164,9 @@ class HomePage extends StatelessWidget {
             startDate: movVM.startDateFilter,
             endDate: movVM.endDateFilter,
             onDateTap: () => _selectDateRange(context),
-            label1: isFiltered ? 'Ingresos' : 'Ventas Totales',
-            label2: isFiltered ? 'Egresos' : 'Gastos Totales',
-            label3: isFiltered ? 'Balance' : 'Patrimonio',
+            label1: isFiltered ? l10n.ingreso : l10n.ventasTotales,
+            label2: isFiltered ? l10n.egresoTipo : l10n.gastosTotales,
+            label3: isFiltered ? l10n.balanceNeto : l10n.patrimonio,
             icon1: isFiltered ? Icons.trending_up : Icons.summarize_rounded,
             icon2: isFiltered ? Icons.trending_down : Icons.payments_rounded,
             icon3: Icons.account_balance_wallet_rounded,
@@ -190,7 +193,7 @@ class HomePage extends StatelessWidget {
                       summary,
                       const SizedBox(height: 28),
                       Text(
-                        'Tendencia de Flujo',
+                        l10n.tendenciaFlujo,
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
@@ -202,8 +205,8 @@ class HomePage extends StatelessWidget {
                         children: [
                           Text(
                             movVM.startDateFilter == null
-                                ? 'Actividad Reciente'
-                                : 'Resultados del Filtro',
+                                ? l10n.actividadReciente
+                                : l10n.resultadosFiltro,
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(fontWeight: FontWeight.w800),
                           ),
@@ -211,7 +214,7 @@ class HomePage extends StatelessWidget {
                             TextButton.icon(
                               onPressed: () => movVM.clearDateFilter(),
                               icon: const Icon(Icons.clear_rounded, size: 18),
-                              label: const Text('Limpiar'),
+                              label: Text(l10n.limpiar),
                               style: TextButton.styleFrom(
                                 foregroundColor: AppTheme.errorColor,
                               ),
@@ -255,6 +258,7 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 60),
@@ -276,7 +280,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              'No hay actividad registrada',
+              l10n.noHayActividadRegistrada,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: (isDark
                     ? AppTheme.darkTextSecondary
@@ -286,7 +290,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Tus movimientos aparecerán aquí',
+              l10n.tusMovimientosApareceranAqui,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: (isDark
                     ? AppTheme.darkTextTertiary

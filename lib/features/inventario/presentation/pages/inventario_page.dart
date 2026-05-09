@@ -7,6 +7,7 @@ import 'package:InkTrack/core/widgets/financial_summary_header.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
 import 'package:InkTrack/core/services/supabase_sync_service.dart';
 import 'package:InkTrack/core/widgets/app_card.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 import 'producto_form_page.dart';
 
 class InventarioPage extends StatelessWidget {
@@ -17,6 +18,7 @@ class InventarioPage extends StatelessWidget {
     return Consumer<InventarioViewModel>(
       builder: (context, viewModel, child) {
         final showInactive = viewModel.showInactive;
+        final l10n = AppLocalizations.of(context)!;
 
         return Scaffold(
           body: CustomScrollView(
@@ -25,7 +27,7 @@ class InventarioPage extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
                 sliver: SliverToBoxAdapter(
                   child: FinancialSummaryHeader(
-                    title: 'Control de\nInventario',
+                    title: l10n.controlDeInventarioTitle,
                     actions: [
                       IconButton(
                         onPressed: () => viewModel.toggleShowInactive(),
@@ -38,15 +40,15 @@ class InventarioPage extends StatelessWidget {
                               : AppTheme.textSecondary,
                         ),
                         tooltip: showInactive
-                            ? 'Ocultar inactivos'
-                            : 'Ver inactivos',
+                            ? 'Hide inactive'
+                            : 'View inactive',
                       ),
                       PopupMenuButton<String>(
                         icon: const Icon(
                           Icons.cloud_sync_rounded,
                           color: AppTheme.primaryColor,
                         ),
-                        tooltip: 'Sincronización',
+                        tooltip: 'Sync',
                         onSelected: (value) async {
                           final syncService = context
                               .read<SupabaseSyncService>();
@@ -58,10 +60,10 @@ class InventarioPage extends StatelessWidget {
                             SnackBar(
                               content: Text(
                                 value == 'upload'
-                                    ? 'Subiendo cambios...'
+                                    ? 'Uploading changes...'
                                     : value == 'download'
-                                    ? 'Descargando de la nube...'
-                                    : 'Sincronizando todo...',
+                                    ? 'Downloading from cloud...'
+                                    : 'Syncing everything...',
                               ),
                               duration: const Duration(seconds: 1),
                             ),
@@ -99,33 +101,33 @@ class InventarioPage extends StatelessWidget {
                           );
                         },
                         itemBuilder: (context) => [
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'upload',
                             child: Row(
                               children: [
                                 Icon(Icons.cloud_upload_outlined, size: 20),
-                                SizedBox(width: 12),
-                                Text('Subir cambios'),
+                                const SizedBox(width: 12),
+                                Text('Upload changes'),
                               ],
                             ),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'download',
                             child: Row(
                               children: [
                                 Icon(Icons.cloud_download_outlined, size: 20),
-                                SizedBox(width: 12),
-                                Text('Descargar de la nube'),
+                                const SizedBox(width: 12),
+                                Text('Download from cloud'),
                               ],
                             ),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'both',
                             child: Row(
                               children: [
                                 Icon(Icons.sync_rounded, size: 20),
-                                SizedBox(width: 12),
-                                Text('Sincronizar todo'),
+                                const SizedBox(width: 12),
+                                Text('Sync all'),
                               ],
                             ),
                           ),
@@ -136,9 +138,9 @@ class InventarioPage extends StatelessWidget {
                     totalEgresos: viewModel.productosConStockBajo.length
                         .toDouble(),
                     balance: viewModel.valorTotalInventario,
-                    label1: 'Productos',
-                    label2: 'Stock Bajo',
-                    label3: 'Valor Stock',
+                    label1: l10n.productos,
+                    label2: 'Low Stock',
+                    label3: l10n.valorStock,
                     icon1: Icons.inventory_2_rounded,
                     icon2: Icons.warning_amber_rounded,
                     icon3: Icons.account_balance_wallet_rounded,
@@ -149,7 +151,10 @@ class InventarioPage extends StatelessWidget {
                 ),
               ),
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
                 sliver: SliverToBoxAdapter(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -166,10 +171,9 @@ class InventarioPage extends StatelessWidget {
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            'Catálogo de Productos',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w800,
-                            ),
+                            l10n.catalogoProductos,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w800),
                           ),
                         ],
                       ),
@@ -187,7 +191,7 @@ class InventarioPage extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            '${viewModel.productos.where((p) => !p.isActivo).length} Inactivos',
+                            '${viewModel.productos.where((p) => !p.isActivo).length} Inactive',
                             style: const TextStyle(
                               fontSize: 10,
                               color: AppTheme.primaryColor,
@@ -236,18 +240,19 @@ class InventarioPage extends StatelessWidget {
   }
 
   void _showDeleteDialog(BuildContext context, Producto producto) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: const Text('Desactivar producto'),
+        title: Text('Deactivate ${l10n.producto}'),
         content: Text(
-          '¿Deseas desactivar "${producto.nombre}"?\n\nNo aparecerá en el listado ni en nuevas ventas, pero sus registros históricos se conservarán.',
+          'Deactivate "${producto.nombre}"?\n\nIt will not appear in listings or new sales, but its historical records will be preserved.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: Text(l10n.cancelar),
           ),
           ElevatedButton(
             onPressed: () {
@@ -258,7 +263,7 @@ class InventarioPage extends StatelessWidget {
               backgroundColor: AppTheme.errorColor,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Desactivar'),
+            child: Text('Deactivate'),
           ),
         ],
       ),
@@ -266,23 +271,24 @@ class InventarioPage extends StatelessWidget {
   }
 
   void _showReactivateDialog(BuildContext context, Producto producto) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: const Text('Reactivar producto'),
-        content: Text('¿Reactivar "${producto.nombre}" en el catálogo?'),
+        title: Text('Reactivate ${l10n.producto}'),
+        content: Text('Reactivate "${producto.nombre}" in the catalog?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: Text(l10n.cancelar),
           ),
           ElevatedButton(
             onPressed: () {
               context.read<InventarioViewModel>().reactivar(producto.id);
               Navigator.pop(ctx);
             },
-            child: const Text('Reactivar'),
+            child: Text('Reactivate'),
           ),
         ],
       ),
@@ -294,6 +300,7 @@ class _EmptyInventario extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -314,18 +321,18 @@ class _EmptyInventario extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'Inventario vacío',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
+              'Empty inventory',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 12),
             Text(
-              'Comienza agregando productos manualmente o escaneando códigos de barras.',
+              'Start by adding products manually or scanning barcodes.',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppTheme.textSecondary,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
             ),
           ],
         ),
@@ -349,9 +356,12 @@ class _ProductoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isInactive = !producto.isActivo;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final stockColor = producto.stockBajo ? AppTheme.errorColor : AppTheme.successColor;
+    final stockColor = producto.stockBajo
+        ? AppTheme.errorColor
+        : AppTheme.successColor;
 
     return AppCard(
       onTap: isInactive ? null : onEdit,
@@ -368,9 +378,7 @@ class _ProductoCard extends StatelessWidget {
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
-                    color: (isInactive
-                            ? AppTheme.textTertiary
-                            : stockColor)
+                    color: (isInactive ? AppTheme.textTertiary : stockColor)
                         .withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -394,10 +402,11 @@ class _ProductoCard extends StatelessWidget {
                           Flexible(
                             child: Text(
                               producto.nombre,
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 16,
-                              ),
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 16,
+                                  ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -410,15 +419,19 @@ class _ProductoCard extends StatelessWidget {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: isDark ? AppTheme.darkBorder : Colors.grey.shade200,
+                                color: isDark
+                                    ? AppTheme.darkBorder
+                                    : Colors.grey.shade200,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                'INACTIVO',
+                                'INACTIVE',
                                 style: TextStyle(
                                   fontSize: 8,
                                   fontWeight: FontWeight.w900,
-                                  color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
+                                  color: isDark
+                                      ? AppTheme.darkTextSecondary
+                                      : AppTheme.textSecondary,
                                 ),
                               ),
                             ),
@@ -437,7 +450,10 @@ class _ProductoCard extends StatelessWidget {
                   ),
                 ),
                 PopupMenuButton<String>(
-                  icon: Icon(Icons.more_vert_rounded, color: AppTheme.textTertiary),
+                  icon: Icon(
+                    Icons.more_vert_rounded,
+                    color: AppTheme.textTertiary,
+                  ),
                   onSelected: (value) {
                     if (value == 'edit' && !isInactive) onEdit();
                     if (value == 'delete') onDelete();
@@ -445,35 +461,49 @@ class _ProductoCard extends StatelessWidget {
                   },
                   itemBuilder: (context) => [
                     if (!isInactive)
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'edit',
                         child: Row(
                           children: [
                             Icon(Icons.edit_outlined, size: 20),
-                            SizedBox(width: 12),
-                            Text('Editar Producto'),
+                            const SizedBox(width: 12),
+                            Text('Edit ${l10n.producto}'),
                           ],
                         ),
                       ),
                     if (isInactive)
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'reactivate',
                         child: Row(
                           children: [
-                            Icon(Icons.restore_page_outlined, color: AppTheme.successColor, size: 20),
-                            SizedBox(width: 12),
-                            Text('Reactivar', style: TextStyle(color: AppTheme.successColor)),
+                            Icon(
+                              Icons.restore_page_outlined,
+                              color: AppTheme.successColor,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Reactivate',
+                              style: TextStyle(color: AppTheme.successColor),
+                            ),
                           ],
                         ),
                       ),
                     if (!isInactive)
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete_outline_rounded, color: AppTheme.errorColor, size: 20),
-                            SizedBox(width: 12),
-                            Text('Desactivar', style: TextStyle(color: AppTheme.errorColor)),
+                            Icon(
+                              Icons.delete_outline_rounded,
+                              color: AppTheme.errorColor,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Deactivate',
+                              style: TextStyle(color: AppTheme.errorColor),
+                            ),
                           ],
                         ),
                       ),
@@ -489,7 +519,7 @@ class _ProductoCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'PRECIO VENTA',
+                      l10n.precioVenta.toUpperCase(),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         letterSpacing: 1,
                         fontSize: 9,
@@ -504,7 +534,9 @@ class _ProductoCard extends StatelessWidget {
                         fontWeight: FontWeight.w900,
                         color: isInactive
                             ? AppTheme.textTertiary
-                            : (isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary),
+                            : (isDark
+                                  ? AppTheme.darkTextPrimary
+                                  : AppTheme.textPrimary),
                       ),
                     ),
                   ],
@@ -515,10 +547,12 @@ class _ProductoCard extends StatelessWidget {
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: (isInactive ? AppTheme.textTertiary : stockColor).withValues(alpha: 0.1),
+                    color: (isInactive ? AppTheme.textTertiary : stockColor)
+                        .withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: (isInactive ? AppTheme.textTertiary : stockColor).withValues(alpha: 0.2),
+                      color: (isInactive ? AppTheme.textTertiary : stockColor)
+                          .withValues(alpha: 0.2),
                     ),
                   ),
                   child: Row(
@@ -531,11 +565,14 @@ class _ProductoCard extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         'STOCK: ${producto.cantidad}',
-                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: isInactive ? AppTheme.textTertiary : stockColor,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 12,
-                        ),
+                        style: Theme.of(context).textTheme.labelMedium
+                            ?.copyWith(
+                              color: isInactive
+                                  ? AppTheme.textTertiary
+                                  : stockColor,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 12,
+                            ),
                       ),
                     ],
                   ),

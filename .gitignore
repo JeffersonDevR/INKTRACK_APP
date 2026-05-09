@@ -2,9 +2,9 @@ supabase_setup.sql
 LEARNING.md
 idea/
 docs/
+build/
 specs/
 test/
-build
 android
 .idea
 .dart_tool

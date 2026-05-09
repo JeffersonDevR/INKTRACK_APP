@@ -6,6 +6,7 @@ import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
 import 'package:InkTrack/core/widgets/app_card.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 import 'cliente_form_page.dart';
 import '../widgets/pago_dialog.dart';
 
@@ -27,6 +28,7 @@ class ClientesPage extends StatelessWidget {
     ClientesViewModel viewModel,
     bool showInactive,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return CustomScrollView(
       slivers: [
@@ -34,7 +36,7 @@ class ClientesPage extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
           sliver: SliverToBoxAdapter(
             child: FinancialSummaryHeader(
-              title: 'Gestión de\nCartera',
+              title: 'Portfolio\nManagement',
               actions: [
                 IconButton(
                   onPressed: () => viewModel.toggleShowInactive(),
@@ -44,15 +46,15 @@ class ClientesPage extends StatelessWidget {
                         ? AppTheme.warningColor
                         : AppTheme.textSecondary,
                   ),
-                  tooltip: showInactive ? 'Ocultar inactivos' : 'Ver inactivos',
+                  tooltip: showInactive ? 'Hide inactive' : 'View inactive',
                 ),
               ],
               totalIngresos: viewModel.totalClientes.toDouble(),
               totalEgresos: viewModel.clientesConDeuda.toDouble(),
               balance: viewModel.totalDeuda,
-              label1: 'Clientes',
-              label2: 'Con Deuda',
-              label3: 'Deuda Total',
+              label1: l10n.clientes,
+              label2: 'With Debt',
+              label3: l10n.deudaTotal,
               icon1: Icons.people_rounded,
               icon2: Icons.assignment_late_rounded,
               icon3: Icons.account_balance_wallet_rounded,
@@ -77,7 +79,7 @@ class ClientesPage extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Listado de Clientes',
+                  l10n.listadoClientes,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
@@ -145,10 +147,11 @@ class ClientesPage extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 cliente.nombre,
-                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 15,
-                                ),
+                                style: Theme.of(context).textTheme.titleSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 15,
+                                    ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -166,11 +169,13 @@ class ClientesPage extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  'INACTIVO',
+                                  'INACTIVE',
                                   style: TextStyle(
                                     fontSize: 9,
                                     fontWeight: FontWeight.w900,
-                                    color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
+                                    color: isDark
+                                        ? AppTheme.darkTextSecondary
+                                        : AppTheme.textSecondary,
                                   ),
                                 ),
                               ),
@@ -187,7 +192,7 @@ class ClientesPage extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Text(
-                                  'CRÉDITO',
+                                  'CREDIT',
                                   style: TextStyle(
                                     fontSize: 9,
                                     fontWeight: FontWeight.w900,
@@ -206,7 +211,11 @@ class ClientesPage extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.phone_outlined, size: 12, color: AppTheme.textTertiary),
+                            Icon(
+                              Icons.phone_outlined,
+                              size: 12,
+                              color: AppTheme.textTertiary,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               cliente.telefono,
@@ -217,52 +226,68 @@ class ClientesPage extends StatelessWidget {
                         if (cliente.saldoPendiente > 0) ...[
                           const SizedBox(height: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
-                              color: AppTheme.errorColor.withValues(alpha: 0.05),
+                              color: AppTheme.errorColor.withValues(
+                                alpha: 0.05,
+                              ),
                               borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: AppTheme.errorColor.withValues(alpha: 0.1)),
+                              border: Border.all(
+                                color: AppTheme.errorColor.withValues(
+                                  alpha: 0.1,
+                                ),
+                              ),
                             ),
                             child: Text(
-                              'Debe: ${NumberFormatter.formatCurrency(cliente.saldoPendiente)}',
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: AppTheme.errorColor,
-                                fontWeight: FontWeight.w900,
-                                fontSize: 11,
-                              ),
+                              'Owes: ${NumberFormatter.formatCurrency(cliente.saldoPendiente)}',
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: AppTheme.errorColor,
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 11,
+                                  ),
                             ),
                           ),
                         ],
                       ],
                     ),
                     trailing: PopupMenuButton<String>(
-                      icon: Icon(Icons.more_vert_rounded, color: AppTheme.textTertiary),
+                      icon: Icon(
+                        Icons.more_vert_rounded,
+                        color: AppTheme.textTertiary,
+                      ),
                       onSelected: (value) =>
                           _onMenuSelected(context, value, cliente),
                       itemBuilder: (context) => [
                         if (cliente.saldoPendiente > 0)
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'pay',
                             child: Row(
                               children: [
-                                Icon(Icons.account_balance_wallet_outlined, size: 20),
-                                SizedBox(width: 12),
-                                Text('Registrar Pago'),
+                                Icon(
+                                  Icons.account_balance_wallet_outlined,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                Text(l10n.abonos),
                               ],
                             ),
                           ),
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'edit',
                           child: Row(
                             children: [
                               Icon(Icons.edit_outlined, size: 20),
-                              SizedBox(width: 12),
-                              Text('Editar Perfil'),
+                              const SizedBox(width: 12),
+                              Text(l10n.editar),
                             ],
                           ),
                         ),
                         if (isInactive)
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'reactivate',
                             child: Row(
                               children: [
@@ -271,9 +296,9 @@ class ClientesPage extends StatelessWidget {
                                   size: 20,
                                   color: AppTheme.successColor,
                                 ),
-                                SizedBox(width: 12),
+                                const SizedBox(width: 12),
                                 Text(
-                                  'Reactivar',
+                                  'Reactivate',
                                   style: TextStyle(
                                     color: AppTheme.successColor,
                                   ),
@@ -293,7 +318,7 @@ class ClientesPage extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 12),
                                 Text(
-                                  'Inactivar',
+                                  'Deactivate',
                                   style: TextStyle(color: AppTheme.errorColor),
                                 ),
                               ],
@@ -331,18 +356,19 @@ class ClientesPage extends StatelessWidget {
   }
 
   void _showDeleteDialog(BuildContext context, Cliente cliente) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: const Text('Inactivar cliente'),
+        title: Text('Deactivate ${l10n.cliente}'),
         content: Text(
-          '¿Deseas inactivar a ${cliente.nombre}?\n\nSeguirá apareciendo en reportes pero no estará disponible para nuevas ventas.',
+          'Deactivate ${cliente.nombre}?\n\nIt will still appear in reports but will not be available for new sales.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: Text(l10n.cancelar),
           ),
           ElevatedButton(
             onPressed: () {
@@ -353,7 +379,7 @@ class ClientesPage extends StatelessWidget {
               backgroundColor: AppTheme.errorColor,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Inactivar'),
+            child: Text('Deactivate'),
           ),
         ],
       ),
@@ -365,6 +391,7 @@ class _EmptyClientes extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -385,18 +412,18 @@ class _EmptyClientes extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'Sin clientes registrados',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
+              l10n.noDataAvailable,
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 12),
             Text(
-              'Comienza agregando tu primer cliente para gestionar sus compras y deudas.',
+              'Start by adding your first client to manage their purchases and debts.',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppTheme.textSecondary,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
             ),
           ],
         ),

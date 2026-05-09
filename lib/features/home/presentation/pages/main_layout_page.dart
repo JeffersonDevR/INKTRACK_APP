@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:printing/printing.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:InkTrack/features/clientes/presentation/pages/clientes_page.dart';
 import 'package:InkTrack/features/proveedores/presentation/pages/proveedores_page.dart';
 import 'package:InkTrack/features/proveedores/presentation/pages/pedidos_proveedor_page.dart';
@@ -179,15 +180,21 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
       await Printing.sharePdf(bytes: pdfData, filename: filename);
 
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('PDF exportado: $filename')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.pdfExportado(filename)),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error al exportar PDF: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.errorAlExportarPdf(e.toString()),
+            ),
+          ),
+        );
       }
     }
   }
@@ -234,23 +241,32 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
           mimeType:
               'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ),
-      ], text: 'Reporte InkTrack');
+      ], text: 'InkTrack Report');
 
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Excel exportado: $filename')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.excelExportado(filename),
+            ),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error al exportar Excel: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.errorAlExportarExcel(e.toString()),
+            ),
+          ),
+        );
       }
     }
   }
 
   void _showExportOptions(String format) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       builder: (ctx) => SafeArea(
@@ -259,7 +275,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
           children: [
             ListTile(
               leading: const Icon(Icons.receipt_long),
-              title: const Text('Movimientos'),
+              title: Text(l10n.movimientos),
               onTap: () {
                 Navigator.pop(ctx);
                 if (format == 'pdf') {
@@ -271,7 +287,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
             ),
             ListTile(
               leading: const Icon(Icons.inventory_2),
-              title: const Text('Inventario'),
+              title: Text(l10n.inventario),
               onTap: () {
                 Navigator.pop(ctx);
                 if (format == 'pdf') {
@@ -283,7 +299,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
             ),
             ListTile(
               leading: const Icon(Icons.people),
-              title: const Text('Clientes'),
+              title: Text(l10n.clientes),
               onTap: () {
                 Navigator.pop(ctx);
                 if (format == 'pdf') {
@@ -300,6 +316,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
   }
 
   Widget _buildAlertasBanner(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Consumer<PedidosProveedorViewModel>(
       builder: (context, pedidosVM, child) {
         final alertas = pedidosVM.pedidosConAlerta;
@@ -339,7 +356,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${alertas.length} entrega${alertas.length == 1 ? '' : 's'} pendiente${alertas.length == 1 ? '' : 's'}',
+                          l10n.entregasPendientes(alertas.length),
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: AppTheme.warningColor,
@@ -347,7 +364,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                         ),
                         Text(
                           alertas
-                              .map((p) => p.proveedorNombre ?? 'Proveedor')
+                              .map((p) => p.proveedorNombre ?? l10n.proveedor)
                               .join(', '),
                           style: Theme.of(context).textTheme.bodySmall,
                           maxLines: 1,
@@ -371,6 +388,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
     final authService = widget.authService;
     final user = authService?.currentUser;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
 
     return Consumer<LocalesViewModel>(
       builder: (context, localesVM, child) {
@@ -450,11 +468,11 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                           ),
                           child: Text(
                             [
-                              'Panel de Inicio',
-                              'Gestión de Clientes',
-                              'Proveedores',
-                              'Control de Inventario',
-                              'Reportes de Negocio',
+                              l10n.panelDeInicio,
+                              l10n.gestionDeClientes,
+                              l10n.proveedoresHeader,
+                              l10n.controlDeInventario,
+                              l10n.reportesDeNegocio,
                             ][_currentIndex].toUpperCase(),
                             style: GoogleFonts.plusJakartaSans(
                               color: AppTheme.primaryColor,
@@ -551,7 +569,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            localActual?.nombre ?? 'Sin local',
+                            localActual?.nombre ?? l10n.sinLocal,
                             style: GoogleFonts.plusJakartaSans(
                               color: AppTheme.secondaryColor,
                               fontWeight: FontWeight.w600,
@@ -605,15 +623,15 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                     });
                   },
                   destinations: [
-                    const NavigationDestination(
+                    NavigationDestination(
                       icon: Icon(Icons.grid_view_outlined),
                       selectedIcon: Icon(Icons.grid_view_rounded),
-                      label: 'Inicio',
+                      label: l10n.home,
                     ),
-                    const NavigationDestination(
+                    NavigationDestination(
                       icon: Icon(Icons.people_outline_rounded),
                       selectedIcon: Icon(Icons.people_rounded),
-                      label: 'Clientes',
+                      label: l10n.clientes,
                     ),
                     NavigationDestination(
                       icon: Consumer<PedidosProveedorViewModel>(
@@ -636,17 +654,17 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                           );
                         },
                       ),
-                      label: 'Proveedor',
+                      label: l10n.proveedor,
                     ),
                     NavigationDestination(
                       icon: Icon(Icons.inventory_2_outlined),
                       selectedIcon: Icon(Icons.inventory_2_rounded),
-                      label: 'Stock',
+                      label: l10n.stock,
                     ),
                     NavigationDestination(
                       icon: Icon(Icons.analytics_outlined),
                       selectedIcon: Icon(Icons.analytics_rounded),
-                      label: 'Reportes',
+                      label: l10n.reportes,
                     ),
                   ],
                 ),

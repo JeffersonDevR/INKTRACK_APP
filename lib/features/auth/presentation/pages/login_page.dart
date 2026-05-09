@@ -93,17 +93,27 @@ class _LoginPageState extends State<LoginPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 60),
-                Icon(
-                  Icons.store_rounded,
-                  size: 80,
-                  color: AppTheme.primaryColor,
+                // Icon(
+                //   Icons.store_rounded,
+                //   size: 80,
+                //   color: AppTheme.primaryColor,
+                // ),
+                SizedBox(
+                  //logo login 
+                  width: 90,
+                  height: 90,
+                  child: Image.asset(
+                    "assets/icon/inktrack_logo.png",
+                    width: 70,
+                    height: 70,
+                  ),
                 ),
                 const SizedBox(height: 24),
                 Text(
                   'InkTrack',
                   style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryColor,
+                    color: AppTheme.secondaryColor,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -193,7 +203,7 @@ class _LoginPageState extends State<LoginPage> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: _resetPassword,
-                    child: const Text('Forgot Password?'),
+                    child: const Text('Forgot Password?', style: TextStyle(color: AppTheme.secondaryColor)),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -202,7 +212,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _signIn,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
+                      backgroundColor: AppTheme.secondaryColor,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -219,7 +229,7 @@ class _LoginPageState extends State<LoginPage> {
                           )
                         : const Text(
                             'Sign In',
-                            style: TextStyle(
+                              style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -244,7 +254,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         );
                       },
-                      child: const Text('Sign Up'),
+                      child: const Text('Sign Up', style: TextStyle(color: AppTheme.secondaryColor)),
                     ),
                   ],
                 ),

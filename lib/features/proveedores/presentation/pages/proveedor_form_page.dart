@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
 import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmodel.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
@@ -22,15 +23,18 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
   final _telefonoController = TextEditingController();
   final List<String> _diasVisita = [];
 
-  final List<String> _diasSemana = [
-    'Lunes',
-    'Martes',
-    'Miércoles',
-    'Jueves',
-    'Viernes',
-    'Sábado',
-    'Domingo',
-  ];
+  List<String> _diasSemana(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      l10n.lunes,
+      l10n.martes,
+      l10n.miercoles,
+      l10n.jueves,
+      l10n.viernes,
+      l10n.sabado,
+      l10n.domingo,
+    ];
+  }
 
   @override
   void initState() {
@@ -51,10 +55,11 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.proveedor == null ? 'Nuevo Proveedor' : 'Editar Proveedor',
+          widget.proveedor == null ? l10n.nuevoProveedor : l10n.editarProveedor,
         ),
       ),
       body: SingleChildScrollView(
@@ -65,10 +70,10 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
             children: [
               TextFormField(
                 controller: _nombreController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre',
-                  border: OutlineInputBorder(),
-                  hintText: 'Ej. Distribuidora Ink',
+                decoration: InputDecoration(
+                  labelText: l10n.nombre,
+                  border: const OutlineInputBorder(),
+                  hintText: l10n.ejemploNombre,
                   counterText: '',
                 ),
                 maxLength: 40,
@@ -76,10 +81,10 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
                 inputFormatters: [InputFormatters.textOnly],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese el nombre';
+                    return l10n.ingreseNombre;
                   }
                   if (value.length < 2) {
-                    return 'Mínimo 2 caracteres';
+                    return l10n.minimo2Caracteres;
                   }
                   return null;
                 },
@@ -87,11 +92,11 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _telefonoController,
-                decoration: const InputDecoration(
-                  labelText: 'Teléfono',
-                  border: OutlineInputBorder(),
-                  hintText: 'Ej. 3001234567',
-                  helperText: '10 dígitos sin espacios',
+                decoration: InputDecoration(
+                  labelText: l10n.telefono,
+                  border: const OutlineInputBorder(),
+                  hintText: l10n.ejemploTelefono,
+                  helperText: l10n.digitos10SinEspacios,
                 ),
                 keyboardType: TextInputType.phone,
                 inputFormatters: [
@@ -100,10 +105,10 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
                 ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese el teléfono';
+                    return l10n.ingreseTelefono;
                   }
                   if (value.length != 10) {
-                    return 'El teléfono debe tener exactamente 10 dígitos';
+                    return l10n.telefono10Digitos;
                   }
                   return null;
                 },
@@ -112,7 +117,7 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Días de visita',
+                  l10n.diasVisita,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
               ),
@@ -120,7 +125,7 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
               Wrap(
                 spacing: 8,
                 runSpacing: 4,
-                children: _diasSemana.map((dia) {
+                children: _diasSemana(context).map((dia) {
                   final isSelected = _diasVisita.contains(dia);
                   return FilterChip(
                     label: Text(dia),
@@ -143,7 +148,7 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
                 child: ElevatedButton(
                   onPressed: _saveProveedor,
                   child: Text(
-                    widget.proveedor == null ? 'Guardar' : 'Actualizar',
+                    widget.proveedor == null ? l10n.guardar : l10n.actualizar,
                   ),
                 ),
               ),
