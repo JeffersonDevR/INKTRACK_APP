@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/inventario/data/models/producto.dart';
+import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
+import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
+import 'package:InkTrack/features/ventas/presentation/viewmodels/ventas_viewmodel.dart';
+import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
@@ -89,6 +93,20 @@ class InventarioPage extends StatelessWidget {
 
                           if (result.isSuccess) {
                             await viewModel.refresh();
+                            if (context.mounted) {
+                              final cliVM = context.read<ClientesViewModel>();
+                              final provVM = context
+                                  .read<ProveedoresViewModel>();
+                              final ventVM = context.read<VentasViewModel>();
+                              final movVM = context
+                                  .read<MovimientosViewModel>();
+                              await Future.wait([
+                                cliVM.refresh(),
+                                provVM.refresh(),
+                                ventVM.refresh(),
+                                movVM.refresh(),
+                              ]);
+                            }
                           }
 
                           scaffoldMessenger.showSnackBar(

@@ -715,9 +715,18 @@ class SupabaseSyncService {
 
         for (final item in data) {
           try {
+            final id = item['id'] as String;
+            final existing = await (_db.select(
+              _db.ventas,
+            )..where((t) => t.id.equals(id))).getSingleOrNull();
+
+            if (existing != null && existing.syncStatus == 'pending_upload') {
+              continue;
+            }
+
             await (_db.into(_db.ventas)).insertOnConflictUpdate(
               VentasCompanion(
-                id: Value(item['id'] as String),
+                id: Value(id),
                 monto: Value((item['monto'] as num?)?.toDouble() ?? 0.0),
                 fecha: Value(DateTime.parse(item['fecha'] as String)),
                 clienteId: Value(item['cliente_id'] as String?),

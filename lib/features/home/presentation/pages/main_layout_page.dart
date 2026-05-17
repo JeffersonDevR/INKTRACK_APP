@@ -81,6 +81,20 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
         _listenerAdded = true;
         localesVM.addListener(() {
           final currentLocalId = localesVM.localIdSeleccionado;
+
+          if (localesVM.tieneDatosSinLocal && mounted) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              final locVM = context.read<LocalesViewModel>();
+              locVM.migrarDatosExistentes(
+                invVM: invVM,
+                cliVM: cliVM,
+                provVM: provVM,
+                context: context,
+              );
+            });
+          }
+
           invVM.setLocalId(currentLocalId);
           invVM.refresh();
           cliVM.setLocalId(currentLocalId);

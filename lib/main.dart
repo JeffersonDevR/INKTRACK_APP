@@ -38,14 +38,20 @@ Future<void> main() async {
   await initializeDateFormatting('es', null);
 
   try {
-    await dotenv.load(fileName: ".env", isOptional: true);
+    // Load environment variables from .env file
+    await dotenv.load(fileName: ".env", isOptional: false);
 
-    final supabaseUrl =
-        dotenv.env['SUPABASE_URL'] ??
-        'https://favaqrjdxqytyjzlmxpd.supabase.co';
-    final supabaseKey =
-        dotenv.env['SUPABASE_ANON_KEY'] ??
-        'sb_publishable_VXorai6dwJNKR1hcsvWV3Q_n2XEEP2p';
+    // SECURITY: Get credentials from environment variables only
+    // Never use hardcoded fallbacks
+    final supabaseUrl = dotenv.env['SUPABASE_URL'];
+    final supabaseKey = dotenv.env['SUPABASE_ANON_KEY'];
+
+    if (supabaseUrl == null || supabaseKey == null) {
+      throw Exception(
+        'Missing required environment variables. '
+        'Please configure SUPABASE_URL and SUPABASE_ANON_KEY in .env file'
+      );
+    }
 
     await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
 

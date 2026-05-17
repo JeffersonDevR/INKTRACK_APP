@@ -181,21 +181,54 @@ class AuthService {
   }
 
   static String? validatePassword(String password) {
-    if (password.length < 8) {
-      return 'Minimum 8 characters';
+    // Security: Use OWASP guidelines for password validation
+    if (password.length < 12) {
+      return 'Minimum 12 characters required';
     }
+    if (password.length > 128) {
+      return 'Maximum 128 characters';
+    }
+    // Check for uppercase letter
     if (!password.contains(RegExp(r'[A-Z]'))) {
-      return 'Need at least 1 capital letter';
+      return 'Need at least one uppercase letter';
     }
-    final numbers = password.replaceAll(RegExp(r'[^0-9]'), '');
-    if (numbers.length < 3) {
-      return 'Need at least 3 numbers';
+    // Check for lowercase letter
+    if (!password.contains(RegExp(r'[a-z]'))) {
+      return 'Need at least one lowercase letter';
     }
+    // Check for number
+    if (!password.contains(RegExp(r'[0-9]'))) {
+      return 'Need at least one number';
+    }
+    // Check for special character (ALLOW them - increases entropy)
+    if (!password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>_\-+=\[\]{}]'))) {
+      return 'Need at least one special character';
+    }
+    // Prevent common patterns
+    if (password.contains('password') || password.contains('12345') || password.contains('qwerty')) {
+      return 'Password contains common patterns';
+    }
+    // No spaces
     if (password.contains(' ')) {
-      return 'No spaces allowed';
+      return 'Spaces are not allowed';
     }
-    if (RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password)) {
-      return 'No special characters allowed';
+    return null;
+  }
+
+  /// Validates email format using RFC 5322 standards
+  static String? validateEmail(String email) {
+    if (email.isEmpty) {
+      return 'Email is required';
+    }
+    if (email.length > 254) {
+      return 'Email is too long';
+    }
+    // RFC 5322 compliant regex (simplified but effective)
+    final emailRegex = RegExp(
+      r'^[a-zA-Z0-9.!#$%&\*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$'
+    );
+    if (!emailRegex.hasMatch(email)) {
+      return 'Please enter a valid email address';
     }
     return null;
   }

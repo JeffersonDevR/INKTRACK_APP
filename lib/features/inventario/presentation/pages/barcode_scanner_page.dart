@@ -43,48 +43,79 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
     final viewModel = context.read<InventarioViewModel>();
     final productoExistente = viewModel.findProductoByCodigo(code);
 
-    if (widget.returnMode) {
-      if (productoExistente != null) {
-        Navigator.of(context).pop(productoExistente);
-      } else {
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.productoNoEncontrado),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
-      }
+    if (productoExistente != null) {
+      _mostrarDialogoProductoExistente(code, productoExistente);
+    } else if (!widget.returnMode) {
+      Navigator.of(context).pop();
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => ProductoFormPage(initialCodigoBarras: code),
+        ),
+      );
     } else {
       Navigator.of(context).pop();
-
-      if (productoExistente != null) {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => MovimientoFormPage(
-              initialType: mov_model.MovimientoType.egreso,
-              movimiento: mov_model.Movimiento(
-                id: '',
-                monto: 0,
-                fecha: DateTime.now(),
-                tipo: mov_model.MovimientoType.egreso,
-                concepto: AppLocalizations.of(
-                  context,
-                )!.restockLabel(productoExistente.nombre),
-                productoId: productoExistente.id,
-                categoria: productoExistente.categoria,
-              ),
-            ),
-          ),
-        );
-      } else {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => ProductoFormPage(initialCodigoBarras: code),
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.productoNoEncontrado),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
     }
+  }
+
+  void _mostrarDialogoProductoExistente(
+    String codigo,
+    dynamic productoExistente,
+  ) {
+    if (widget.returnMode) {
+      Navigator.of(context).pop(productoExistente);
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('El producto ya existe'),
+        content: Text(
+          'El código de barras "$codigo" pertenece al producto "${productoExistente.nombre}".\n\n'
+          '¿Qué deseas hacer?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _hasScanned = false;
+            },
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.of(context).pop();
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => MovimientoFormPage(
+                    initialType: mov_model.MovimientoType.egreso,
+                    movimiento: mov_model.Movimiento(
+                      id: '',
+                      monto: 0,
+                      fecha: DateTime.now(),
+                      tipo: mov_model.MovimientoType.egreso,
+                      concepto: AppLocalizations.of(
+                        context,
+                      )!.restockLabel(productoExistente.nombre),
+                      productoId: productoExistente.id,
+                      categoria: productoExistente.categoria,
+                    ),
+                  ),
+                ),
+              );
+            },
+            child: const Text('Crear movimiento'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

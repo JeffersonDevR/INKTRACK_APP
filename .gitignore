@@ -1,3 +1,6 @@
+# Environment variables - contains sensitive credentials
+.env
+.env.example
 supabase_setup.sql
 LEARNING.md
 idea/
@@ -10,3 +13,6 @@ android
 .dart_tool
 linux
 expo_vocabulary.md
+SECURITY_AND_ARCHITECTURE_ANALYSIS.md
+SECURITY_IMPLEMENTATION.md
+SECURITY_QUICK_REFERENCE.md
