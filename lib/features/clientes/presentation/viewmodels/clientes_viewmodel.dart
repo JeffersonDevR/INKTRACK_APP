@@ -194,8 +194,9 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
   Future<void> registrarPago(
     String clienteId,
     double monto,
-    MovimientosViewModel movimientosVM,
-  ) async {
+    MovimientosViewModel movimientosVM, {
+    String? conceptoDetalle,
+  }) async {
     final cliente = getById(clienteId);
     if (cliente == null || monto <= 0) return;
 
@@ -206,7 +207,7 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
       monto: monto,
       fecha: DateTime.now(),
       tipo: MovimientoType.ingreso,
-      concepto: 'Pago de deuda: ${cliente.nombre}',
+      concepto: conceptoDetalle ?? 'Pago de deuda: ${cliente.nombre}',
       categoria: 'Cobros',
       clienteId: clienteId,
     );

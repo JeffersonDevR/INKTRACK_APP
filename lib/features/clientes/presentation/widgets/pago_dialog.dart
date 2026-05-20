@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:InkTrack/features/clientes/data/models/cliente.dart';
@@ -9,14 +11,27 @@ import 'package:InkTrack/core/utils/number_formatter.dart';
 
 class PagoDialog extends StatefulWidget {
   final Cliente cliente;
+  final double? maxAmount;
+  final String? conceptDetail;
 
-  const PagoDialog({super.key, required this.cliente});
+  const PagoDialog({
+    super.key,
+    required this.cliente,
+    this.maxAmount,
+    this.conceptDetail,
+  });
 
   @override
   State<PagoDialog> createState() => _PagoDialogState();
 }
 
 class _PagoDialogState extends State<PagoDialog> {
+  double get _maxAmount {
+    if (widget.maxAmount == null) {
+      return widget.cliente.saldoPendiente;
+    }
+    return math.min(widget.maxAmount!, widget.cliente.saldoPendiente);
+  }
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _montoController;
 
@@ -45,6 +60,7 @@ class _PagoDialogState extends State<PagoDialog> {
       widget.cliente.id,
       monto,
       context.read<MovimientosViewModel>(),
+      conceptoDetalle: widget.conceptDetail,
     );
 
     Navigator.pop(context);
@@ -93,8 +109,8 @@ class _PagoDialogState extends State<PagoDialog> {
                 if (number <= 0) {
                   return 'Monto inválido';
                 }
-                if (number > widget.cliente.saldoPendiente) {
-                  return 'El monto no puede exceder el saldo';
+                if (number > _maxAmount) {
+                  return 'El monto no puede exceder el máximo permitido';
                 }
                 return null;
               },

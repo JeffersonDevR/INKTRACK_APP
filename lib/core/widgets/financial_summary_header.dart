@@ -92,17 +92,33 @@ class FinancialSummaryHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
-                child: Text(
-                  title,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    color: isDark
-                        ? AppTheme.darkTextPrimary
-                        : AppTheme.textPrimary,
-                    letterSpacing: -1,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        title,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          color: isDark
+                              ? AppTheme.darkTextPrimary
+                              : AppTheme.textPrimary,
+                          letterSpacing: -1,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      balance >= 0
+                          ? Icons.trending_up_rounded
+                          : Icons.trending_down_rounded,
+                      size: 20,
+                      color: balance >= 0
+                          ? AppTheme.successColor
+                          : AppTheme.errorColor,
+                    ),
+                  ],
                 ),
               ),
               if (onDateTap != null || (actions != null && actions!.isNotEmpty))
@@ -229,27 +245,6 @@ class FinancialSummaryHeader extends StatelessWidget {
                   ],
                 ),
               ),
-              if (isCurrency3)
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color:
-                        (balance >= 0
-                                ? AppTheme.primaryColor
-                                : AppTheme.errorColor)
-                            .withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    balance >= 0
-                        ? Icons.trending_up_rounded
-                        : Icons.trending_down_rounded,
-                    size: 18,
-                    color: balance >= 0
-                        ? AppTheme.primaryColor
-                        : AppTheme.errorColor,
-                  ),
-                ),
             ],
           ),
         ],

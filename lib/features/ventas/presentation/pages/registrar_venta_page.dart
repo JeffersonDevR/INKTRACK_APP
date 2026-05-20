@@ -87,7 +87,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
       if (cantidad != null && mounted) {
         setState(() {
           final existingIndex = _productos.indexWhere(
-            (p) => p.productoId == producto.id,
+            (p) => p.productoId == producto.id && !p.isUnidad,
           );
           if (existingIndex != -1) {
             _productos[existingIndex].cantidad += cantidad;
@@ -97,7 +97,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                 productoId: producto.id,
                 nombre: producto.nombre,
                 cantidad: cantidad,
-                precioUnitario: producto.precio,
+                precioUnitario: producto.precioVenta,
               ),
             );
           }
@@ -118,7 +118,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              '${l10n.precioUnitario}: \$${producto.precio.toStringAsFixed(2)}',
+              '${l10n.precioUnitario}: \$${producto.precioVenta.toStringAsFixed(2)}',
             ),
             const SizedBox(height: 16),
             TextField(
@@ -199,6 +199,7 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                     'nombre': p.nombre,
                     'cantidad': p.cantidad,
                     'precioUnitario': p.precioUnitario,
+                    'isUnidad': p.isUnidad,
                   },
                 )
                 .toList(),
@@ -635,12 +636,14 @@ class _VentaItemState {
   final String nombre;
   int cantidad;
   double precioUnitario;
+  bool isUnidad;
 
   _VentaItemState({
     required this.productoId,
     required this.nombre,
     required this.cantidad,
     required this.precioUnitario,
+    this.isUnidad = false,
   });
 
   double get subtotal => cantidad * precioUnitario;
@@ -658,6 +661,9 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
   String? _productoSeleccionadoId;
   String? _productoSeleccionadoNombre;
   double _precioUnitario = 0;
+  bool _isUnidad = false;
+  int _unidadesPorPaquete = 1;
+  bool _esPaquete = false;
   final _cantidadController = TextEditingController(text: '1');
   final _precioController = TextEditingController();
 
@@ -731,15 +737,18 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
                         return ListTile(
                           title: Text(producto.nombre),
                           subtitle: Text(
-                            l10n.stockLabel(producto.cantidad) +
-                                ' • \$${producto.precio.toStringAsFixed(2)}',
+                            l10n.stockLabel(producto.cantidad.toInt()) +
+                                ' • \$${producto.precioVenta.toStringAsFixed(2)}',
                           ),
                           onTap: () {
                             setState(() {
                               _productoSeleccionadoId = producto.id;
                               _productoSeleccionadoNombre = producto.nombre;
-                              _precioUnitario = producto.precio;
-                              _precioController.text = producto.precio
+                              _precioUnitario = producto.precioVenta;
+                              _esPaquete = producto.esPaquete;
+                              _unidadesPorPaquete = producto.unidadesPorPaquete;
+                              _isUnidad = false;
+                              _precioController.text = producto.precioVenta
                                   .toString();
                             });
                           },
@@ -768,9 +777,38 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  if (_esPaquete) ...[
+                    SwitchListTile(
+                      title: const Text('Vender por Unidad'),
+                      subtitle: Text('Contenido: $_unidadesPorPaquete unidades'),
+                      value: _isUnidad,
+                      onChanged: (value) {
+                        setState(() {
+                          _isUnidad = value;
+                          if (value) {
+                            // Suggest unit price (divided by package units)
+                            _precioUnitario = _precioUnitario / _unidadesPorPaquete;
+                            _precioController.text = _precioUnitario.toStringAsFixed(0);
+                          } else {
+                            // Restore package price
+                            // Note: This is a simple heuristic, ideally we'd re-fetch the product
+                            final invVM = context.read<InventarioViewModel>();
+                            final prod = invVM.getById(_productoSeleccionadoId!);
+                            if (prod != null) {
+                              _precioUnitario = prod.precioVenta;
+                              _precioController.text = prod.precioVenta.toString();
+                            }
+                          }
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                   TextField(
                     controller: _cantidadController,
-                    decoration: InputDecoration(labelText: l10n.cantidad),
+                    decoration: InputDecoration(
+                      labelText: _isUnidad ? 'Cantidad (Unidades)' : l10n.cantidad,
+                    ),
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   ),
@@ -778,7 +816,7 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
                   TextField(
                     controller: _precioController,
                     decoration: InputDecoration(
-                      labelText: l10n.precioUnitario,
+                      labelText: _isUnidad ? 'Precio por Unidad' : l10n.precioUnitario,
                       prefixText: '\$ ',
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
@@ -802,9 +840,10 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
                             context,
                             _VentaItemState(
                               productoId: _productoSeleccionadoId!,
-                              nombre: _productoSeleccionadoNombre!,
+                              nombre: _productoSeleccionadoNombre! + (_isUnidad ? ' (Unidad)' : ''),
                               cantidad: cantidad,
                               precioUnitario: _precioUnitario,
+                              isUnidad: _isUnidad,
                             ),
                           );
                         }

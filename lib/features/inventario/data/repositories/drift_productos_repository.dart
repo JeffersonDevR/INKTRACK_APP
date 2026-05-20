@@ -43,11 +43,14 @@ class DriftProductosRepository implements ProductosRepository {
           ProductosCompanion.insert(
             id: item.id,
             nombre: item.nombre,
-            cantidad: item.cantidad,
-            precio: item.precio,
+            cantidad: item.cantidad.toInt(),
+            precio: item.precioVenta,
+            // precioCompra: Value(item.precioCompra),
+            // unidadesPorPaquete: Value(item.unidadesPorPaquete),
+            // esPaquete: Value(item.esPaquete),
             categoria: item.categoria,
             proveedorId: item.proveedorId,
-            stockMinimo: Value(item.stockMinimo),
+            stockMinimo: Value(item.stockMinimo.toInt()),
             localId: item.localId != null
                 ? Value(item.localId)
                 : const Value.absent(),
@@ -65,11 +68,14 @@ class DriftProductosRepository implements ProductosRepository {
     await (_db.update(_db.productos)..where((t) => t.id.equals(id))).write(
       ProductosCompanion(
         nombre: Value(item.nombre),
-        cantidad: Value(item.cantidad),
-        precio: Value(item.precio),
+        cantidad: Value(item.cantidad.toInt()),
+        precio: Value(item.precioVenta),
+        // precioCompra: Value(item.precioCompra),
+        // unidadesPorPaquete: Value(item.unidadesPorPaquete),
+        // esPaquete: Value(item.esPaquete),
         categoria: Value(item.categoria),
         proveedorId: Value(item.proveedorId),
-        stockMinimo: Value(item.stockMinimo),
+        stockMinimo: Value(item.stockMinimo.toInt()),
         localId: item.localId != null
             ? Value(item.localId)
             : const Value.absent(),
@@ -142,7 +148,10 @@ class DriftProductosRepository implements ProductosRepository {
       id: data.id,
       nombre: data.nombre,
       cantidad: data.cantidad,
-      precio: data.precio,
+      precioVenta: data.precio,
+      // precioCompra: data.precioCompra,
+      // unidadesPorPaquete: data.unidadesPorPaquete,
+      // esPaquete: data.esPaquete,
       categoria: data.categoria,
       proveedorId: data.proveedorId,
       stockMinimo: data.stockMinimo,

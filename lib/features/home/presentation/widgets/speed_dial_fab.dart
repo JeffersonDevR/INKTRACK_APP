@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/l10n/app_localizations.dart';
 
-enum FabTab { home, clientes, proveedores, inventario, reportes }
+enum FabTab { home, clientes, proveedores, inventario }
 
 class SpeedDialFab extends StatefulWidget {
   final VoidCallback? onVentaPressed;
@@ -13,11 +13,7 @@ class SpeedDialFab extends StatefulWidget {
   final VoidCallback? onProveedorPressed;
   final VoidCallback? onPedidoPressed;
   final VoidCallback? onProductoPressed;
-  final VoidCallback? onReportesPressed;
-  final VoidCallback? onExportPdfPressed;
-  final VoidCallback? onExportExcelPressed;
   final VoidCallback? onScanBarcodePressed;
-  final VoidCallback? onOcrScanPressed;
   final FabTab currentTab;
 
   const SpeedDialFab({
@@ -30,11 +26,7 @@ class SpeedDialFab extends StatefulWidget {
     this.onProveedorPressed,
     this.onPedidoPressed,
     this.onProductoPressed,
-    this.onReportesPressed,
-    this.onExportPdfPressed,
-    this.onExportExcelPressed,
     this.onScanBarcodePressed,
-    this.onOcrScanPressed,
     this.currentTab = FabTab.home,
   });
 
@@ -75,191 +67,71 @@ class _SpeedDialFabState extends State<SpeedDialFab>
 
   @override
   Widget build(BuildContext context) {
-    final isReportes = widget.currentTab == FabTab.reportes;
     final l10n = AppLocalizations.of(context)!;
+    final List<Widget> options = [];
+
+    switch (widget.currentTab) {
+      case FabTab.clientes:
+        options.add(
+          _buildOption(
+            icon: Icons.person_add_rounded,
+            label: l10n.nuevoCliente,
+            color: AppTheme.primaryColor,
+            onTap: widget.onClientePressed,
+            delay: 0,
+          ),
+        );
+        break;
+      case FabTab.proveedores:
+        options.add(
+          _buildOption(
+            icon: Icons.local_shipping_rounded,
+            label: l10n.nuevoProveedor,
+            color: AppTheme.primaryColor,
+            onTap: widget.onProveedorPressed,
+            delay: 0,
+          ),
+        );
+        options.add(const SizedBox(height: 12));
+        options.add(
+          _buildOption(
+            icon: Icons.shopping_cart_rounded,
+            label: l10n.nuevoPedido,
+            color: AppTheme.secondaryColor,
+            onTap: widget.onPedidoPressed,
+            delay: 1,
+          ),
+        );
+        break;
+      case FabTab.inventario:
+        options.add(
+          _buildOption(
+            icon: Icons.add_box_rounded,
+            label: l10n.nuevoProducto,
+            color: AppTheme.primaryColor,
+            onTap: widget.onProductoPressed,
+            delay: 0,
+          ),
+        );
+        break;
+      case FabTab.home:
+      default:
+        // FAB is usually hidden in Home, but if it were shown, we could add options here
+        break;
+    }
+
+    if (options.isEmpty) return const SizedBox.shrink();
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        if (isReportes) ...[
-          _buildSpeedDialOption(
-            icon: Icons.table_chart,
-            label: l10n.excel,
-            color: Colors.green,
-            onTap: () {
-              _toggle();
-              widget.onExportExcelPressed?.call();
-            },
-            delay: 0,
-          ),
-          const SizedBox(height: 8),
-          _buildSpeedDialOption(
-            icon: Icons.picture_as_pdf,
-            label: l10n.pdf,
-            color: Colors.red,
-            onTap: () {
-              _toggle();
-              widget.onExportPdfPressed?.call();
-            },
-            delay: 1,
-          ),
-          const SizedBox(height: 8),
-          _buildSpeedDialOption(
-            icon: Icons.bar_chart,
-            label: l10n.reportes,
-            color: AppTheme.primaryColor,
-            onTap: () {
-              _toggle();
-              widget.onReportesPressed?.call();
-            },
-            delay: 2,
-          ),
-          const SizedBox(height: 8),
-          _buildSpeedDialOption(
-            icon: Icons.arrow_upward,
-            label: l10n.egreso,
-            color: AppTheme.errorColor,
-            onTap: () {
-              _toggle();
-              widget.onEgresoPressed?.call();
-            },
-            delay: 3,
-          ),
-          const SizedBox(height: 8),
-          _buildSpeedDialOption(
-            icon: Icons.arrow_downward,
-            label: l10n.ingreso,
-            color: AppTheme.secondaryColor,
-            onTap: () {
-              _toggle();
-              widget.onIngresoPressed?.call();
-            },
-            delay: 4,
-          ),
-        ] else ...[
-          if (widget.currentTab == FabTab.home) ...[
-            _buildSpeedDialOption(
-              icon: Icons.document_scanner,
-              label: l10n.ocr,
-              color: AppTheme.accentColor,
-              onTap: () {
-                _toggle();
-                widget.onOcrScanPressed?.call();
-              },
-              delay: 0,
-            ),
-            const SizedBox(height: 8),
-          ],
-          _buildSpeedDialOption(
-            icon: Icons.qr_code_scanner,
-            label: l10n.codigo,
-            color: AppTheme.primaryColor,
-            onTap: () {
-              _toggle();
-              widget.onScanBarcodePressed?.call();
-            },
-            delay: 1,
-          ),
-          const SizedBox(height: 8),
-          _buildSpeedDialOption(
-            icon: Icons.add_box,
-            label: l10n.producto,
-            color: AppTheme.primaryColor,
-            onTap: () {
-              _toggle();
-              widget.onProductoPressed?.call();
-            },
-            delay: 2,
-          ),
-          if (widget.currentTab == FabTab.clientes) ...[
-            const SizedBox(height: 8),
-            _buildSpeedDialOption(
-              icon: Icons.person_add,
-              label: l10n.cliente,
-              color: AppTheme.primaryColor,
-              onTap: () {
-                _toggle();
-                widget.onClientePressed?.call();
-              },
-              delay: 2,
-            ),
-          ],
-          if (widget.currentTab == FabTab.proveedores) ...[
-            const SizedBox(height: 8),
-            _buildSpeedDialOption(
-              icon: Icons.local_shipping,
-              label: l10n.proveedor,
-              color: AppTheme.primaryColor,
-              onTap: () {
-                _toggle();
-                widget.onProveedorPressed?.call();
-              },
-              delay: 2,
-            ),
-            const SizedBox(height: 8),
-            _buildSpeedDialOption(
-              icon: Icons.shopping_cart,
-              label: l10n.nuevoPedido,
-              color: AppTheme.secondaryColor,
-              onTap: () {
-                _toggle();
-                widget.onPedidoPressed?.call();
-              },
-              delay: 3,
-            ),
-          ],
-          if (widget.currentTab == FabTab.inventario) ...[
-            const SizedBox(height: 8),
-            _buildSpeedDialOption(
-              icon: Icons.inventory,
-              label: l10n.restock,
-              color: AppTheme.secondaryColor,
-              onTap: () {
-                _toggle();
-                widget.onRestockPressed?.call();
-              },
-              delay: 2,
-            ),
-          ],
-          const SizedBox(height: 8),
-          _buildSpeedDialOption(
-            icon: Icons.bar_chart,
-            label: l10n.reportes,
-            color: AppTheme.primaryColor,
-            onTap: () {
-              _toggle();
-              widget.onReportesPressed?.call();
-            },
-            delay: 3,
-          ),
-          const SizedBox(height: 8),
-          _buildSpeedDialOption(
-            icon: Icons.arrow_upward,
-            label: l10n.egreso,
-            color: AppTheme.errorColor,
-            onTap: () {
-              _toggle();
-              widget.onEgresoPressed?.call();
-            },
-            delay: 4,
-          ),
-          const SizedBox(height: 8),
-          _buildSpeedDialOption(
-            icon: Icons.arrow_downward,
-            label: l10n.ingreso,
-            color: AppTheme.secondaryColor,
-            onTap: () {
-              _toggle();
-              widget.onIngresoPressed?.call();
-            },
-            delay: 5,
-          ),
-        ],
+        ...options.reversed,
         const SizedBox(height: 16),
         FloatingActionButton(
           onPressed: _toggle,
           backgroundColor: AppTheme.primaryColor,
+          elevation: 4,
           child: AnimatedIcon(
             icon: AnimatedIcons.add_event,
             progress: _controller,
@@ -270,25 +142,22 @@ class _SpeedDialFabState extends State<SpeedDialFab>
     );
   }
 
-  Widget _buildSpeedDialOption({
+  Widget _buildOption({
     required IconData icon,
     required String label,
     required Color color,
-    required VoidCallback onTap,
+    VoidCallback? onTap,
     required int delay,
   }) {
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
         final scale = _controller.value;
-        final translateY = (1 - scale) * 50 * (delay + 1) * 0.15;
-        final opacity = _controller.value;
-
         return Transform.scale(
           scale: scale,
-          child: Transform.translate(
-            offset: Offset(0, translateY),
-            child: Opacity(opacity: opacity, child: child),
+          child: Opacity(
+            opacity: _controller.value,
+            child: child,
           ),
         );
       },
@@ -296,15 +165,17 @@ class _SpeedDialFabState extends State<SpeedDialFab>
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppTheme.darkCard
+                  : Colors.white,
+              borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
@@ -312,31 +183,20 @@ class _SpeedDialFabState extends State<SpeedDialFab>
               label,
               style: TextStyle(
                 color: color,
-                fontWeight: FontWeight.w500,
-                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: IconButton(
-              onPressed: onTap,
-              icon: Icon(icon, color: Colors.white, size: 20),
-              padding: EdgeInsets.zero,
-            ),
+          const SizedBox(width: 12),
+          FloatingActionButton.small(
+            heroTag: label,
+            onPressed: () {
+              _toggle();
+              onTap?.call();
+            },
+            backgroundColor: color,
+            child: Icon(icon, color: Colors.white, size: 20),
           ),
         ],
       ),

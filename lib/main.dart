@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -36,7 +37,7 @@ import 'package:InkTrack/features/locales/presentation/pages/onboarding_local_pa
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('es', null);
-
+  debugRepaintRainbowEnabled = false;
   try {
     // Load environment variables from .env file
     await dotenv.load(fileName: ".env", isOptional: false);
@@ -201,6 +202,7 @@ class _InkTrackAppState extends State<InkTrackApp> {
                 productosRepo: _productosRepo,
                 clientesRepo: _clientesRepo,
                 proveedoresRepo: _proveedoresRepo,
+                movimientosRepo: _movimientosRepo,
               ),
             ),
             ChangeNotifierProvider(
@@ -271,6 +273,7 @@ class _InkTrackAppState extends State<InkTrackApp> {
             productosRepo: _productosRepo,
             clientesRepo: _clientesRepo,
             proveedoresRepo: _proveedoresRepo,
+            movimientosRepo: _movimientosRepo,
           ),
         ),
         ChangeNotifierProvider(

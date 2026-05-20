@@ -85,7 +85,7 @@ class Movimiento implements HasId {
 class MovimientoProducto {
   final String productoId;
   final String nombre;
-  final int cantidad;
+  final double cantidad;
   final double precioUnitario;
 
   MovimientoProducto({
@@ -108,7 +108,7 @@ class MovimientoProducto {
       MovimientoProducto(
         productoId: json['productoId'] as String,
         nombre: json['nombre'] as String,
-        cantidad: json['cantidad'] as int,
+        cantidad: (json['cantidad'] as num).toDouble(),
         precioUnitario: (json['precioUnitario'] as num).toDouble(),
       );
 }

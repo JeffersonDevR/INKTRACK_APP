@@ -90,9 +90,9 @@ class ExcelExportService {
 
     final totalValor = productos.fold(
       0.0,
-      (sum, p) => sum + (p.precio * p.cantidad),
+      (sum, p) => sum + (p.precioVenta * p.cantidad),
     );
-    final totalStock = productos.fold(0, (sum, p) => sum + p.cantidad);
+    final totalStock = productos.fold(0.0, (sum, p) => sum + p.cantidad);
     final bajoStock = productos.where((p) => p.stockBajo).length;
 
     sheet.appendRow([TextCellValue('INKTRACK - REPORTE DE INVENTARIO')]);
@@ -131,8 +131,8 @@ class ExcelExportService {
         TextCellValue(prod.nombre),
         TextCellValue(prod.categoria),
         TextCellValue(prod.cantidad.toString()),
-        TextCellValue(_currencyFormat.format(prod.precio)),
-        TextCellValue(_currencyFormat.format(prod.precio * prod.cantidad)),
+        TextCellValue(_currencyFormat.format(prod.precioVenta)),
+        TextCellValue(_currencyFormat.format(prod.precioVenta * prod.cantidad)),
         TextCellValue(prod.stockMinimo.toString()),
         TextCellValue(prod.stockBajo ? 'BAJO STOCK' : 'OK'),
       ]);
@@ -171,7 +171,7 @@ class ExcelExportService {
       TextCellValue('Nombre'),
       TextCellValue('Teléfono'),
       TextCellValue('Email'),
-      TextCellValue('Fiado'),
+      TextCellValue('Acreedores'),
       TextCellValue('Saldo Pendiente'),
     ]);
 

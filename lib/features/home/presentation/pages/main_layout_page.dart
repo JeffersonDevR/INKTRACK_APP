@@ -20,7 +20,6 @@ import 'package:InkTrack/features/clientes/presentation/pages/cliente_form_page.
 import 'package:InkTrack/features/proveedores/presentation/pages/proveedor_form_page.dart';
 import 'package:InkTrack/features/inventario/presentation/pages/barcode_scanner_page.dart';
 import 'package:InkTrack/features/inventario/presentation/pages/producto_form_page.dart';
-import 'package:InkTrack/features/reportes/presentation/pages/reportes_page.dart';
 import 'package:InkTrack/features/home/presentation/widgets/speed_dial_fab.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
@@ -90,6 +89,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                 invVM: invVM,
                 cliVM: cliVM,
                 provVM: provVM,
+                movVM: movVM,
                 context: context,
               );
             });
@@ -132,7 +132,6 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
     ClientesPage(),
     ProveedoresPage(),
     InventarioPage(),
-    ReportesPage(),
   ];
 
   FabTab get _currentFabTab {
@@ -145,8 +144,6 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
         return FabTab.proveedores;
       case 3:
         return FabTab.inventario;
-      case 4:
-        return FabTab.reportes;
       default:
         return FabTab.home;
     }
@@ -154,7 +151,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
 
   void _navigateToReports() {
     setState(() {
-      _currentIndex = 4;
+      _currentIndex = 0; // Go to Home where reports are now
     });
   }
 
@@ -331,69 +328,105 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
 
   Widget _buildAlertasBanner(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Consumer<PedidosProveedorViewModel>(
-      builder: (context, pedidosVM, child) {
-        final alertas = pedidosVM.pedidosConAlerta;
-        if (alertas.isEmpty) return const SizedBox.shrink();
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Consumer<PedidosProveedorViewModel>(
+          builder: (context, pedidosVM, child) {
+            final alertas = pedidosVM.pedidosConAlerta;
+            if (alertas.isEmpty) return const SizedBox.shrink();
 
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppTheme.warningColor.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: AppTheme.warningColor.withValues(alpha: 0.3),
-            ),
-          ),
-          child: InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      const PedidosProveedorPage(showAll: false),
-                ),
-              );
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.local_shipping_rounded,
-                    color: AppTheme.warningColor,
+            return _buildBannerItem(
+              context,
+              icon: Icons.local_shipping_rounded,
+              title: l10n.entregasPendientes(alertas.length),
+              subtitle: alertas
+                  .map((p) => p.proveedorNombre ?? l10n.proveedor)
+                  .join(', '),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        const PedidosProveedorPage(showAll: false),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.entregasPendientes(alertas.length),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.warningColor,
-                          ),
-                        ),
-                        Text(
-                          alertas
-                              .map((p) => p.proveedorNombre ?? l10n.proveedor)
-                              .join(', '),
-                          style: Theme.of(context).textTheme.bodySmall,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                );
+              },
+            );
+          },
+        ),
+        Consumer<ProveedoresViewModel>(
+          builder: (context, provVM, child) {
+            final visitanManana = provVM.proveedoresQueVisitanManana;
+            if (visitanManana.isEmpty) return const SizedBox.shrink();
+
+            return _buildBannerItem(
+              context,
+              icon: Icons.event_note_rounded,
+              title: 'Visitas para mañana',
+              subtitle: visitanManana.length == 1
+                  ? 'Mañana recibes pedido de ${visitanManana.first.nombre}'
+                  : 'Mañana recibes pedidos de: ${visitanManana.map((p) => p.nombre).join(', ')}',
+              onTap: () {
+                setState(() => _currentIndex = 2); // Go to Proveedores tab
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBannerItem(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppTheme.warningColor.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppTheme.warningColor.withValues(alpha: 0.3),
+        ),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Icon(icon, color: AppTheme.warningColor),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.warningColor,
+                      ),
                     ),
-                  ),
-                  const Icon(Icons.chevron_right, color: AppTheme.warningColor),
-                ],
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodySmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
-            ),
+              const Icon(Icons.chevron_right, color: AppTheme.warningColor),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -507,7 +540,10 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                       ),
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
-                        padding: const EdgeInsets.all(4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: isDark
                               ? AppTheme.darkCard
@@ -522,16 +558,20 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const SizedBox(width: 8),
-                            Text(
-                              user?.email?.split('@').first ?? 'User',
-                              style: GoogleFonts.plusJakartaSans(
-                                color: isDark
-                                    ? Colors.white
-                                    : AppTheme.textPrimary,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 12,
-                              ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  user?.email?.split('@').first ?? 'User',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppTheme.textPrimary,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
                             const SizedBox(width: 10),
                             CircleAvatar(
@@ -554,53 +594,75 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                   ],
                 ),
               ),
-              // Local Selector below user
-              Consumer<LocalesViewModel>(
-                builder: (context, localesVM, child) {
-                  final localActual = localesVM.localActual;
-                  return InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const LocalesPage()),
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 4,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            localActual?.tipo == 'bodega'
-                                ? Icons.warehouse_rounded
-                                : Icons.store_rounded,
-                            size: 14,
-                            color: AppTheme.secondaryColor,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            localActual?.nombre ?? l10n.sinLocal,
-                            style: GoogleFonts.plusJakartaSans(
-                              color: AppTheme.secondaryColor,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 11,
-                            ),
-                          ),
-                          const SizedBox(width: 2),
-                          Icon(
-                            Icons.arrow_drop_down,
-                            size: 16,
-                            color: AppTheme.secondaryColor,
-                          ),
-                        ],
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                child: GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LocalesPage()),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppTheme.darkCard : AppTheme.backgroundColor,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: isDark
+                            ? AppTheme.darkBorder
+                            : AppTheme.borderLightColor,
                       ),
                     ),
-                  );
-                },
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.store_rounded,
+                          size: 18,
+                          color: AppTheme.secondaryColor,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Consumer<LocalesViewModel>(
+                            builder: (context, localesVM, child) {
+                              final localActual = localesVM.localActual;
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l10n.misLocales,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: AppTheme.secondaryColor,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    localActual?.nombre ?? l10n.sinLocal,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: isDark
+                                          ? Colors.white
+                                          : AppTheme.textPrimary,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                        const Icon(
+                          Icons.arrow_forward_ios,
+                          size: 16,
+                          color: AppTheme.secondaryColor,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
               _buildAlertasBanner(context),
               Expanded(
@@ -627,8 +689,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                 ),
                 child: NavigationBar(
                   selectedIndex: _currentIndex,
-                  labelBehavior:
-                      NavigationDestinationLabelBehavior.onlyShowSelected,
+                  labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
                   backgroundColor: Colors.transparent,
                   elevation: 0,
                   onDestinationSelected: (int index) {
@@ -675,82 +736,72 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                       selectedIcon: Icon(Icons.inventory_2_rounded),
                       label: l10n.stock,
                     ),
-                    NavigationDestination(
-                      icon: Icon(Icons.analytics_outlined),
-                      selectedIcon: Icon(Icons.analytics_rounded),
-                      label: l10n.reportes,
-                    ),
                   ],
                 ),
               ),
             ),
           ),
-          floatingActionButton: SpeedDialFab(
-            currentTab: _currentFabTab,
-            onExportPdfPressed: () => _showExportOptions('pdf'),
-            onExportExcelPressed: () => _showExportOptions('excel'),
-            onScanBarcodePressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const BarcodeScannerPage(),
-              ),
-            ),
-            onOcrScanPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const RegistrarVentaPage(),
-              ),
-            ),
-            onVentaPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const RegistrarVentaPage(),
-              ),
-            ),
-            onIngresoPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const MovimientoFormPage(
-                  initialType: mov_model.MovimientoType.ingreso,
+          floatingActionButton: _currentIndex == 0
+              ? null
+              : SpeedDialFab(
+                  currentTab: _currentFabTab,
+                  onScanBarcodePressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const BarcodeScannerPage(),
+                    ),
+                  ),
+                  onVentaPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const RegistrarVentaPage(),
+                    ),
+                  ),
+                  onIngresoPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MovimientoFormPage(
+                        initialType: mov_model.MovimientoType.ingreso,
+                      ),
+                    ),
+                  ),
+                  onEgresoPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MovimientoFormPage(
+                        initialType: mov_model.MovimientoType.egreso,
+                      ),
+                    ),
+                  ),
+                  onRestockPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const BarcodeScannerPage(),
+                    ),
+                  ),
+                  onClientePressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const ClienteFormPage()),
+                  ),
+                  onProveedorPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProveedorFormPage(),
+                    ),
+                  ),
+                  onPedidoPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PedidosProveedorPage(),
+                    ),
+                  ),
+                  onProductoPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const ProductoFormPage()),
+                  ),
                 ),
-              ),
-            ),
-            onEgresoPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const MovimientoFormPage(
-                  initialType: mov_model.MovimientoType.egreso,
-                ),
-              ),
-            ),
-            onRestockPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const BarcodeScannerPage(),
-              ),
-            ),
-            onClientePressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ClienteFormPage()),
-            ),
-            onProveedorPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ProveedorFormPage(),
-              ),
-            ),
-            onPedidoPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const PedidosProveedorPage(),
-              ),
-            ),
-            onProductoPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ProductoFormPage()),
-            ),
-            onReportesPressed: _navigateToReports,
-          ),
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         );
       },

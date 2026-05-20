@@ -130,18 +130,18 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
     }
   }
 
-  Future<void> actualizarStock(String id, int delta) async {
+  Future<void> actualizarStock(String id, num delta) async {
     final p = getById(id);
     if (p != null) {
       final actualizado = p.copyWith(
-        cantidad: (p.cantidad + delta).clamp(0, 999999),
+        cantidad: (p.cantidad + delta.toInt()).clamp(0, 999999),
       );
       await _repository.update(id, actualizado);
       update(id, actualizado);
     }
   }
 
-  Future<void> restockWithReactivation(String codigo, int cantidad) async {
+  Future<void> restockWithReactivation(String codigo, num cantidad) async {
     Producto? producto = findProductoByCodigoIncludingInactive(codigo);
 
     if (producto != null && !producto.isActivo) {
@@ -161,11 +161,11 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
 
   double get valorTotalInventario => _itemsFiltrados.fold(
     0.0,
-    (sum, producto) => sum + (producto.precio * producto.cantidad),
+    (sum, producto) => sum + (producto.precioVenta * producto.cantidad),
   );
 
-  int get totalProductos =>
-      _itemsFiltrados.fold(0, (sum, producto) => sum + producto.cantidad);
+  double get totalProductos =>
+      _itemsFiltrados.fold(0.0, (sum, producto) => sum + producto.cantidad);
 
   List<Producto> getProductosPorCategoria(String categoria) => _itemsFiltrados
       .where((producto) => producto.categoria == categoria)

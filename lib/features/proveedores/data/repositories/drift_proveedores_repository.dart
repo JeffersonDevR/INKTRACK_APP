@@ -45,6 +45,9 @@ class DriftProveedoresRepository implements ProveedoresRepository {
             nombre: item.nombre,
             telefono: item.telefono,
             diasVisita: item.diasVisita,
+            periodoVisita: Value(item.periodoVisita),
+            ultimaVisita: Value(item.ultimaVisita),
+            proximaVisita: Value(item.proximaVisita),
             localId: item.localId != null
                 ? Value(item.localId)
                 : const Value.absent(),
@@ -61,6 +64,9 @@ class DriftProveedoresRepository implements ProveedoresRepository {
         nombre: Value(item.nombre),
         telefono: Value(item.telefono),
         diasVisita: Value(item.diasVisita),
+        periodoVisita: Value(item.periodoVisita),
+        ultimaVisita: Value(item.ultimaVisita),
+        proximaVisita: Value(item.proximaVisita),
         localId: item.localId != null
             ? Value(item.localId)
             : const Value.absent(),
@@ -90,6 +96,9 @@ class DriftProveedoresRepository implements ProveedoresRepository {
       nombre: data.nombre,
       telefono: data.telefono,
       diasVisita: data.diasVisita,
+      periodoVisita: data.periodoVisita,
+      ultimaVisita: data.ultimaVisita,
+      proximaVisita: data.proximaVisita,
       localId: data.localId,
       isActivo: data.isActivo,
     );

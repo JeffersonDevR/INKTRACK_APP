@@ -39,7 +39,7 @@ class DriftMovimientosRepository implements MovimientosRepository {
             localId: item.localId != null
                 ? Value(item.localId)
                 : const Value.absent(),
-            cantidad: Value(item.cantidad),
+            cantidad: Value(item.cantidad?.toInt()),
             esFiado: Value(item.esFiado),
             productosJson: Value(item.productosJson),
             syncStatus: const Value('pending_upload'),
@@ -62,7 +62,7 @@ class DriftMovimientosRepository implements MovimientosRepository {
         localId: item.localId != null
             ? Value(item.localId)
             : const Value.absent(),
-        cantidad: Value(item.cantidad),
+        cantidad: Value(item.cantidad?.toInt()),
         esFiado: Value(item.esFiado),
         productosJson: Value(item.productosJson),
         syncStatus: const Value('pending_upload'),

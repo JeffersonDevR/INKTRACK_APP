@@ -9,7 +9,7 @@ class Venta implements HasId {
   final String? clienteId;
   final String? productoId;
   final String? localId;
-  final int cantidad;
+  final double cantidad;
   final bool esFiado;
 
   /// Name when client is not registered (walk-in).
@@ -26,7 +26,7 @@ class Venta implements HasId {
     this.clienteId,
     this.productoId,
     this.localId,
-    this.cantidad = 0,
+    this.cantidad = 0.0,
     this.esFiado = false,
     this.clienteNombre,
     this.concepto,
@@ -54,7 +54,7 @@ class Venta implements HasId {
     String? clienteId,
     String? productoId,
     String? localId,
-    int? cantidad,
+    double? cantidad,
     bool? esFiado,
     String? clienteNombre,
     String? concepto,
@@ -79,14 +79,16 @@ class Venta implements HasId {
 class VentaItem {
   final String productoId;
   final String nombre;
-  final int cantidad;
+  final double cantidad;
   final double precioUnitario;
+  final bool isUnidad;
 
   VentaItem({
     required this.productoId,
     required this.nombre,
     required this.cantidad,
     required this.precioUnitario,
+    this.isUnidad = false,
   });
 
   double get subtotal => cantidad * precioUnitario;
@@ -96,12 +98,14 @@ class VentaItem {
     'nombre': nombre,
     'cantidad': cantidad,
     'precioUnitario': precioUnitario,
+    'isUnidad': isUnidad,
   };
 
   factory VentaItem.fromJson(Map<String, dynamic> json) => VentaItem(
     productoId: json['productoId'] as String,
     nombre: json['nombre'] as String,
-    cantidad: json['cantidad'] as int,
+    cantidad: (json['cantidad'] as num).toDouble(),
     precioUnitario: (json['precioUnitario'] as num).toDouble(),
+    isUnidad: json['isUnidad'] as bool? ?? false,
   );
 }

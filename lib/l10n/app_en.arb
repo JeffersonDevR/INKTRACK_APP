@@ -249,15 +249,15 @@
   "@resultados": {
     "description": "Results title"
   },
-  "acumuladoTotal": "Total Accumulated",
+  "acumuladoTotal": "General Report",
   "@acumuladoTotal": {
     "description": "Total accumulated title"
   },
-  "ventasTotales": "Total Sales",
+  "ventasTotales": "Sales",
   "@ventasTotales": {
     "description": "Total sales label"
   },
-  "gastosTotales": "Total Expenses",
+  "gastosTotales": "Expenses",
   "@gastosTotales": {
     "description": "Total expenses label"
   },
@@ -305,6 +305,7 @@
   "@actividad": {
     "description": "Activity type label"
   },
+  "resumenClientes": "Clients\nSummary",
   "resumenFinanciero": "Financial\nSummary",
   "@resumenFinanciero": {
     "description": "Financial summary title"
@@ -1243,9 +1244,9 @@
   "@ingreseNombreCliente": {
     "description": "Enter client name message"
   },
-  "ventaCreditoFiado": "Credit sale (Fiado)",
+  "ventaCreditoFiado": "Credit sale (Creditors)",
   "@ventaCreditoFiado": {
-    "description": "Credit sale fiado label"
+    "description": "Credit sale creditors label"
   },
   "aumentaraSaldoPendiente": "Will increase the client's pending balance",
   "@aumentaraSaldoPendiente": {

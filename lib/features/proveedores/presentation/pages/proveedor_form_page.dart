@@ -21,6 +21,7 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _nombreController = TextEditingController();
   final _telefonoController = TextEditingController();
+  final _periodoVisitaController = TextEditingController();
   final List<String> _diasVisita = [];
 
   List<String> _diasSemana(BuildContext context) {
@@ -43,6 +44,9 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
       _nombreController.text = widget.proveedor!.nombre;
       _telefonoController.text = widget.proveedor!.telefono;
       _diasVisita.addAll(widget.proveedor!.diasVisita);
+      if (widget.proveedor!.periodoVisita != null) {
+        _periodoVisitaController.text = widget.proveedor!.periodoVisita.toString();
+      }
     }
   }
 
@@ -50,6 +54,7 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
   void dispose() {
     _nombreController.dispose();
     _telefonoController.dispose();
+    _periodoVisitaController.dispose();
     super.dispose();
   }
 
@@ -142,6 +147,25 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
                   );
                 }).toList(),
               ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _periodoVisitaController,
+                decoration: InputDecoration(
+                  labelText: 'Lapso de visita (meses)',
+                  border: const OutlineInputBorder(),
+                  helperText: 'Opcional: usar cuando el proveedor pasa cada X meses.',
+                ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                validator: (value) {
+                  if (value == null || value.isEmpty) return null;
+                  final number = int.tryParse(value);
+                  if (number == null || number <= 0) {
+                    return 'Ingrese un número válido';
+                  }
+                  return null;
+                },
+              ),
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
@@ -165,11 +189,18 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
       final localesVM = context.read<LocalesViewModel>();
 
       try {
+        final periodoVisita = _periodoVisitaController.text.trim().isEmpty
+            ? null
+            : int.tryParse(_periodoVisitaController.text.trim());
+
+        final diasVisita = periodoVisita != null ? <String>[] : _diasVisita;
+
         if (widget.proveedor == null) {
           await viewModel.agregar(
             nombre: _nombreController.text,
             telefono: _telefonoController.text,
-            diasVisita: _diasVisita,
+            diasVisita: diasVisita,
+            periodoVisita: periodoVisita,
             movimientosVM: context.read<MovimientosViewModel>(),
             localId: localesVM.localIdSeleccionado,
           );
@@ -178,7 +209,8 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
             id: widget.proveedor!.id,
             nombre: _nombreController.text,
             telefono: _telefonoController.text,
-            diasVisita: _diasVisita,
+            diasVisita: diasVisita,
+            periodoVisita: periodoVisita,
           );
         }
         if (mounted) Navigator.pop(context);

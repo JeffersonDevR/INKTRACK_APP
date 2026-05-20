@@ -136,7 +136,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                 productoId: producto.id,
                 nombre: producto.nombre,
                 cantidad: cantidad,
-                precioUnitario: producto.precio,
+                precioUnitario: producto.precioVenta,
               ),
             );
           }
@@ -146,22 +146,21 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
     }
   }
 
-  Future<int?> _showCantidadDialog(Producto producto) async {
+  Future<double?> _showCantidadDialog(Producto producto) async {
     final controller = TextEditingController(text: '1');
-    return showDialog<int>(
+    return showDialog<double>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(producto.nombre),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Precio unitario: \$${producto.precio.toStringAsFixed(2)}'),
+            Text('Precio unitario: \$${producto.precioVenta.toStringAsFixed(2)}'),
             const SizedBox(height: 16),
             TextField(
               controller: controller,
               decoration: const InputDecoration(labelText: 'Cantidad'),
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
               autofocus: true,
             ),
           ],
@@ -173,7 +172,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
           ),
           FilledButton(
             onPressed: () {
-              final cantidad = int.tryParse(controller.text);
+              final cantidad = double.tryParse(controller.text);
               if (cantidad != null && cantidad > 0) {
                 Navigator.pop(ctx, cantidad);
               }
@@ -672,7 +671,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
 class _MovimientoProductoState {
   final String productoId;
   final String nombre;
-  int cantidad;
+  double cantidad;
   double precioUnitario;
 
   _MovimientoProductoState({
@@ -769,14 +768,14 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
                         return ListTile(
                           title: Text(producto.nombre),
                           subtitle: Text(
-                            'Stock: ${producto.cantidad} • \$${producto.precio.toStringAsFixed(2)}',
+                            'Stock: ${producto.cantidad} • \$${producto.precioVenta.toStringAsFixed(2)}',
                           ),
                           onTap: () {
                             setState(() {
                               _productoSeleccionadoId = producto.id;
                               _productoSeleccionadoNombre = producto.nombre;
-                              _precioUnitario = producto.precio;
-                              _precioController.text = producto.precio
+                              _precioUnitario = producto.precioVenta;
+                              _precioController.text = producto.precioVenta
                                   .toString();
                             });
                           },
@@ -804,8 +803,7 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
                   TextField(
                     controller: _cantidadController,
                     decoration: const InputDecoration(labelText: 'Cantidad'),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   ),
                   const SizedBox(height: 16),
                   TextField(
@@ -826,7 +824,7 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
                     child: ElevatedButton(
                       onPressed: () {
                         final cantidad =
-                            int.tryParse(_cantidadController.text) ?? 0;
+                            double.tryParse(_cantidadController.text) ?? 0;
                         if (_productoSeleccionadoId != null &&
                             cantidad > 0 &&
                             _precioUnitario > 0) {
@@ -843,8 +841,7 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
                       },
                       child: const Text('Agregar'),
                     ),
-                  ),
-                ],
+                  ),                ],
               ),
           ],
         ),

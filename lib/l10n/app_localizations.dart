@@ -437,19 +437,19 @@ abstract class AppLocalizations {
   /// Total accumulated title
   ///
   /// In en, this message translates to:
-  /// **'Total Accumulated'**
+  /// **'General Report'**
   String get acumuladoTotal;
 
   /// Total sales label
   ///
   /// In en, this message translates to:
-  /// **'Total Sales'**
+  /// **'Sales'**
   String get ventasTotales;
 
   /// Total expenses label
   ///
   /// In en, this message translates to:
-  /// **'Total Expenses'**
+  /// **'Expenses'**
   String get gastosTotales;
 
   /// Equity label
@@ -511,6 +511,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Activity'**
   String get actividad;
+
+  /// No description provided for @resumenClientes.
+  ///
+  /// In en, this message translates to:
+  /// **'Clients\nSummary'**
+  String get resumenClientes;
 
   /// Financial summary title
   ///
@@ -1562,10 +1568,10 @@ abstract class AppLocalizations {
   /// **'Enter the client name'**
   String get ingreseNombreCliente;
 
-  /// Credit sale fiado label
+  /// Credit sale creditors label
   ///
   /// In en, this message translates to:
-  /// **'Credit sale (Fiado)'**
+  /// **'Credit sale (Creditors)'**
   String get ventaCreditoFiado;
 
   /// Will increase pending balance message

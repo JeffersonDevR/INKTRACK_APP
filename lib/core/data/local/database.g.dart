@@ -1225,6 +1225,39 @@ class $ProveedoresTable extends Proveedores
         type: DriftSqlType.string,
         requiredDuringInsert: true,
       ).withConverter<List<String>>($ProveedoresTable.$converterdiasVisita);
+  static const VerificationMeta _periodoVisitaMeta = const VerificationMeta(
+    'periodoVisita',
+  );
+  @override
+  late final GeneratedColumn<int> periodoVisita = GeneratedColumn<int>(
+    'periodo_visita',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _ultimaVisitaMeta = const VerificationMeta(
+    'ultimaVisita',
+  );
+  @override
+  late final GeneratedColumn<DateTime> ultimaVisita = GeneratedColumn<DateTime>(
+    'ultima_visita',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _proximaVisitaMeta = const VerificationMeta(
+    'proximaVisita',
+  );
+  @override
+  late final GeneratedColumn<DateTime> proximaVisita = GeneratedColumn<DateTime>(
+    'proxima_visita',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _localIdMeta = const VerificationMeta(
     'localId',
   );
@@ -1280,6 +1313,9 @@ class $ProveedoresTable extends Proveedores
     nombre,
     telefono,
     diasVisita,
+    periodoVisita,
+    ultimaVisita,
+    proximaVisita,
     localId,
     isActivo,
     syncStatus,
@@ -1317,6 +1353,24 @@ class $ProveedoresTable extends Proveedores
       );
     } else if (isInserting) {
       context.missing(_telefonoMeta);
+    }
+    if (data.containsKey('periodo_visita')) {
+      context.handle(
+        _periodoVisitaMeta,
+        periodoVisita.isAcceptableOrUnknown(data['periodo_visita']!, _periodoVisitaMeta),
+      );
+    }
+    if (data.containsKey('ultima_visita')) {
+      context.handle(
+        _ultimaVisitaMeta,
+        ultimaVisita.isAcceptableOrUnknown(data['ultima_visita']!, _ultimaVisitaMeta),
+      );
+    }
+    if (data.containsKey('proxima_visita')) {
+      context.handle(
+        _proximaVisitaMeta,
+        proximaVisita.isAcceptableOrUnknown(data['proxima_visita']!, _proximaVisitaMeta),
+      );
     }
     if (data.containsKey('local_id')) {
       context.handle(
@@ -1372,6 +1426,18 @@ class $ProveedoresTable extends Proveedores
           data['${effectivePrefix}dias_visita'],
         )!,
       ),
+      periodoVisita: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}periodo_visita'],
+      ),
+      ultimaVisita: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}ultima_visita'],
+      ),
+      proximaVisita: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}proxima_visita'],
+      ),
       localId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}local_id'],
@@ -1405,6 +1471,9 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
   final String nombre;
   final String telefono;
   final List<String> diasVisita;
+  final int? periodoVisita;
+  final DateTime? ultimaVisita;
+  final DateTime? proximaVisita;
   final String? localId;
   final bool isActivo;
   final String syncStatus;
@@ -1414,6 +1483,9 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
     required this.nombre,
     required this.telefono,
     required this.diasVisita,
+    this.periodoVisita,
+    this.ultimaVisita,
+    this.proximaVisita,
     this.localId,
     required this.isActivo,
     required this.syncStatus,
@@ -1429,6 +1501,15 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
       map['dias_visita'] = Variable<String>(
         $ProveedoresTable.$converterdiasVisita.toSql(diasVisita),
       );
+    }
+    if (!nullToAbsent || periodoVisita != null) {
+      map['periodo_visita'] = Variable<int>(periodoVisita);
+    }
+    if (!nullToAbsent || ultimaVisita != null) {
+      map['ultima_visita'] = Variable<DateTime>(ultimaVisita);
+    }
+    if (!nullToAbsent || proximaVisita != null) {
+      map['proxima_visita'] = Variable<DateTime>(proximaVisita);
     }
     if (!nullToAbsent || localId != null) {
       map['local_id'] = Variable<String>(localId);
@@ -1447,6 +1528,15 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
       nombre: Value(nombre),
       telefono: Value(telefono),
       diasVisita: Value(diasVisita),
+      periodoVisita: periodoVisita == null && nullToAbsent
+          ? const Value.absent()
+          : Value(periodoVisita),
+      ultimaVisita: ultimaVisita == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ultimaVisita),
+      proximaVisita: proximaVisita == null && nullToAbsent
+          ? const Value.absent()
+          : Value(proximaVisita),
       localId: localId == null && nullToAbsent
           ? const Value.absent()
           : Value(localId),
@@ -1468,6 +1558,9 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
       nombre: serializer.fromJson<String>(json['nombre']),
       telefono: serializer.fromJson<String>(json['telefono']),
       diasVisita: serializer.fromJson<List<String>>(json['diasVisita']),
+      periodoVisita: serializer.fromJson<int?>(json['periodoVisita']),
+      ultimaVisita: serializer.fromJson<DateTime?>(json['ultimaVisita']),
+      proximaVisita: serializer.fromJson<DateTime?>(json['proximaVisita']),
       localId: serializer.fromJson<String?>(json['localId']),
       isActivo: serializer.fromJson<bool>(json['isActivo']),
       syncStatus: serializer.fromJson<String>(json['syncStatus']),
@@ -1482,6 +1575,9 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
       'nombre': serializer.toJson<String>(nombre),
       'telefono': serializer.toJson<String>(telefono),
       'diasVisita': serializer.toJson<List<String>>(diasVisita),
+      'periodoVisita': serializer.toJson<int?>(periodoVisita),
+      'ultimaVisita': serializer.toJson<DateTime?>(ultimaVisita),
+      'proximaVisita': serializer.toJson<DateTime?>(proximaVisita),
       'localId': serializer.toJson<String?>(localId),
       'isActivo': serializer.toJson<bool>(isActivo),
       'syncStatus': serializer.toJson<String>(syncStatus),
@@ -1494,6 +1590,9 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
     String? nombre,
     String? telefono,
     List<String>? diasVisita,
+    Value<int?> periodoVisita = const Value.absent(),
+    Value<DateTime?> ultimaVisita = const Value.absent(),
+    Value<DateTime?> proximaVisita = const Value.absent(),
     Value<String?> localId = const Value.absent(),
     bool? isActivo,
     String? syncStatus,
@@ -1503,6 +1602,9 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
     nombre: nombre ?? this.nombre,
     telefono: telefono ?? this.telefono,
     diasVisita: diasVisita ?? this.diasVisita,
+    periodoVisita: periodoVisita.present ? periodoVisita.value : this.periodoVisita,
+    ultimaVisita: ultimaVisita.present ? ultimaVisita.value : this.ultimaVisita,
+    proximaVisita: proximaVisita.present ? proximaVisita.value : this.proximaVisita,
     localId: localId.present ? localId.value : this.localId,
     isActivo: isActivo ?? this.isActivo,
     syncStatus: syncStatus ?? this.syncStatus,
@@ -1516,6 +1618,15 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
       diasVisita: data.diasVisita.present
           ? data.diasVisita.value
           : this.diasVisita,
+      periodoVisita: data.periodoVisita.present
+          ? data.periodoVisita.value
+          : this.periodoVisita,
+      ultimaVisita: data.ultimaVisita.present
+          ? data.ultimaVisita.value
+          : this.ultimaVisita,
+      proximaVisita: data.proximaVisita.present
+          ? data.proximaVisita.value
+          : this.proximaVisita,
       localId: data.localId.present ? data.localId.value : this.localId,
       isActivo: data.isActivo.present ? data.isActivo.value : this.isActivo,
       syncStatus: data.syncStatus.present
@@ -1534,6 +1645,9 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
           ..write('nombre: $nombre, ')
           ..write('telefono: $telefono, ')
           ..write('diasVisita: $diasVisita, ')
+          ..write('periodoVisita: $periodoVisita, ')
+          ..write('ultimaVisita: $ultimaVisita, ')
+          ..write('proximaVisita: $proximaVisita, ')
           ..write('localId: $localId, ')
           ..write('isActivo: $isActivo, ')
           ..write('syncStatus: $syncStatus, ')
@@ -1548,6 +1662,9 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
     nombre,
     telefono,
     diasVisita,
+    periodoVisita,
+    ultimaVisita,
+    proximaVisita,
     localId,
     isActivo,
     syncStatus,
@@ -1561,6 +1678,9 @@ class ProveedorData extends DataClass implements Insertable<ProveedorData> {
           other.nombre == this.nombre &&
           other.telefono == this.telefono &&
           other.diasVisita == this.diasVisita &&
+          other.periodoVisita == this.periodoVisita &&
+          other.ultimaVisita == this.ultimaVisita &&
+          other.proximaVisita == this.proximaVisita &&
           other.localId == this.localId &&
           other.isActivo == this.isActivo &&
           other.syncStatus == this.syncStatus &&
@@ -1572,6 +1692,9 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
   final Value<String> nombre;
   final Value<String> telefono;
   final Value<List<String>> diasVisita;
+  final Value<int?> periodoVisita;
+  final Value<DateTime?> ultimaVisita;
+  final Value<DateTime?> proximaVisita;
   final Value<String?> localId;
   final Value<bool> isActivo;
   final Value<String> syncStatus;
@@ -1582,6 +1705,9 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
     this.nombre = const Value.absent(),
     this.telefono = const Value.absent(),
     this.diasVisita = const Value.absent(),
+    this.periodoVisita = const Value.absent(),
+    this.ultimaVisita = const Value.absent(),
+    this.proximaVisita = const Value.absent(),
     this.localId = const Value.absent(),
     this.isActivo = const Value.absent(),
     this.syncStatus = const Value.absent(),
@@ -1593,6 +1719,9 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
     required String nombre,
     required String telefono,
     required List<String> diasVisita,
+    this.periodoVisita = const Value.absent(),
+    this.ultimaVisita = const Value.absent(),
+    this.proximaVisita = const Value.absent(),
     this.localId = const Value.absent(),
     this.isActivo = const Value.absent(),
     this.syncStatus = const Value.absent(),
@@ -1607,6 +1736,9 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
     Expression<String>? nombre,
     Expression<String>? telefono,
     Expression<String>? diasVisita,
+    Expression<int>? periodoVisita,
+    Expression<DateTime>? ultimaVisita,
+    Expression<DateTime>? proximaVisita,
     Expression<String>? localId,
     Expression<bool>? isActivo,
     Expression<String>? syncStatus,
@@ -1618,6 +1750,9 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
       if (nombre != null) 'nombre': nombre,
       if (telefono != null) 'telefono': telefono,
       if (diasVisita != null) 'dias_visita': diasVisita,
+      if (periodoVisita != null) 'periodo_visita': periodoVisita,
+      if (ultimaVisita != null) 'ultima_visita': ultimaVisita,
+      if (proximaVisita != null) 'proxima_visita': proximaVisita,
       if (localId != null) 'local_id': localId,
       if (isActivo != null) 'is_activo': isActivo,
       if (syncStatus != null) 'sync_status': syncStatus,
@@ -1631,6 +1766,9 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
     Value<String>? nombre,
     Value<String>? telefono,
     Value<List<String>>? diasVisita,
+    Value<int?>? periodoVisita,
+    Value<DateTime?>? ultimaVisita,
+    Value<DateTime?>? proximaVisita,
     Value<String?>? localId,
     Value<bool>? isActivo,
     Value<String>? syncStatus,
@@ -1642,6 +1780,9 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
       nombre: nombre ?? this.nombre,
       telefono: telefono ?? this.telefono,
       diasVisita: diasVisita ?? this.diasVisita,
+      periodoVisita: periodoVisita ?? this.periodoVisita,
+      ultimaVisita: ultimaVisita ?? this.ultimaVisita,
+      proximaVisita: proximaVisita ?? this.proximaVisita,
       localId: localId ?? this.localId,
       isActivo: isActivo ?? this.isActivo,
       syncStatus: syncStatus ?? this.syncStatus,
@@ -1666,6 +1807,15 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
       map['dias_visita'] = Variable<String>(
         $ProveedoresTable.$converterdiasVisita.toSql(diasVisita.value),
       );
+    }
+    if (periodoVisita.present) {
+      map['periodo_visita'] = Variable<int>(periodoVisita.value);
+    }
+    if (ultimaVisita.present) {
+      map['ultima_visita'] = Variable<DateTime>(ultimaVisita.value);
+    }
+    if (proximaVisita.present) {
+      map['proxima_visita'] = Variable<DateTime>(proximaVisita.value);
     }
     if (localId.present) {
       map['local_id'] = Variable<String>(localId.value);
@@ -1692,6 +1842,9 @@ class ProveedoresCompanion extends UpdateCompanion<ProveedorData> {
           ..write('nombre: $nombre, ')
           ..write('telefono: $telefono, ')
           ..write('diasVisita: $diasVisita, ')
+          ..write('periodoVisita: $periodoVisita, ')
+          ..write('ultimaVisita: $ultimaVisita, ')
+          ..write('proximaVisita: $proximaVisita, ')
           ..write('localId: $localId, ')
           ..write('isActivo: $isActivo, ')
           ..write('syncStatus: $syncStatus, ')

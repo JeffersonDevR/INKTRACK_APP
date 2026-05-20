@@ -13,11 +13,16 @@ import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
 
+import 'package:InkTrack/features/movimientos/data/repositories/drift_movimientos_repository.dart';
+import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
+import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
+
 class LocalesViewModel extends BaseCrudViewModel<Local> {
   final LocalesRepository _repository;
   final DriftProductosRepository? _productosRepo;
   final DriftClientesRepository? _clientesRepo;
   final DriftProveedoresRepository? _proveedoresRepo;
+  final DriftMovimientosRepository? _movimientosRepo;
 
   String? _localIdSeleccionado;
   bool _migracionRealizada = false;
@@ -27,9 +32,11 @@ class LocalesViewModel extends BaseCrudViewModel<Local> {
     DriftProductosRepository? productosRepo,
     DriftClientesRepository? clientesRepo,
     DriftProveedoresRepository? proveedoresRepo,
+    DriftMovimientosRepository? movimientosRepo,
   }) : _productosRepo = productosRepo,
        _clientesRepo = clientesRepo,
-       _proveedoresRepo = proveedoresRepo {
+       _proveedoresRepo = proveedoresRepo,
+       _movimientosRepo = movimientosRepo {
     _loadLocales();
   }
 
@@ -63,6 +70,7 @@ class LocalesViewModel extends BaseCrudViewModel<Local> {
     required InventarioViewModel invVM,
     required ClientesViewModel cliVM,
     required ProveedoresViewModel provVM,
+    required MovimientosViewModel movVM,
     required BuildContext context,
   }) async {
     if (_localIdSeleccionado == null) return;
@@ -77,10 +85,14 @@ class LocalesViewModel extends BaseCrudViewModel<Local> {
     final proveedoresSinLocal = provVM.items
         .where((p) => p.localId == null)
         .toList();
+    final movimientosSinLocal = movVM.items
+        .where((m) => m.localId == null)
+        .toList();
 
     if (productosSinLocal.isEmpty &&
         clientesSinLocal.isEmpty &&
-        proveedoresSinLocal.isEmpty) {
+        proveedoresSinLocal.isEmpty &&
+        movimientosSinLocal.isEmpty) {
       _migracionRealizada = true;
       return;
     }
@@ -91,8 +103,9 @@ class LocalesViewModel extends BaseCrudViewModel<Local> {
         title: const Text('Migrar datos al local'),
         content: Text(
           '¿Quieres asignar los ${productosSinLocal.length} productos, '
-          '${clientesSinLocal.length} clientes y '
-          '${proveedoresSinLocal.length} proveedores al local "${localActual?.nombre}"?\n\n'
+          '${clientesSinLocal.length} clientes, '
+          '${proveedoresSinLocal.length} proveedores y '
+          '${movimientosSinLocal.length} transacciones al local "${localActual?.nombre}"?\n\n'
           'Si no migras, los datos existentes no aparecerán en este local.',
         ),
         actions: [
@@ -113,28 +126,32 @@ class LocalesViewModel extends BaseCrudViewModel<Local> {
       return;
     }
 
-    final productosActualizados = <Producto>[];
+    // Migrate products
     for (final p in productosSinLocal) {
       final actualizado = p.copyWith(localId: _localIdSeleccionado);
       await _productosRepo?.update(p.id, actualizado);
       invVM.update(p.id, actualizado);
-      productosActualizados.add(actualizado);
     }
 
-    final clientesActualizados = <Cliente>[];
+    // Migrate clients
     for (final c in clientesSinLocal) {
       final actualizado = c.copyWith(localId: _localIdSeleccionado);
       await _clientesRepo?.update(c.id, actualizado);
       cliVM.update(c.id, actualizado);
-      clientesActualizados.add(actualizado);
     }
 
-    final proveedoresActualizados = <Proveedor>[];
+    // Migrate suppliers
     for (final p in proveedoresSinLocal) {
       final actualizado = p.copyWith(localId: _localIdSeleccionado);
       await _proveedoresRepo?.update(p.id, actualizado);
       provVM.update(p.id, actualizado);
-      proveedoresActualizados.add(actualizado);
+    }
+
+    // Migrate movements
+    for (final m in movimientosSinLocal) {
+      final actualizado = m.copyWith(localId: _localIdSeleccionado);
+      await _movimientosRepo?.update(m.id, actualizado);
+      movVM.update(m.id, actualizado);
     }
 
     _migracionRealizada = true;

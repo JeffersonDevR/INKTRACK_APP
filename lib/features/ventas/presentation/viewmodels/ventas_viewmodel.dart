@@ -111,6 +111,7 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
           tipo: MovimientoType.ingreso,
           concepto: finalConcepto,
           categoria: 'Ventas',
+          localId: ventaAGuardar.localId,
         );
         await movimientosVM.guardar(movimiento);
       }
@@ -119,7 +120,14 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
       if (inventarioVM != null) {
         if (venta.isMultiProducto) {
           for (final item in venta.productos) {
-            await inventarioVM.actualizarStock(item.productoId, -item.cantidad);
+            final producto = inventarioVM.getById(item.productoId);
+            if (producto != null) {
+              double decrement = item.cantidad.toDouble();
+              if (item.isUnidad && producto.esPaquete && producto.unidadesPorPaquete > 0) {
+                decrement = item.cantidad / producto.unidadesPorPaquete;
+              }
+              await inventarioVM.actualizarStock(item.productoId, -decrement);
+            }
           }
         } else if (venta.productoId != null && venta.cantidad > 0) {
           await inventarioVM.actualizarStock(

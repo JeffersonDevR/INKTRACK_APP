@@ -33,191 +33,35 @@ class InventarioPage extends StatelessWidget {
                   child: FinancialSummaryHeader(
                     title: l10n.controlDeInventarioTitle,
                     actions: [
-                      IconButton(
-                        onPressed: () => viewModel.toggleShowInactive(),
-                        icon: Icon(
-                          showInactive
-                              ? Icons.visibility_rounded
-                              : Icons.visibility_off_rounded,
-                          color: showInactive
-                              ? AppTheme.warningColor
-                              : AppTheme.textSecondary,
-                        ),
-                        tooltip: showInactive
-                            ? 'Hide inactive'
-                            : 'View inactive',
+                      _HeaderAction(
+                        icon: showInactive
+                            ? Icons.visibility_rounded
+                            : Icons.visibility_off_rounded,
+                        label: showInactive ? 'Ocultar' : 'Ver',
+                        onTap: () => viewModel.toggleShowInactive(),
+                        color: showInactive
+                            ? AppTheme.warningColor
+                            : AppTheme.textSecondary,
                       ),
-                      PopupMenuButton<String>(
-                        icon: const Icon(
-                          Icons.cloud_sync_rounded,
-                          color: AppTheme.primaryColor,
-                        ),
-                        tooltip: 'Sync',
-                        onSelected: (value) async {
-                          final syncService = context
-                              .read<SupabaseSyncService>();
-                          final scaffoldMessenger = ScaffoldMessenger.of(
-                            context,
-                          );
-
-                          scaffoldMessenger.showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                value == 'upload'
-                                    ? 'Uploading changes...'
-                                    : value == 'download'
-                                    ? 'Downloading from cloud...'
-                                    : 'Syncing everything...',
-                              ),
-                              duration: const Duration(seconds: 1),
-                            ),
-                          );
-
-                          SyncResult result;
-                          if (value == 'upload') {
-                            result = await syncService.syncAll();
-                          } else if (value == 'download') {
-                            result = await syncService.downloadAll();
-                          } else {
-                            final uploadResult = await syncService.syncAll();
-                            result = await syncService.downloadAll();
-                            if (uploadResult.errors > 0) {
-                              result = SyncResult(
-                                tableName: 'both',
-                                uploaded: uploadResult.uploaded,
-                                downloaded: result.downloaded,
-                                errors: uploadResult.errors + result.errors,
-                              );
-                            }
-                          }
-
-                          if (result.isSuccess) {
-                            await viewModel.refresh();
-                            if (context.mounted) {
-                              final cliVM = context.read<ClientesViewModel>();
-                              final provVM = context
-                                  .read<ProveedoresViewModel>();
-                              final ventVM = context.read<VentasViewModel>();
-                              final movVM = context
-                                  .read<MovimientosViewModel>();
-                              await Future.wait([
-                                cliVM.refresh(),
-                                provVM.refresh(),
-                                ventVM.refresh(),
-                                movVM.refresh(),
-                              ]);
-                            }
-                          }
-
-                          scaffoldMessenger.showSnackBar(
-                            SnackBar(
-                              content: Text(result.message),
-                              backgroundColor: result.isSuccess
-                                  ? AppTheme.successColor
-                                  : AppTheme.errorColor,
-                            ),
-                          );
-                        },
-                        itemBuilder: (context) => [
-                          PopupMenuItem(
-                            value: 'upload',
-                            child: Row(
-                              children: [
-                                Icon(Icons.cloud_upload_outlined, size: 20),
-                                const SizedBox(width: 12),
-                                Text('Upload changes'),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'download',
-                            child: Row(
-                              children: [
-                                Icon(Icons.cloud_download_outlined, size: 20),
-                                const SizedBox(width: 12),
-                                Text('Download from cloud'),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'both',
-                            child: Row(
-                              children: [
-                                Icon(Icons.sync_rounded, size: 20),
-                                const SizedBox(width: 12),
-                                Text('Sync all'),
-                              ],
-                            ),
-                          ),
-                        ],
+                      _HeaderAction(
+                        icon: Icons.cloud_sync_rounded,
+                        label: 'Sincro',
+                        onTap: () => _showSyncOptions(context, viewModel),
+                        color: AppTheme.primaryColor,
                       ),
                     ],
-                    totalIngresos: viewModel.totalProductos.toDouble(),
-                    totalEgresos: viewModel.productosConStockBajo.length
-                        .toDouble(),
+                    totalIngresos: viewModel.totalProductos,
+                    totalEgresos: viewModel.productosConStockBajo.length.toDouble(),
                     balance: viewModel.valorTotalInventario,
-                    label1: l10n.productos,
-                    label2: 'Low Stock',
-                    label3: l10n.valorStock,
+                    label1: l10n.total,
+                    label2: 'Stock Bajo',
+                    label3: 'Valor',
                     icon1: Icons.inventory_2_rounded,
                     icon2: Icons.warning_amber_rounded,
                     icon3: Icons.account_balance_wallet_rounded,
                     isCurrency1: false,
                     isCurrency2: false,
                     isCurrency3: true,
-                  ),
-                ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 8,
-                ),
-                sliver: SliverToBoxAdapter(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 4,
-                            height: 20,
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryColor,
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            l10n.catalogoProductos,
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w800),
-                          ),
-                        ],
-                      ),
-                      if (showInactive &&
-                          viewModel.productos
-                              .where((p) => !p.isActivo)
-                              .isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '${viewModel.productos.where((p) => !p.isActivo).length} Inactive',
-                            style: const TextStyle(
-                              fontSize: 10,
-                              color: AppTheme.primaryColor,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                    ],
                   ),
                 ),
               ),
@@ -257,15 +101,119 @@ class InventarioPage extends StatelessWidget {
     );
   }
 
+  void _showSyncOptions(BuildContext context, InventarioViewModel viewModel) {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.cloud_upload_rounded),
+              title: const Text('Subir cambios'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _performSync(context, viewModel, 'upload');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.cloud_download_rounded),
+              title: const Text('Descargar de la nube'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _performSync(context, viewModel, 'download');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.sync_rounded),
+              title: const Text('Sincronización total'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _performSync(context, viewModel, 'both');
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _performSync(
+    BuildContext context,
+    InventarioViewModel viewModel,
+    String mode,
+  ) async {
+    final syncService = context.read<SupabaseSyncService>();
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    scaffoldMessenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          mode == 'upload'
+              ? 'Subiendo cambios...'
+              : mode == 'download'
+              ? 'Descargando de la nube...'
+              : 'Sincronizando todo...',
+        ),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+
+    SyncResult result;
+    if (mode == 'upload') {
+      result = await syncService.syncAll();
+    } else if (mode == 'download') {
+      result = await syncService.downloadAll();
+    } else {
+      final uploadResult = await syncService.syncAll();
+      result = await syncService.downloadAll();
+      if (uploadResult.errors > 0) {
+        result = SyncResult(
+          tableName: 'both',
+          uploaded: uploadResult.uploaded,
+          downloaded: result.downloaded,
+          errors: uploadResult.errors + result.errors,
+        );
+      }
+    }
+
+    if (result.isSuccess) {
+      await viewModel.refresh();
+      if (context.mounted) {
+        final cliVM = context.read<ClientesViewModel>();
+        final provVM = context.read<ProveedoresViewModel>();
+        final ventVM = context.read<VentasViewModel>();
+        final movVM = context.read<MovimientosViewModel>();
+        await Future.wait([
+          cliVM.refresh(),
+          provVM.refresh(),
+          ventVM.refresh(),
+          movVM.refresh(),
+        ]);
+      }
+    }
+
+    scaffoldMessenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          result.isSuccess
+              ? '¡Sincronización completa!'
+              : 'Error en sincronización: ${result.errors} errores',
+        ),
+        backgroundColor: result.isSuccess ? AppTheme.successColor : AppTheme.errorColor,
+      ),
+    );
+  }
+
   void _showDeleteDialog(BuildContext context, Producto producto) {
     final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: Text('Deactivate ${l10n.producto}'),
+        title: Text('Desactivar ${l10n.producto}'),
         content: Text(
-          'Deactivate "${producto.nombre}"?\n\nIt will not appear in listings or new sales, but its historical records will be preserved.',
+          '¿Desactivar "${producto.nombre}"?\n\nNo aparecerá en listados o nuevas ventas, pero se conservarán sus registros históricos.',
         ),
         actions: [
           TextButton(
@@ -281,7 +229,7 @@ class InventarioPage extends StatelessWidget {
               backgroundColor: AppTheme.errorColor,
               foregroundColor: Colors.white,
             ),
-            child: Text('Deactivate'),
+            child: const Text('Desactivar'),
           ),
         ],
       ),
@@ -294,8 +242,8 @@ class InventarioPage extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: Text('Reactivate ${l10n.producto}'),
-        content: Text('Reactivate "${producto.nombre}" in the catalog?'),
+        title: Text('Reactivar ${l10n.producto}'),
+        content: Text('¿Reactivar "${producto.nombre}" en el catálogo?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -306,7 +254,7 @@ class InventarioPage extends StatelessWidget {
               context.read<InventarioViewModel>().reactivar(producto.id);
               Navigator.pop(ctx);
             },
-            child: Text('Reactivate'),
+            child: const Text('Reactivar'),
           ),
         ],
       ),
@@ -318,7 +266,6 @@ class _EmptyInventario extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -339,14 +286,14 @@ class _EmptyInventario extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'Empty inventory',
+              'Inventario vacío',
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 12),
             Text(
-              'Start by adding products manually or scanning barcodes.',
+              'Comienza agregando productos manualmente o escaneando códigos de barras.',
               textAlign: TextAlign.center,
               style: Theme.of(
                 context,
@@ -443,7 +390,7 @@ class _ProductoCard extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                'INACTIVE',
+                                'INACTIVO',
                                 style: TextStyle(
                                   fontSize: 8,
                                   fontWeight: FontWeight.w900,
@@ -485,7 +432,7 @@ class _ProductoCard extends StatelessWidget {
                           children: [
                             Icon(Icons.edit_outlined, size: 20),
                             const SizedBox(width: 12),
-                            Text('Edit ${l10n.producto}'),
+                            Text('Editar ${l10n.producto}'),
                           ],
                         ),
                       ),
@@ -500,8 +447,8 @@ class _ProductoCard extends StatelessWidget {
                               size: 20,
                             ),
                             const SizedBox(width: 12),
-                            Text(
-                              'Reactivate',
+                            const Text(
+                              'Reactivar',
                               style: TextStyle(color: AppTheme.successColor),
                             ),
                           ],
@@ -519,7 +466,7 @@ class _ProductoCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 12),
                             Text(
-                              'Deactivate',
+                              'Desactivar',
                               style: TextStyle(color: AppTheme.errorColor),
                             ),
                           ],
@@ -547,7 +494,7 @@ class _ProductoCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      NumberFormatter.formatCurrency(producto.precio),
+                      NumberFormatter.formatCurrency(producto.precioVenta),
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w900,
                         color: isInactive
@@ -582,7 +529,7 @@ class _ProductoCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'STOCK: ${producto.cantidad}',
+                        'STOCK: ${producto.cantidad % 1 == 0 ? producto.cantidad.toInt() : producto.cantidad.toStringAsFixed(2)}',
                         style: Theme.of(context).textTheme.labelMedium
                             ?.copyWith(
                               color: isInactive
@@ -596,6 +543,45 @@ class _ProductoCard extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HeaderAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final Color color;
+
+  const _HeaderAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 20),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 9,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ],
         ),

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:InkTrack/core/base_crud_viewmodel.dart';
 import 'package:InkTrack/core/utils/id_utils.dart';
 import 'package:InkTrack/features/proveedores/data/models/proveedor.dart';
@@ -39,6 +41,36 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
     return result;
   }
 
+  List<Proveedor> get proveedoresQueVisitanManana {
+    final tomorrow = DateTime.now().add(const Duration(days: 1));
+    final dayNames = [
+      'Lunes',
+      'Martes',
+      'Miércoles',
+      'Jueves',
+      'Viernes',
+      'Sábado',
+      'Domingo',
+    ];
+    final tomorrowDayName = dayNames[tomorrow.weekday - 1];
+    
+    // Also check for English names if needed, but for now we assume Spanish
+    final tomorrowDayNameEn = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ][tomorrow.weekday - 1];
+
+    return proveedores.where((p) => 
+      p.diasVisita.contains(tomorrowDayName) || 
+      p.diasVisita.contains(tomorrowDayNameEn)
+    ).toList();
+  }
+
   int get totalInactivos => _localId != null
       ? items.where((p) => !p.isActivo && p.localId == _localId).length
       : items.where((p) => !p.isActivo).length;
@@ -65,6 +97,7 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
     required String nombre,
     required String telefono,
     required List<String> diasVisita,
+    int? periodoVisita,
     MovimientosViewModel? movimientosVM,
     String? localId,
   }) async {
@@ -77,6 +110,7 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
       nombre: nombre,
       telefono: telefono,
       diasVisita: diasVisita,
+      periodoVisita: periodoVisita,
       localId: localId ?? _localId,
     );
 
@@ -101,6 +135,7 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
     required String nombre,
     required String telefono,
     required List<String> diasVisita,
+    int? periodoVisita,
   }) async {
     final existing = getById(id);
     if (existing != null) {
@@ -108,11 +143,38 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
         nombre: nombre,
         telefono: telefono,
         diasVisita: diasVisita,
+        periodoVisita: periodoVisita,
       );
 
       await _repository.update(id, actualizado);
       update(id, actualizado);
     }
+  }
+
+  Future<void> actualizarVisita(String proveedorId, DateTime fecha) async {
+    final proveedor = getById(proveedorId);
+    if (proveedor == null || proveedor.periodoVisita == null) return;
+
+    final nextDate = DateTime(
+      fecha.year + ((fecha.month - 1 + proveedor.periodoVisita!) ~/ 12),
+      ((fecha.month - 1 + proveedor.periodoVisita!) % 12) + 1,
+      math.min(
+        fecha.day,
+        DateTime(
+          fecha.year + ((fecha.month - 1 + proveedor.periodoVisita!) ~/ 12),
+          ((fecha.month - 1 + proveedor.periodoVisita!) % 12) + 1,
+          0,
+        ).day,
+      ),
+    );
+
+    final actualizado = proveedor.copyWith(
+      ultimaVisita: fecha,
+      proximaVisita: nextDate,
+    );
+
+    await _repository.update(proveedorId, actualizado);
+    update(proveedorId, actualizado);
   }
 
   Future<void> eliminar(String id) async {

@@ -8,6 +8,7 @@ import 'package:InkTrack/core/utils/number_formatter.dart';
 import 'package:InkTrack/core/widgets/app_card.dart';
 import 'package:InkTrack/l10n/app_localizations.dart';
 import 'cliente_form_page.dart';
+import 'historial_acreedores_page.dart';
 import '../widgets/pago_dialog.dart';
 
 class ClientesPage extends StatelessWidget {
@@ -36,17 +37,26 @@ class ClientesPage extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
           sliver: SliverToBoxAdapter(
             child: FinancialSummaryHeader(
-              title: 'Portfolio\nManagement',
+              title: l10n.resumenClientes,
               actions: [
-                IconButton(
-                  onPressed: () => viewModel.toggleShowInactive(),
-                  icon: Icon(
-                    showInactive ? Icons.visibility : Icons.visibility_off,
-                    color: showInactive
-                        ? AppTheme.warningColor
-                        : AppTheme.textSecondary,
+                _HeaderAction(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const HistorialAcreedoresPage(),
+                    ),
                   ),
-                  tooltip: showInactive ? 'Hide inactive' : 'View inactive',
+                  icon: Icons.account_balance_wallet_rounded,
+                  label: 'Acreedores',
+                  color: AppTheme.primaryColor,
+                ),
+                _HeaderAction(
+                  onTap: () => viewModel.toggleShowInactive(),
+                  icon: showInactive ? Icons.visibility : Icons.visibility_off,
+                  label: showInactive ? 'Ocultar' : 'Ver',
+                  color: showInactive
+                      ? AppTheme.warningColor
+                      : AppTheme.textSecondary,
                 ),
               ],
               totalIngresos: viewModel.totalClientes.toDouble(),
@@ -192,7 +202,7 @@ class ClientesPage extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Text(
-                                  'CREDIT',
+                                  'Acreedor',
                                   style: TextStyle(
                                     fontSize: 9,
                                     fontWeight: FontWeight.w900,
@@ -242,7 +252,7 @@ class ClientesPage extends StatelessWidget {
                               ),
                             ),
                             child: Text(
-                              'Owes: ${NumberFormatter.formatCurrency(cliente.saldoPendiente)}',
+                              'Debe: ${NumberFormatter.formatCurrency(cliente.saldoPendiente)}',
                               style: Theme.of(context).textTheme.labelSmall
                                   ?.copyWith(
                                     color: AppTheme.errorColor,
@@ -382,6 +392,45 @@ class ClientesPage extends StatelessWidget {
             child: Text('Deactivate'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _HeaderAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final Color color;
+
+  const _HeaderAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 20),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 9,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

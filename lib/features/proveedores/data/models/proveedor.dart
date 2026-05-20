@@ -8,7 +8,16 @@ class Proveedor implements HasId {
   final List<String> _diasVisita;
   List<String> get diasVisita => List.unmodifiable(_diasVisita);
 
+  final int? periodoVisita;
+  final DateTime? ultimaVisita;
+  final DateTime? proximaVisita;
+
   String get diasVisitaShort {
+    if (periodoVisita != null) {
+      return periodoVisita == 1
+          ? 'Cada mes'
+          : 'Cada $periodoVisita meses';
+    }
     const dayMap = {
       'Lunes': 'Lun',
       'Martes': 'Mar',
@@ -29,6 +38,9 @@ class Proveedor implements HasId {
     required this.nombre,
     required this.telefono,
     required List<String> diasVisita,
+    this.periodoVisita,
+    this.ultimaVisita,
+    this.proximaVisita,
     this.localId,
     this.isActivo = true,
   }) : _diasVisita = diasVisita;
@@ -38,6 +50,9 @@ class Proveedor implements HasId {
     String? nombre,
     String? telefono,
     List<String>? diasVisita,
+    int? periodoVisita,
+    DateTime? ultimaVisita,
+    DateTime? proximaVisita,
     String? localId,
     bool? isActivo,
   }) {
@@ -46,6 +61,9 @@ class Proveedor implements HasId {
       nombre: nombre ?? this.nombre,
       telefono: telefono ?? this.telefono,
       diasVisita: diasVisita ?? _diasVisita,
+      periodoVisita: periodoVisita ?? this.periodoVisita,
+      ultimaVisita: ultimaVisita ?? this.ultimaVisita,
+      proximaVisita: proximaVisita ?? this.proximaVisita,
       localId: localId ?? this.localId,
       isActivo: isActivo ?? this.isActivo,
     );

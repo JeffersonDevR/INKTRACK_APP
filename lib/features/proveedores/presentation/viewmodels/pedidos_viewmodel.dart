@@ -5,6 +5,7 @@ import 'package:InkTrack/features/proveedores/data/repositories/pedidos_reposito
 import '../../../inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import '../../../movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import '../../../movimientos/data/models/movimiento.dart';
+import 'proveedores_viewmodel.dart';
 
 class PedidosProveedorViewModel extends BaseCrudViewModel<PedidoProveedor> {
   final PedidosProveedorRepository _repository;
@@ -106,6 +107,7 @@ class PedidosProveedorViewModel extends BaseCrudViewModel<PedidoProveedor> {
     String id,
     InventarioViewModel? inventarioVM, {
     MovimientosViewModel? movimientosVM,
+    ProveedoresViewModel? proveedoresVM,
   }) async {
     final pedido = getById(id);
     if (pedido == null) return;
@@ -139,6 +141,13 @@ class PedidosProveedorViewModel extends BaseCrudViewModel<PedidoProveedor> {
         categoria: 'Pedidos',
       );
       await movimientosVM.guardar(movimiento);
+    }
+
+    if (proveedoresVM != null) {
+      await proveedoresVM.actualizarVisita(
+        pedido.proveedorId,
+        DateTime.now(),
+      );
     }
   }
 

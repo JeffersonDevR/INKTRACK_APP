@@ -61,9 +61,9 @@ class PdfExportService {
     final pdf = pw.Document();
     final totalValor = productos.fold(
       0.0,
-      (sum, p) => sum + (p.precio * p.cantidad),
+      (sum, p) => sum + (p.precioVenta * p.cantidad),
     );
-    final totalStock = productos.fold(0, (sum, p) => sum + p.cantidad);
+    final totalStock = productos.fold(0.0, (sum, p) => sum + p.cantidad).toInt();
     final bajoStock = productos.where((p) => p.stockBajo).length;
 
     pdf.addPage(
@@ -341,8 +341,8 @@ class PdfExportService {
               p.nombre,
               p.categoria,
               p.cantidad.toString(),
-              _currencyFormat.format(p.precio),
-              _currencyFormat.format(p.precio * p.cantidad),
+              _currencyFormat.format(p.precioVenta),
+              _currencyFormat.format(p.precioVenta * p.cantidad),
             ],
           )
           .toList(),
@@ -357,7 +357,7 @@ class PdfExportService {
       ),
       headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo),
       cellPadding: const pw.EdgeInsets.all(8),
-      headers: ['Nombre', 'Teléfono', 'Fiado', 'Saldo Pendiente'],
+      headers: ['Nombre', 'Teléfono', 'Acreedores', 'Saldo Pendiente'],
       data: clientes
           .map(
             (c) => [

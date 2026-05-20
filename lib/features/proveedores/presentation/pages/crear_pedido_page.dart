@@ -84,7 +84,7 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
               productoId: producto.id,
               nombre: producto.nombre,
               cantidad: cantidad,
-              precioUnitario: producto.precio,
+              precioUnitario: producto.precioVenta,
             ),
           );
           _actualizarMonto();
@@ -102,7 +102,7 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Precio unitario: \$${producto.precio.toStringAsFixed(2)}'),
+            Text('Precio unitario: \$${producto.precioVenta.toStringAsFixed(2)}'),
             const SizedBox(height: 16),
             TextField(
               controller: controller,
@@ -503,14 +503,14 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
                         return ListTile(
                           title: Text(producto.nombre),
                           subtitle: Text(
-                            'Stock: ${producto.cantidad} • \$${producto.precio.toStringAsFixed(2)}',
+                            'Stock: ${producto.cantidad} • \$${producto.precioVenta.toStringAsFixed(2)}',
                           ),
                           onTap: () {
                             setState(() {
                               _productoSeleccionadoId = producto.id;
                               _productoSeleccionadoNombre = producto.nombre;
-                              _precioUnitario = producto.precio;
-                              _precioController.text = producto.precio
+                              _precioUnitario = producto.precioVenta;
+                              _precioController.text = producto.precioVenta
                                   .toString();
                             });
                           },

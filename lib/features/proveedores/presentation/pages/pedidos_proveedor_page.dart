@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/pedidos_viewmodel.dart';
+import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
 import 'package:InkTrack/features/proveedores/data/models/pedido_proveedor.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
@@ -463,6 +464,7 @@ class PedidosProveedorPage extends StatelessWidget {
                 pedido.id,
                 inventarioVM,
                 movimientosVM: movimientosVM,
+                proveedoresVM: context.read<ProveedoresViewModel>(),
               );
               if (ctx.mounted) Navigator.pop(ctx);
               if (context.mounted) Navigator.pop(context);

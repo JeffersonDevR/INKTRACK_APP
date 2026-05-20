@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
@@ -191,17 +193,34 @@ class TrendChart extends StatelessWidget {
   }
 
   double _calculateMaxY(List<_ChartDataPoint> data) {
-    double max = 0;
-    for (var p in data) {
-      if (p.ingresos > max) max = p.ingresos;
-      if (p.egresos > max) max = p.egresos;
-    }
-    return max == 0 ? 1000 : max * 1.2;
+    final maxValue = data.fold<double>(
+      0.0,
+      (current, point) => math.max(current, math.max(point.ingresos, point.egresos)),
+    );
+    if (maxValue <= 0) return 1.0;
+
+    final paddedMax = maxValue * 1.15;
+    final interval = _getNiceInterval(paddedMax / 4);
+    return (paddedMax / interval).ceil() * interval;
   }
 
   double _calculateInterval(List<_ChartDataPoint> data) {
-    final max = _calculateMaxY(data);
-    return (max / 4).clamp(1.0, double.infinity);
+    final maxY = _calculateMaxY(data);
+    return _getNiceInterval(maxY / 4);
+  }
+
+  double _getNiceInterval(double value) {
+    if (value <= 0) return 1.0;
+    final magnitude = math.pow(10, (math.log(value) / math.ln10).floor()).toDouble();
+    final normalized = value / magnitude;
+    final niceNormalized = normalized <= 1
+        ? 1
+        : normalized <= 2
+            ? 2
+            : normalized <= 5
+                ? 5
+                : 10;
+    return niceNormalized * magnitude;
   }
 }
 

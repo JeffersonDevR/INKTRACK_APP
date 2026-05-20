@@ -194,13 +194,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get resultados => 'Resultados';
 
   @override
-  String get acumuladoTotal => 'Acumulado Total';
+  String get acumuladoTotal => 'Reporte general';
 
   @override
-  String get ventasTotales => 'Ventas Totales';
+  String get ventasTotales => 'Ventas';
 
   @override
-  String get gastosTotales => 'Gastos Totales';
+  String get gastosTotales => 'Gastos';
 
   @override
   String get patrimonio => 'Patrimonio';
@@ -231,6 +231,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get actividad => 'Actividad';
+
+  @override
+  String get resumenClientes => 'Resumen\nClientes';
 
   @override
   String get resumenFinanciero => 'Resumen\nFinanciero';
@@ -277,7 +280,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get proveedoresCategoria => 'Proveedores';
 
   @override
-  String get fiado => 'Fiado';
+  String get fiado => 'Acreedores';
 
   @override
   String get miercoles => 'Miércoles';
@@ -370,7 +373,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get noDataAvailable => 'No hay datos disponibles';
 
   @override
-  String get onCredit => 'Fiado';
+  String get onCredit => 'Acreedores';
 
   @override
   String get cash => 'Efectivo';
@@ -768,7 +771,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get ingreseNombreCliente => 'Ingrese el nombre del cliente';
 
   @override
-  String get ventaCreditoFiado => 'Venta a crédito (Fiado)';
+  String get ventaCreditoFiado => 'Venta a crédito (Acreedores)';
 
   @override
   String get aumentaraSaldoPendiente =>

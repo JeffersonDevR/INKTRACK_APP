@@ -7,6 +7,7 @@ import 'package:InkTrack/core/widgets/financial_summary_header.dart';
 import 'package:InkTrack/l10n/app_localizations.dart';
 import 'proveedor_form_page.dart';
 import 'pedidos_proveedor_page.dart';
+import 'historial_visitas_page.dart';
 
 class ProveedoresPage extends StatelessWidget {
   const ProveedoresPage({super.key});
@@ -35,15 +36,24 @@ class ProveedoresPage extends StatelessWidget {
             child: FinancialSummaryHeader(
               title: l10n.resumenProveedores,
               actions: [
-                IconButton(
-                  onPressed: () => viewModel.toggleShowInactive(),
-                  icon: Icon(
-                    showInactive ? Icons.visibility : Icons.visibility_off,
-                    color: showInactive
-                        ? AppTheme.warningColor
-                        : AppTheme.textSecondary,
+                _HeaderAction(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const HistorialVisitasPage(),
+                    ),
                   ),
-                  tooltip: showInactive ? 'Hide inactive' : 'View inactive',
+                  icon: Icons.history_rounded,
+                  label: 'Historial',
+                  color: AppTheme.primaryColor,
+                ),
+                _HeaderAction(
+                  onTap: () => viewModel.toggleShowInactive(),
+                  icon: showInactive ? Icons.visibility : Icons.visibility_off,
+                  label: showInactive ? 'Ocultar' : 'Ver',
+                  color: showInactive
+                      ? AppTheme.warningColor
+                      : AppTheme.textSecondary,
                 ),
               ],
               totalIngresos: viewModel.proveedores.length.toDouble(),
@@ -293,6 +303,45 @@ class ProveedoresPage extends StatelessWidget {
             child: Text(l10n.eliminar),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _HeaderAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final Color color;
+
+  const _HeaderAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 20),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 9,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

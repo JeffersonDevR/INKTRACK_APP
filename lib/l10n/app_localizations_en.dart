@@ -193,13 +193,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resultados => 'Results';
 
   @override
-  String get acumuladoTotal => 'Total Accumulated';
+  String get acumuladoTotal => 'General Report';
 
   @override
-  String get ventasTotales => 'Total Sales';
+  String get ventasTotales => 'Sales';
 
   @override
-  String get gastosTotales => 'Total Expenses';
+  String get gastosTotales => 'Expenses';
 
   @override
   String get patrimonio => 'Equity';
@@ -230,6 +230,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get actividad => 'Activity';
+
+  @override
+  String get resumenClientes => 'Clients\nSummary';
 
   @override
   String get resumenFinanciero => 'Financial\nSummary';
@@ -766,7 +769,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ingreseNombreCliente => 'Enter the client name';
 
   @override
-  String get ventaCreditoFiado => 'Credit sale (Fiado)';
+  String get ventaCreditoFiado => 'Credit sale (Creditors)';
 
   @override
   String get aumentaraSaldoPendiente =>
