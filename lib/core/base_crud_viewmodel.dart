@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 
 abstract class BaseCrudViewModel<T> extends ChangeNotifier {
-  
   final List<T> _items = [];
   List<T>? _cachedItems;
 
@@ -9,7 +8,7 @@ abstract class BaseCrudViewModel<T> extends ChangeNotifier {
     _cachedItems ??= List.unmodifiable(_items);
     return _cachedItems!;
   }
-  
+
   int get count => _items.length;
   bool get isEmpty => _items.isEmpty;
   bool get isNotEmpty => _items.isNotEmpty;
@@ -35,6 +34,11 @@ abstract class BaseCrudViewModel<T> extends ChangeNotifier {
     notifyListeners();
   }
 
+  void clearAll() {
+    _items.clear();
+    _cachedItems = null;
+  }
+
   T? getById(String id) {
     try {
       return _items.firstWhere((item) => _getId(item) == id);
@@ -49,6 +53,13 @@ abstract class BaseCrudViewModel<T> extends ChangeNotifier {
     }
     throw UnimplementedError('Item must implement HasId or override _getId');
   }
+
+  Future<void> refresh() async {
+    await loadItems();
+    notifyListeners();
+  }
+
+  Future<void> loadItems() async {}
 }
 
 abstract class HasId {

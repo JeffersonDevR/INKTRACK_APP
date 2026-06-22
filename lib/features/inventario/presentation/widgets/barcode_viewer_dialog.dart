@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:barcode_widget/barcode_widget.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 
 class BarcodeViewerDialog extends StatelessWidget {
   final String code;
@@ -18,6 +19,8 @@ class BarcodeViewerDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Padding(
@@ -33,7 +36,7 @@ class BarcodeViewerDialog extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Código del Producto',
+                        AppLocalizations.of(context)!.codigoProducto,
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                       Text(
@@ -56,14 +59,14 @@ class BarcodeViewerDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDark ? AppTheme.darkCard : AppTheme.surfaceColor,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: AppTheme.primaryColor.withValues(alpha: 0.1),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -85,7 +88,7 @@ class BarcodeViewerDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: isDark ? AppTheme.darkCard : AppTheme.borderLightColor,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -94,13 +97,13 @@ class BarcodeViewerDialog extends StatelessWidget {
                   Icon(
                     Icons.info_outline,
                     size: 14,
-                    color: Colors.grey.shade600,
+                    color: isDark ? AppTheme.darkTextTertiary : AppTheme.textTertiary,
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'EAN-13 Colombia',
+                    AppLocalizations.of(context)!.ean13Colombia,
                     style: TextStyle(
-                      color: Colors.grey.shade600,
+                      color: isDark ? AppTheme.darkTextTertiary : AppTheme.textTertiary,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
@@ -142,7 +145,7 @@ class BarcodeViewerDialog extends StatelessWidget {
               const SizedBox(height: 16),
             ],
             Text(
-              'Escanea este código para identificar el producto',
+              AppLocalizations.of(context)!.codigoProducto,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall,
             ),
@@ -151,7 +154,7 @@ class BarcodeViewerDialog extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cerrar'),
+                child: Text(AppLocalizations.of(context)!.cerrar),
               ),
             ),
           ],

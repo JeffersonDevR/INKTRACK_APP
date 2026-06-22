@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:InkTrack/features/inventario/presentation/pages/producto_form_page.dart';
 import 'package:InkTrack/features/movimientos/presentation/pages/movimiento_form_page.dart';
 import 'package:InkTrack/features/movimientos/data/models/movimiento.dart'
     as mov_model;
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
+import 'package:InkTrack/core/theme/app_theme.dart';
 
 class BarcodeScannerPage extends StatefulWidget {
-  const BarcodeScannerPage({super.key});
+  final bool returnMode;
+
+  const BarcodeScannerPage({super.key, this.returnMode = false});
 
   @override
   State<BarcodeScannerPage> createState() => _BarcodeScannerPageState();
@@ -39,39 +43,87 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
     final viewModel = context.read<InventarioViewModel>();
     final productoExistente = viewModel.findProductoByCodigo(code);
 
-    Navigator.of(context).pop();
-
     if (productoExistente != null) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => MovimientoFormPage(
-            initialType: mov_model.MovimientoType.egreso,
-            movimiento: mov_model.Movimiento(
-              id: '',
-              monto: 0,
-              fecha: DateTime.now(),
-              tipo: mov_model.MovimientoType.egreso,
-              concepto: 'Restock: ${productoExistente.nombre}',
-              productoId: productoExistente.id,
-              categoria: productoExistente.categoria,
-            ),
-          ),
-        ),
-      );
-    } else {
+      _mostrarDialogoProductoExistente(code, productoExistente);
+    } else if (!widget.returnMode) {
+      Navigator.of(context).pop();
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => ProductoFormPage(initialCodigoBarras: code),
         ),
       );
+    } else {
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.productoNoEncontrado),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
     }
+  }
+
+  void _mostrarDialogoProductoExistente(
+    String codigo,
+    dynamic productoExistente,
+  ) {
+    if (widget.returnMode) {
+      Navigator.of(context).pop(productoExistente);
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('El producto ya existe'),
+        content: Text(
+          'El código de barras "$codigo" pertenece al producto "${productoExistente.nombre}".\n\n'
+          '¿Qué deseas hacer?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _hasScanned = false;
+            },
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.of(context).pop();
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => MovimientoFormPage(
+                    initialType: mov_model.MovimientoType.egreso,
+                    movimiento: mov_model.Movimiento(
+                      id: '',
+                      monto: 0,
+                      fecha: DateTime.now(),
+                      tipo: mov_model.MovimientoType.egreso,
+                      concepto: AppLocalizations.of(
+                        context,
+                      )!.restockLabel(productoExistente.nombre),
+                      productoId: productoExistente.id,
+                      categoria: productoExistente.categoria,
+                    ),
+                  ),
+                ),
+              );
+            },
+            child: const Text('Crear movimiento'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Escanear Código'),
+        title: Text(l10n.escanearCodigoTitulo),
         actions: [
           IconButton(
             icon: ValueListenableBuilder(

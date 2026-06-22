@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
+import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmodel.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/features/proveedores/data/models/proveedor.dart';
 import 'package:InkTrack/core/input_formatters.dart';
@@ -19,17 +21,21 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _nombreController = TextEditingController();
   final _telefonoController = TextEditingController();
+  final _periodoVisitaController = TextEditingController();
   final List<String> _diasVisita = [];
 
-  final List<String> _diasSemana = [
-    'Lunes',
-    'Martes',
-    'Miércoles',
-    'Jueves',
-    'Viernes',
-    'Sábado',
-    'Domingo',
-  ];
+  List<String> _diasSemana(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      l10n.lunes,
+      l10n.martes,
+      l10n.miercoles,
+      l10n.jueves,
+      l10n.viernes,
+      l10n.sabado,
+      l10n.domingo,
+    ];
+  }
 
   @override
   void initState() {
@@ -38,6 +44,9 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
       _nombreController.text = widget.proveedor!.nombre;
       _telefonoController.text = widget.proveedor!.telefono;
       _diasVisita.addAll(widget.proveedor!.diasVisita);
+      if (widget.proveedor!.periodoVisita != null) {
+        _periodoVisitaController.text = widget.proveedor!.periodoVisita.toString();
+      }
     }
   }
 
@@ -45,15 +54,17 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
   void dispose() {
     _nombreController.dispose();
     _telefonoController.dispose();
+    _periodoVisitaController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.proveedor == null ? 'Nuevo Proveedor' : 'Editar Proveedor',
+          widget.proveedor == null ? l10n.nuevoProveedor : l10n.editarProveedor,
         ),
       ),
       body: SingleChildScrollView(
@@ -64,16 +75,21 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
             children: [
               TextFormField(
                 controller: _nombreController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre',
-                  border: OutlineInputBorder(),
-                  hintText: 'Ej. Distribuidora Ink',
+                decoration: InputDecoration(
+                  labelText: l10n.nombre,
+                  border: const OutlineInputBorder(),
+                  hintText: l10n.ejemploNombre,
+                  counterText: '',
                 ),
+                maxLength: 40,
                 textCapitalization: TextCapitalization.words,
                 inputFormatters: [InputFormatters.textOnly],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese el nombre';
+                    return l10n.ingreseNombre;
+                  }
+                  if (value.length < 2) {
+                    return l10n.minimo2Caracteres;
                   }
                   return null;
                 },
@@ -81,11 +97,11 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _telefonoController,
-                decoration: const InputDecoration(
-                  labelText: 'Teléfono',
-                  border: OutlineInputBorder(),
-                  hintText: 'Ej. 3001234567',
-                  helperText: '10 dígitos sin espacios',
+                decoration: InputDecoration(
+                  labelText: l10n.telefono,
+                  border: const OutlineInputBorder(),
+                  hintText: l10n.ejemploTelefono,
+                  helperText: l10n.digitos10SinEspacios,
                 ),
                 keyboardType: TextInputType.phone,
                 inputFormatters: [
@@ -94,10 +110,10 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
                 ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese el teléfono';
+                    return l10n.ingreseTelefono;
                   }
                   if (value.length != 10) {
-                    return 'El teléfono debe tener exactamente 10 dígitos';
+                    return l10n.telefono10Digitos;
                   }
                   return null;
                 },
@@ -106,7 +122,7 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Días de visita',
+                  l10n.diasVisita,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
               ),
@@ -114,7 +130,7 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
               Wrap(
                 spacing: 8,
                 runSpacing: 4,
-                children: _diasSemana.map((dia) {
+                children: _diasSemana(context).map((dia) {
                   final isSelected = _diasVisita.contains(dia);
                   return FilterChip(
                     label: Text(dia),
@@ -131,13 +147,32 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
                   );
                 }).toList(),
               ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _periodoVisitaController,
+                decoration: InputDecoration(
+                  labelText: 'Lapso de visita (meses)',
+                  border: const OutlineInputBorder(),
+                  helperText: 'Opcional: usar cuando el proveedor pasa cada X meses.',
+                ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                validator: (value) {
+                  if (value == null || value.isEmpty) return null;
+                  final number = int.tryParse(value);
+                  if (number == null || number <= 0) {
+                    return 'Ingrese un número válido';
+                  }
+                  return null;
+                },
+              ),
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _saveProveedor,
                   child: Text(
-                    widget.proveedor == null ? 'Guardar' : 'Actualizar',
+                    widget.proveedor == null ? l10n.guardar : l10n.actualizar,
                   ),
                 ),
               ),
@@ -151,21 +186,31 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
   Future<void> _saveProveedor() async {
     if (_formKey.currentState!.validate()) {
       final viewModel = context.read<ProveedoresViewModel>();
+      final localesVM = context.read<LocalesViewModel>();
 
       try {
+        final periodoVisita = _periodoVisitaController.text.trim().isEmpty
+            ? null
+            : int.tryParse(_periodoVisitaController.text.trim());
+
+        final diasVisita = periodoVisita != null ? <String>[] : _diasVisita;
+
         if (widget.proveedor == null) {
           await viewModel.agregar(
             nombre: _nombreController.text,
             telefono: _telefonoController.text,
-            diasVisita: _diasVisita,
+            diasVisita: diasVisita,
+            periodoVisita: periodoVisita,
             movimientosVM: context.read<MovimientosViewModel>(),
+            localId: localesVM.localIdSeleccionado,
           );
         } else {
           await viewModel.editar(
             id: widget.proveedor!.id,
             nombre: _nombreController.text,
             telefono: _telefonoController.text,
-            diasVisita: _diasVisita,
+            diasVisita: diasVisita,
+            periodoVisita: periodoVisita,
           );
         }
         if (mounted) Navigator.pop(context);

@@ -4,12 +4,29 @@ import 'package:InkTrack/features/movimientos/data/repositories/movimientos_repo
 
 class MovimientosViewModel extends BaseCrudViewModel<Movimiento> {
   final MovimientosRepository _repository;
+  String? _localId;
 
   MovimientosViewModel(this._repository) {
     _loadMovimientos();
   }
 
-  final List<String> _categorias = ['Ventas', 'Servicios', 'Sueldos', 'Alquiler', 'Otros'];
+  void setLocalId(String? localId) {
+    _localId = localId;
+    notifyListeners();
+  }
+
+  List<Movimiento> get _itemsFiltrados {
+    if (_localId == null) return items;
+    return items.where((m) => m.localId == _localId).toList();
+  }
+
+  final List<String> _categorias = [
+    'Ventas',
+    'Servicios',
+    'Sueldos',
+    'Alquiler',
+    'Otros',
+  ];
   List<String> get categorias => List.unmodifiable(_categorias);
 
   DateTime? _startDateFilter;
@@ -30,28 +47,44 @@ class MovimientosViewModel extends BaseCrudViewModel<Movimiento> {
     notifyListeners();
   }
 
-  double get totalIngresos => items
+  double get totalIngresos => _itemsFiltrados
       .where((m) => m.tipo == MovimientoType.ingreso)
       .fold(0.0, (sum, m) => sum + m.monto);
 
-  double get totalEgresos => items
+  double get totalEgresos => _itemsFiltrados
       .where((m) => m.tipo == MovimientoType.egreso)
       .fold(0.0, (sum, m) => sum + m.monto);
 
   double get balance => totalIngresos - totalEgresos;
 
   List<Movimiento> get filteredItems {
-    if (startDateFilter == null) return historialCompleto;
+    var base = [..._itemsFiltrados];
+    if (startDateFilter == null) {
+      base.sort((a, b) => b.fecha.compareTo(a.fecha));
+      return base;
+    }
 
-    return items.where((m) {
-      final isAfterStart =
-          startDateFilter == null || m.fecha.isAfter(startDateFilter!);
-      final isBeforeEnd =
-          endDateFilter == null ||
-          m.fecha.isBefore(endDateFilter!.add(const Duration(days: 1)));
+    final result = base.where((m) {
+      final mDate = DateTime(m.fecha.year, m.fecha.month, m.fecha.day);
+      final startDate = DateTime(
+        startDateFilter!.year,
+        startDateFilter!.month,
+        startDateFilter!.day,
+      );
+      final endDate = endDateFilter != null
+          ? DateTime(
+              endDateFilter!.year,
+              endDateFilter!.month,
+              endDateFilter!.day,
+            )
+          : null;
+
+      final isAfterStart = !mDate.isBefore(startDate);
+      final isBeforeEnd = endDate == null || !mDate.isAfter(endDate);
       return isAfterStart && isBeforeEnd;
-    }).toList()
-      ..sort((a, b) => b.fecha.compareTo(a.fecha));
+    }).toList();
+    result.sort((a, b) => b.fecha.compareTo(a.fecha));
+    return result;
   }
 
   double get totalIngresosFiltered => filteredItems
@@ -65,10 +98,17 @@ class MovimientosViewModel extends BaseCrudViewModel<Movimiento> {
   double get balanceFiltered => totalIngresosFiltered - totalEgresosFiltered;
 
   Future<void> _loadMovimientos() async {
+    clearAll();
     final loaded = await _repository.getAll();
     for (var movimiento in loaded) {
       add(movimiento);
     }
+  }
+
+  @override
+  Future<void> refresh() async {
+    await _loadMovimientos();
+    notifyListeners();
   }
 
   void agregarCategoria(String nombre) {
@@ -80,36 +120,40 @@ class MovimientosViewModel extends BaseCrudViewModel<Movimiento> {
 
   double get totalIngresosHoy {
     final now = DateTime.now();
-    return items
-        .where((m) =>
-            m.tipo == MovimientoType.ingreso &&
-            m.fecha.day == now.day &&
-            m.fecha.month == now.month &&
-            m.fecha.year == now.year)
+    return _itemsFiltrados
+        .where(
+          (m) =>
+              m.tipo == MovimientoType.ingreso &&
+              m.fecha.day == now.day &&
+              m.fecha.month == now.month &&
+              m.fecha.year == now.year,
+        )
         .fold(0.0, (sum, m) => sum + m.monto);
   }
 
   double get totalEgresosHoy {
     final now = DateTime.now();
-    return items
-        .where((m) =>
-            m.tipo == MovimientoType.egreso &&
-            m.fecha.day == now.day &&
-            m.fecha.month == now.month &&
-            m.fecha.year == now.year)
+    return _itemsFiltrados
+        .where(
+          (m) =>
+              m.tipo == MovimientoType.egreso &&
+              m.fecha.day == now.day &&
+              m.fecha.month == now.month &&
+              m.fecha.year == now.year,
+        )
         .fold(0.0, (sum, m) => sum + m.monto);
   }
 
   double get balanceHoy => totalIngresosHoy - totalEgresosHoy;
 
   List<Movimiento> get ingresos =>
-      items.where((m) => m.tipo == MovimientoType.ingreso).toList();
+      _itemsFiltrados.where((m) => m.tipo == MovimientoType.ingreso).toList();
 
   List<Movimiento> get egresos =>
-      items.where((m) => m.tipo == MovimientoType.egreso).toList();
+      _itemsFiltrados.where((m) => m.tipo == MovimientoType.egreso).toList();
 
   List<Movimiento> get historialCompleto =>
-      items.toList()..sort((a, b) => b.fecha.compareTo(a.fecha));
+      _itemsFiltrados.toList()..sort((a, b) => b.fecha.compareTo(a.fecha));
 
   @override
   void add(Movimiento item) {

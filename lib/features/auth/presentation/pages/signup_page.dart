@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:InkTrack/core/services/auth_service.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 
 class SignupPage extends StatefulWidget {
   final VoidCallback onSignupSuccess;
@@ -55,18 +56,16 @@ class _SignupPageState extends State<SignupPage> {
       widget.onSignupSuccess();
     } else if (mounted) {
       setState(() {
-        _errorMessage = result.error ?? 'Signup failed';
+        _errorMessage = result.error ?? AppLocalizations.of(context)!.loginFailed;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
           onPressed: () => Navigator.of(context).pop(),
@@ -81,7 +80,7 @@ class _SignupPageState extends State<SignupPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Create Account',
+                  l10n.createAccount,
                   style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppTheme.textPrimary,
@@ -89,7 +88,7 @@ class _SignupPageState extends State<SignupPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'First user will be admin',
+                  l10n.firstUserAdmin,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: AppTheme.textSecondary,
                   ),
@@ -115,17 +114,12 @@ class _SignupPageState extends State<SignupPage> {
                   textInputAction: TextInputAction.next,
                   textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(
-                    labelText: 'Full Name',
+                    labelText: l10n.fullName,
                     prefixIcon: const Icon(Icons.person_outlined),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Enter your name';
+                      return l10n.enterYourName;
                     }
                     return null;
                   },
@@ -136,20 +130,15 @@ class _SignupPageState extends State<SignupPage> {
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
-                    labelText: 'Email',
+                    labelText: l10n.email,
                     prefixIcon: const Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Enter your email';
+                      return l10n.enterYourEmail;
                     }
                     if (!value.contains('@')) {
-                      return 'Enter a valid email';
+                      return l10n.enterValidEmail;
                     }
                     return null;
                   },
@@ -160,7 +149,7 @@ class _SignupPageState extends State<SignupPage> {
                   obscureText: _obscurePassword,
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
-                    labelText: 'Password',
+                    labelText: l10n.password,
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -174,18 +163,12 @@ class _SignupPageState extends State<SignupPage> {
                         });
                       },
                     ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                    helperText:
-                        'Min 8 chars, 1 capital, 3 numbers, no special chars',
+                    helperText: l10n.passwordHint,
                     helperMaxLines: 2,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Enter a password';
+                      return l10n.enterAPassword;
                     }
                     final error = AuthService.validatePassword(value);
                     if (error != null) {
@@ -201,7 +184,7 @@ class _SignupPageState extends State<SignupPage> {
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _signUp(),
                   decoration: InputDecoration(
-                    labelText: 'Confirm Password',
+                    labelText: l10n.confirmPassword,
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -215,18 +198,13 @@ class _SignupPageState extends State<SignupPage> {
                         });
                       },
                     ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Confirm your password';
+                      return l10n.confirmYourPassword;
                     }
                     if (value != _passwordController.text) {
-                      return 'Passwords do not match';
+                      return l10n.passwordsDoNotMatch;
                     }
                     return null;
                   },
@@ -236,13 +214,6 @@ class _SignupPageState extends State<SignupPage> {
                   height: 56,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _signUp,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
                     child: _isLoading
                         ? const SizedBox(
                             height: 24,
@@ -252,9 +223,9 @@ class _SignupPageState extends State<SignupPage> {
                               strokeWidth: 2,
                             ),
                           )
-                        : const Text(
-                            'Create Account',
-                            style: TextStyle(
+                        : Text(
+                            l10n.createAccount,
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -265,10 +236,10 @@ class _SignupPageState extends State<SignupPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Already have an account?'),
+                    Text(l10n.alreadyHaveAccount),
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Sign In'),
+                      child: Text(l10n.signIn),
                     ),
                   ],
                 ),

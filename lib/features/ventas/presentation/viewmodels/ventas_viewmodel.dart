@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 class VentasViewModel extends BaseCrudViewModel<Venta> {
   final VentasRepository _repository;
   final ScannerService? _scannerService;
+  String? _localId;
 
   bool _isScanning = false;
   bool get isScanning => _isScanning;
@@ -26,18 +27,35 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
     _loadVentas();
   }
 
-  List<Venta> get ventas => items;
+  void setLocalId(String? localId) {
+    _localId = localId;
+    notifyListeners();
+  }
+
+  List<Venta> get _ventasFiltradas {
+    if (_localId == null) return items;
+    return items.where((v) => v.localId == _localId).toList();
+  }
+
+  List<Venta> get ventas => _ventasFiltradas;
 
   Future<void> _loadVentas() async {
+    clearAll();
     final loaded = await _repository.getAll();
     for (var venta in loaded) {
       add(venta);
     }
   }
 
+  @override
+  Future<void> refresh() async {
+    await _loadVentas();
+    notifyListeners();
+  }
+
   double get totalVentasDia {
     final now = DateTime.now();
-    return items
+    return _ventasFiltradas
         .where(
           (venta) =>
               venta.fecha.year == now.year &&
@@ -93,15 +111,30 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
           tipo: MovimientoType.ingreso,
           concepto: finalConcepto,
           categoria: 'Ventas',
+          localId: ventaAGuardar.localId,
         );
         await movimientosVM.guardar(movimiento);
       }
 
       // auto-update stock
-      if (inventarioVM != null &&
-          venta.productoId != null &&
-          venta.cantidad > 0) {
-        await inventarioVM.actualizarStock(venta.productoId!, -venta.cantidad);
+      if (inventarioVM != null) {
+        if (venta.isMultiProducto) {
+          for (final item in venta.productos) {
+            final producto = inventarioVM.getById(item.productoId);
+            if (producto != null) {
+              double decrement = item.cantidad.toDouble();
+              if (item.isUnidad && producto.esPaquete && producto.unidadesPorPaquete > 0) {
+                decrement = item.cantidad / producto.unidadesPorPaquete;
+              }
+              await inventarioVM.actualizarStock(item.productoId, -decrement);
+            }
+          }
+        } else if (venta.productoId != null && venta.cantidad > 0) {
+          await inventarioVM.actualizarStock(
+            venta.productoId!,
+            -venta.cantidad,
+          );
+        }
       }
 
       // auto-update client debt

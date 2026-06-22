@@ -6,16 +6,30 @@ import 'package:InkTrack/features/inventario/data/repositories/drift_productos_r
 
 class InventarioViewModel extends BaseCrudViewModel<Producto> {
   final ProductosRepository _repository;
+  String? _localId;
 
   InventarioViewModel(this._repository) {
     _loadProductos();
   }
 
+  void setLocalId(String? localId) {
+    _localId = localId;
+    notifyListeners();
+  }
+
+  String? get currentLocalId => _localId;
+
   List<Producto> get productos {
-    if (_showInactive) {
-      return items;
+    if (_localId == null) {
+      return _showInactive
+          ? items.toList()
+          : items.where((p) => p.isActivo).toList();
     }
-    return items.where((p) => p.isActivo).toList();
+    var result = items.where((p) => p.localId == _localId).toList();
+    if (!_showInactive) {
+      result = result.where((p) => p.isActivo).toList();
+    }
+    return result;
   }
 
   bool _showInactive = false;
@@ -35,10 +49,17 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
   List<String> get categorias => List.unmodifiable(_categorias);
 
   Future<void> _loadProductos() async {
+    clearAll();
     final loaded = await _repository.getAll();
     for (var producto in loaded) {
       add(producto);
     }
+  }
+
+  @override
+  Future<void> refresh() async {
+    await _loadProductos();
+    notifyListeners();
   }
 
   void agregarCategoria(String nombre) {
@@ -68,6 +89,9 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
     } else {
       final existingIndex = items.indexWhere((p) => p.id == finalId);
       if (existingIndex != -1) {
+        if (isNew) {
+          throw Exception('El producto ya existe (mismo código de barras)');
+        }
         await _repository.update(finalId, productoAGuardar);
         update(finalId, productoAGuardar);
       } else {
@@ -106,18 +130,18 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
     }
   }
 
-  Future<void> actualizarStock(String id, int delta) async {
+  Future<void> actualizarStock(String id, num delta) async {
     final p = getById(id);
     if (p != null) {
       final actualizado = p.copyWith(
-        cantidad: (p.cantidad + delta).clamp(0, 999999),
+        cantidad: (p.cantidad + delta.toInt()).clamp(0, 999999),
       );
       await _repository.update(id, actualizado);
       update(id, actualizado);
     }
   }
 
-  Future<void> restockWithReactivation(String codigo, int cantidad) async {
+  Future<void> restockWithReactivation(String codigo, num cantidad) async {
     Producto? producto = findProductoByCodigoIncludingInactive(codigo);
 
     if (producto != null && !producto.isActivo) {
@@ -130,26 +154,33 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
     }
   }
 
-  double get valorTotalInventario => items.fold(
+  List<Producto> get _itemsFiltrados {
+    if (_localId == null) return items;
+    return items.where((p) => p.localId == _localId).toList();
+  }
+
+  double get valorTotalInventario => _itemsFiltrados.fold(
     0.0,
-    (sum, producto) => sum + (producto.precio * producto.cantidad),
+    (sum, producto) => sum + (producto.precioVenta * producto.cantidad),
   );
 
-  int get totalProductos =>
-      items.fold(0, (sum, producto) => sum + producto.cantidad);
+  double get totalProductos =>
+      _itemsFiltrados.fold(0.0, (sum, producto) => sum + producto.cantidad);
 
-  List<Producto> getProductosPorCategoria(String categoria) =>
-      items.where((producto) => producto.categoria == categoria).toList();
+  List<Producto> getProductosPorCategoria(String categoria) => _itemsFiltrados
+      .where((producto) => producto.categoria == categoria)
+      .toList();
 
-  List<Producto> getProductosPorProveedor(String proveedorId) =>
-      items.where((producto) => producto.proveedorId == proveedorId).toList();
+  List<Producto> getProductosPorProveedor(String proveedorId) => _itemsFiltrados
+      .where((producto) => producto.proveedorId == proveedorId)
+      .toList();
 
   List<Producto> get productosConStockBajo =>
-      items.where((p) => p.stockBajo).toList();
+      _itemsFiltrados.where((p) => p.stockBajo).toList();
 
-  bool get hayStockBajo => items.any((p) => p.stockBajo);
+  bool get hayStockBajo => _itemsFiltrados.any((p) => p.stockBajo);
 
-  int get totalInactivos => items.where((p) => !p.isActivo).length;
+  int get totalInactivos => _itemsFiltrados.where((p) => !p.isActivo).length;
 
   Producto? findProductoByCodigo(String codigo) {
     try {

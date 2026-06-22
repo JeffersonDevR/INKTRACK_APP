@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:InkTrack/core/data/local/database.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
 import 'package:InkTrack/features/proveedores/data/models/proveedor.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
+import 'package:InkTrack/core/widgets/app_card.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
+import 'package:InkTrack/core/services/import_service.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 import 'proveedor_form_page.dart';
+import 'pedidos_proveedor_page.dart';
+import 'historial_visitas_page.dart';
 
 class ProveedoresPage extends StatelessWidget {
   const ProveedoresPage({super.key});
@@ -14,9 +21,7 @@ class ProveedoresPage extends StatelessWidget {
     return Consumer<ProveedoresViewModel>(
       builder: (context, viewModel, child) {
         final showInactive = viewModel.showInactive;
-        return Scaffold(
-          body: _buildBody(context, viewModel, showInactive),
-        );
+        return Scaffold(body: _buildBody(context, viewModel, showInactive));
       },
     );
   }
@@ -26,21 +31,39 @@ class ProveedoresPage extends StatelessWidget {
     ProveedoresViewModel viewModel,
     bool showInactive,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     return CustomScrollView(
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
           sliver: SliverToBoxAdapter(
             child: FinancialSummaryHeader(
-              title: 'Resumen\nProveedores',
+              title: l10n.resumenProveedores,
               actions: [
-                IconButton(
-                  onPressed: () => viewModel.toggleShowInactive(),
-                  icon: Icon(
-                    showInactive ? Icons.visibility_off : Icons.visibility,
-                    color: showInactive ? AppTheme.secondaryColor : null,
+                _HeaderAction(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const HistorialVisitasPage(),
+                    ),
                   ),
-                  tooltip: showInactive ? 'Ocultar inactivos' : 'Ver inactivos',
+                  icon: Icons.history_rounded,
+                  label: l10n.historialVisitas,
+                  color: AppTheme.primaryColor,
+                ),
+                _HeaderAction(
+                  onTap: () => viewModel.toggleShowInactive(),
+                  icon: showInactive ? Icons.visibility : Icons.visibility_off,
+                  label: showInactive ? l10n.ocultar : l10n.ver,
+                  color: showInactive
+                      ? AppTheme.warningColor
+                      : AppTheme.textSecondary,
+                ),
+                _HeaderAction(
+                  onTap: () => _performImport(context),
+                  icon: Icons.file_upload_rounded,
+                  label: l10n.import,
+                  color: AppTheme.secondaryColor,
                 ),
               ],
               totalIngresos: viewModel.proveedores.length.toDouble(),
@@ -49,9 +72,9 @@ class ProveedoresPage extends StatelessWidget {
                   .length
                   .toDouble(),
               balance: 0,
-              label1: 'Total',
-              label2: 'Con Ruta',
-              label3: 'Estadísticas',
+              label1: l10n.total,
+              label2: l10n.diasVisita,
+              label3: l10n.reportes,
               icon1: Icons.local_shipping_rounded,
               icon2: Icons.route_rounded,
               icon3: Icons.bar_chart_rounded,
@@ -65,16 +88,13 @@ class ProveedoresPage extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           sliver: SliverToBoxAdapter(
             child: Text(
-              'Listado de Proveedores',
+              l10n.listadoProveedores,
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
         ),
         if (viewModel.proveedores.isEmpty)
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: _EmptyProveedores(),
-          )
+          SliverFillRemaining(hasScrollBody: false, child: _EmptyProveedores())
         else
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
@@ -82,173 +102,206 @@ class ProveedoresPage extends StatelessWidget {
               delegate: SliverChildBuilderDelegate((context, index) {
                 final proveedor = viewModel.proveedores[index];
                 final isInactive = !proveedor.isActivo;
-                return Card(
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+                return AppCard(
                   margin: const EdgeInsets.only(bottom: 12),
-                  color: isInactive ? Colors.grey.shade100 : null,
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(16),
-                  leading: CircleAvatar(
-                    radius: 24,
-                    backgroundColor: AppTheme.primaryColor.withValues(
-                      alpha: 0.1,
-                    ),
-                    child: const Icon(
-                      Icons.local_shipping_outlined,
-                      color: AppTheme.primaryColor,
-                    ),
-                  ),
-                  title: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          proveedor.nombre,
-                          style: Theme.of(context).textTheme.labelLarge,
-                        ),
+                  isInactive: isInactive,
+                  padding: EdgeInsets.zero,
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(16),
+                    leading: CircleAvatar(
+                      radius: 24,
+                      backgroundColor: AppTheme.primaryColor.withValues(
+                        alpha: 0.1,
                       ),
-                      if (isInactive)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade400,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Text(
-                            'INACTIVO',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                            ),
+                      child: const Icon(
+                        Icons.local_shipping_outlined,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                    title: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            proveedor.nombre,
+                            style: Theme.of(context).textTheme.labelLarge,
                           ),
                         ),
-                    ],
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 4),
-                      Text(
-                        proveedor.telefono,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      if (proveedor.diasVisita.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.calendar_today_rounded,
-                              size: 14,
-                              color: AppTheme.secondaryColor,
+                        if (isInactive)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
                             ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  'Visita: ${proveedor.diasVisitaShort}',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: AppTheme.secondaryColor,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.grey.shade700
+                                  : Colors.grey.shade400,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              l10n.inactive,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 4),
+                        Text(
+                          proveedor.telefono,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        if (proveedor.diasVisita.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.calendar_today_rounded,
+                                size: 14,
+                                color: AppTheme.infoColor,
+                              ),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      '${l10n.diasVisita}: ${proveedor.diasVisitaShort}',
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: AppTheme.infoColor,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
-                  trailing: PopupMenuButton<String>(
-                    onSelected: (value) {
-                      if (value == 'edit') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ProveedorFormPage(proveedor: proveedor),
-                          ),
-                        );
-                      } else if (value == 'delete') {
-                        _showDeleteDialog(context, proveedor);
-                      } else if (value == 'reactivate') {
-                        context.read<ProveedoresViewModel>().reactivar(
-                          proveedor.id,
-                        );
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit_outlined, size: 20),
-                            SizedBox(width: 8),
-                            Text('Editar'),
-                          ],
-                        ),
-                      ),
-                      if (isInactive)
-                        const PopupMenuItem(
-                          value: 'reactivate',
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.refresh,
-                                size: 20,
-                                color: AppTheme.successColor,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Reactivar',
-                                style: TextStyle(color: AppTheme.successColor),
-                              ),
                             ],
                           ),
-                        )
-                      else
+                        ],
+                      ],
+                    ),
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'edit') {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ProveedorFormPage(proveedor: proveedor),
+                            ),
+                          );
+                        } else if (value == 'view_pedidos') {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PedidosProveedorPage(
+                                showAll: true,
+                                proveedorId: proveedor.id,
+                              ),
+                            ),
+                          );
+                        } else if (value == 'delete') {
+                          _showDeleteDialog(context, proveedor);
+                        } else if (value == 'reactivate') {
+                          context.read<ProveedoresViewModel>().reactivar(
+                            proveedor.id,
+                          );
+                        }
+                      },
+                      itemBuilder: (context) => [
                         PopupMenuItem(
-                          value: 'delete',
+                          value: 'view_pedidos',
                           child: Row(
                             children: [
                               Icon(
-                                Icons.delete_outline_rounded,
-                                color: AppTheme.errorColor,
+                                Icons.local_shipping_rounded,
                                 size: 20,
+                                color: AppTheme.primaryColor,
                               ),
                               const SizedBox(width: 8),
-                              Text(
-                                'Eliminar',
-                                style: TextStyle(color: AppTheme.errorColor),
-                              ),
+                              Text(l10n.verPedidos),
                             ],
                           ),
                         ),
-                    ],
+                        PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit_outlined, size: 20),
+                              const SizedBox(width: 8),
+                              Text(l10n.editar),
+                            ],
+                          ),
+                        ),
+                        if (isInactive)
+                          PopupMenuItem(
+                            value: 'reactivate',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.refresh,
+                                  size: 20,
+                                  color: AppTheme.successColor,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  l10n.reactivate,
+                                  style: TextStyle(
+                                    color: AppTheme.successColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.delete_outline_rounded,
+                                  color: AppTheme.errorColor,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  l10n.eliminar,
+                                  style: TextStyle(color: AppTheme.errorColor),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            }, childCount: viewModel.proveedores.length),
+                );
+              }, childCount: viewModel.proveedores.length),
+            ),
           ),
-        ),
       ],
     );
   }
 
   void _showDeleteDialog(BuildContext context, Proveedor proveedor) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar proveedor'),
-        content: Text('¿Eliminar a ${proveedor.nombre}?\n(Se marcará como inactivo para trazabilidad)'),
+        title: Text('${l10n.eliminar} ${l10n.proveedor}'),
+        content: Text(
+          '${l10n.eliminar} ${proveedor.nombre}?\n(${l10n.noDisponible})',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: Text(l10n.cancelar),
           ),
           TextButton(
             onPressed: () {
@@ -256,9 +309,123 @@ class ProveedoresPage extends StatelessWidget {
               Navigator.pop(ctx);
             },
             style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
-            child: const Text('Eliminar'),
+            child: Text(l10n.eliminar),
           ),
         ],
+      ),
+    );
+  }
+}
+
+Future<void> _performImport(BuildContext context) async {
+  final result = await FilePicker.platform.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: ['xlsx', 'csv'],
+  );
+
+  if (result == null || result.files.single.path == null) return;
+
+  final filePath = result.files.single.path!;
+  final db = context.read<AppDatabase>();
+  final importService = ImportService(db);
+  final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+  final l10n = AppLocalizations.of(context)!;
+  scaffoldMessenger.showSnackBar(
+    SnackBar(
+      content: Text(l10n.importando),
+      duration: const Duration(seconds: 1),
+    ),
+  );
+
+  final importResult = await importService.importFile(filePath, 'proveedores');
+  if (context.mounted) {
+    await context.read<ProveedoresViewModel>().refresh();
+    _showImportResultDialog(context, importResult, 'proveedores');
+  }
+}
+
+void _showImportResultDialog(
+  BuildContext context,
+  ImportResult result,
+  String moduleLabel,
+) {
+  final l10n = AppLocalizations.of(context)!;
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      title: Text(
+        result.success ? l10n.importSuccess : l10n.importError,
+      ),
+      content: result.success
+          ? Text(l10n.importSuccess)
+          : SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.importError),
+                  const SizedBox(height: 12),
+                  ...?result.errors?.map(
+                    (e) => Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        e.toString(),
+                        style: const TextStyle(
+                          color: AppTheme.errorColor,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(l10n.cancelar),
+        ),
+      ],
+    ),
+  );
+}
+
+class _HeaderAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final Color color;
+
+  const _HeaderAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 20),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -267,6 +434,8 @@ class ProveedoresPage extends StatelessWidget {
 class _EmptyProveedores extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -276,16 +445,18 @@ class _EmptyProveedores extends StatelessWidget {
             Icon(
               Icons.local_shipping_outlined,
               size: 80,
-              color: AppTheme.textSecondary.withValues(alpha: 0.5),
+              color: isDark
+                  ? AppTheme.darkTextSecondary.withValues(alpha: 0.5)
+                  : AppTheme.textSecondary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
-              'No hay proveedores',
+              l10n.noDataAvailable,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              'Registra proveedores para asociarlos a productos del inventario.',
+              l10n.comienzaAgregandoProductos,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium,
             ),

@@ -1,11 +1,17 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:InkTrack/core/utils/id_utils.dart';
 import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
+import 'package:InkTrack/features/inventario/data/models/producto.dart';
+import 'package:InkTrack/features/inventario/presentation/pages/barcode_scanner_page.dart';
+import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmodel.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/input_formatters.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
@@ -31,11 +37,10 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
   late MovimientoType _tipo;
   final _montoController = TextEditingController();
   final _conceptoController = TextEditingController();
-  final _cantidadController = TextEditingController(text: '1');
   String? _categoria;
   String? _clienteId;
   String? _proveedorId;
-  String? _productoId;
+  final List<_MovimientoProductoState> _productos = [];
   bool _esFiado = false;
   DateTime _fecha = DateTime.now();
 
@@ -49,10 +54,21 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
       _categoria = widget.movimiento!.categoria;
       _clienteId = widget.movimiento!.clienteId;
       _proveedorId = widget.movimiento!.proveedorId;
-      _productoId = widget.movimiento!.productoId;
-      _cantidadController.text = widget.movimiento!.cantidad?.toString() ?? '1';
       _esFiado = widget.movimiento!.esFiado;
       _fecha = widget.movimiento!.fecha;
+
+      if (widget.movimiento!.isMultiProducto) {
+        for (final p in widget.movimiento!.productos) {
+          _productos.add(
+            _MovimientoProductoState(
+              productoId: p.productoId,
+              nombre: p.nombre,
+              cantidad: p.cantidad,
+              precioUnitario: p.precioUnitario,
+            ),
+          );
+        }
+      }
     } else {
       _tipo = widget.initialType;
     }
@@ -62,116 +78,109 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
   void dispose() {
     _montoController.dispose();
     _conceptoController.dispose();
-    _cantidadController.dispose();
     super.dispose();
   }
 
-  void _updateMontoAuto() {
-    if (_productoId == null) return;
+  double get _montoTotal => _productos.fold(0.0, (sum, p) => sum + p.subtotal);
 
-    final ivm = context.read<InventarioViewModel>();
-    final producto = ivm.productos.firstWhere((p) => p.id == _productoId);
-    final cantidad = int.tryParse(_cantidadController.text) ?? 0;
-
-    setState(() {
-      _montoController.text = NumberFormatter.formatCurrency(
-        producto.precio * cantidad,
-      ).replaceAll('\$', '');
-    });
+  void _actualizarMonto() {
+    _montoController.text = NumberFormatter.formatCurrency(
+      _montoTotal,
+    ).replaceAll('\$', '');
   }
 
-  void _save() {
-    if (_formKey.currentState!.validate()) {
-      final monto = NumberFormatter.parseAmount(_montoController.text);
-      final cantidad = int.tryParse(_cantidadController.text);
+  Future<void> _agregarProducto() async {
+    final result = await showModalBottomSheet<_MovimientoProductoState>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => const _AgregarProductoSheet(),
+    );
 
-      final mov = Movimiento(
-        id: widget.movimiento?.id ?? IdUtils.generateId(),
-        monto: monto,
-        fecha: _fecha,
-        tipo: _tipo,
-        concepto: _conceptoController.text,
-        categoria: _categoria,
-        clienteId: _clienteId,
-        proveedorId: _proveedorId,
-        productoId: _productoId,
-        cantidad: cantidad,
-        esFiado: _esFiado,
-      );
+    if (result != null) {
+      setState(() {
+        final existingIndex = _productos.indexWhere(
+          (p) => p.productoId == result.productoId,
+        );
+        if (existingIndex != -1) {
+          _productos[existingIndex].cantidad += result.cantidad;
+          _productos[existingIndex].precioUnitario = result.precioUnitario;
+        } else {
+          _productos.add(result);
+        }
+        _actualizarMonto();
+      });
+    }
+  }
 
-      final viewModel = context.read<MovimientosViewModel>();
-      final ivm = context.read<InventarioViewModel>();
-      final cvm = context.read<ClientesViewModel>();
+  Future<void> _escanearProducto() async {
+    final producto = await Navigator.push<Producto>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const BarcodeScannerPage(returnMode: true),
+      ),
+    );
 
-      // Stock Validation
-      if (_productoId != null && cantidad != null) {
-        final product = ivm.getById(_productoId!);
-        if (product != null) {
-          // In this app's logic: ingreso = sale (stock decrease), egreso = restock (stock increase)
-          // Wait, let's double check line 111: delta = _tipo == MovimientoType.ingreso ? -cantidad : cantidad;
-          // Yes, Ingreso decreases stock.
-          if (_tipo == MovimientoType.ingreso && product.cantidad < cantidad) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'No hay suficiente stock. Disponible: ${product.cantidad}',
-                ),
-                backgroundColor: AppTheme.errorColor,
+    if (producto != null && mounted) {
+      final cantidad = await _showCantidadDialog(producto);
+      if (cantidad != null && mounted) {
+        setState(() {
+          final existingIndex = _productos.indexWhere(
+            (p) => p.productoId == producto.id,
+          );
+          if (existingIndex != -1) {
+            _productos[existingIndex].cantidad += cantidad;
+          } else {
+            _productos.add(
+              _MovimientoProductoState(
+                productoId: producto.id,
+                nombre: producto.nombre,
+                cantidad: cantidad,
+                precioUnitario: producto.precioVenta,
               ),
             );
-            return;
           }
-        }
+          _actualizarMonto();
+        });
       }
-
-      if (widget.movimiento == null) {
-        viewModel.guardar(mov);
-
-        // Post-save hooks for NEW movements
-        if (_productoId != null && cantidad != null) {
-          final delta = _tipo == MovimientoType.ingreso ? -cantidad : cantidad;
-          ivm.actualizarStock(_productoId!, delta);
-        }
-
-        if (_tipo == MovimientoType.ingreso && _esFiado && _clienteId != null) {
-          cvm.actualizarSaldo(_clienteId!, monto);
-        }
-      } else {
-        // REVERSAL Logic for existing movements
-        final old = widget.movimiento!;
-
-        // 1. Revert Old Stock
-        if (old.productoId != null && old.cantidad != null) {
-          final deltaRevert = old.tipo == MovimientoType.ingreso
-              ? old.cantidad!
-              : -old.cantidad!;
-          ivm.actualizarStock(old.productoId!, deltaRevert);
-        }
-
-        // 2. Revert Old Debt (Saldo)
-        if (old.tipo == MovimientoType.ingreso &&
-            old.esFiado &&
-            old.clienteId != null) {
-          cvm.actualizarSaldo(old.clienteId!, -old.monto);
-        }
-
-        // 3. Apply New Stock
-        if (_productoId != null && cantidad != null) {
-          final deltaApply = _tipo == MovimientoType.ingreso
-              ? -cantidad
-              : cantidad;
-          ivm.actualizarStock(_productoId!, deltaApply);
-        }
-
-        // 4. Apply New Debt (Saldo)
-        if (_tipo == MovimientoType.ingreso && _esFiado && _clienteId != null) {
-          cvm.actualizarSaldo(_clienteId!, monto);
-        }
-
-        viewModel.editar(old.id, mov);
-      }
-      Navigator.pop(context);
     }
+  }
+
+  Future<double?> _showCantidadDialog(Producto producto) async {
+    final controller = TextEditingController(text: '1');
+    return showDialog<double>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(producto.nombre),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Precio unitario: \$${producto.precioVenta.toStringAsFixed(2)}'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(labelText: 'Cantidad'),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              autofocus: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final cantidad = double.tryParse(controller.text);
+              if (cantidad != null && cantidad > 0) {
+                Navigator.pop(ctx, cantidad);
+              }
+            },
+            child: const Text('Agregar'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<String?> _showAddCategoryDialog() async {
@@ -199,12 +208,131 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
     );
   }
 
+  void _save() {
+    if (!_formKey.currentState!.validate()) return;
+
+    final monto = NumberFormatter.parseAmount(_montoController.text);
+    final ivm = context.read<InventarioViewModel>();
+
+    if (_tipo == MovimientoType.ingreso) {
+      for (final prod in _productos) {
+        final product = ivm.getById(prod.productoId);
+        if (product != null && product.cantidad < prod.cantidad) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'No hay suficiente stock de "${product.nombre}". Disponible: ${product.cantidad}',
+              ),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+          return;
+        }
+      }
+    }
+
+    final productosJson = _productos.isEmpty
+        ? null
+        : jsonEncode(
+            _productos
+                .map(
+                  (p) => {
+                    'productoId': p.productoId,
+                    'nombre': p.nombre,
+                    'cantidad': p.cantidad,
+                    'precioUnitario': p.precioUnitario,
+                  },
+                )
+                .toList(),
+          );
+
+    final mov = Movimiento(
+      id: widget.movimiento?.id ?? IdUtils.generateId(),
+      monto: monto,
+      fecha: _fecha,
+      tipo: _tipo,
+      concepto: _conceptoController.text,
+      categoria: _categoria,
+      clienteId: _clienteId,
+      proveedorId: _proveedorId,
+      esFiado: _esFiado,
+      productosJson: productosJson,
+    );
+
+    final viewModel = context.read<MovimientosViewModel>();
+    final cvm = context.read<ClientesViewModel>();
+    final localesVM = context.read<LocalesViewModel>();
+
+    if (widget.movimiento == null) {
+      final movConLocal = Movimiento(
+        id: mov.id,
+        monto: mov.monto,
+        fecha: mov.fecha,
+        tipo: mov.tipo,
+        concepto: mov.concepto,
+        categoria: mov.categoria,
+        clienteId: mov.clienteId,
+        proveedorId: mov.proveedorId,
+        esFiado: mov.esFiado,
+        productosJson: mov.productosJson,
+        localId: localesVM.localIdSeleccionado,
+      );
+      viewModel.guardar(movConLocal);
+
+      for (final prod in _productos) {
+        final delta = _tipo == MovimientoType.ingreso
+            ? -prod.cantidad
+            : prod.cantidad;
+        ivm.actualizarStock(prod.productoId, delta);
+      }
+
+      if (_tipo == MovimientoType.ingreso && _esFiado && _clienteId != null) {
+        cvm.actualizarSaldo(_clienteId!, monto);
+      }
+    } else {
+      final old = widget.movimiento!;
+
+      if (old.isMultiProducto) {
+        for (final p in old.productos) {
+          final deltaRevert = old.tipo == MovimientoType.ingreso
+              ? p.cantidad
+              : -p.cantidad;
+          ivm.actualizarStock(p.productoId, deltaRevert);
+        }
+      } else if (old.productoId != null && old.cantidad != null) {
+        final deltaRevert = old.tipo == MovimientoType.ingreso
+            ? old.cantidad!
+            : -old.cantidad!;
+        ivm.actualizarStock(old.productoId!, deltaRevert);
+      }
+
+      for (final prod in _productos) {
+        final deltaApply = _tipo == MovimientoType.ingreso
+            ? -prod.cantidad
+            : prod.cantidad;
+        ivm.actualizarStock(prod.productoId, deltaApply);
+      }
+
+      viewModel.editar(old.id, mov);
+    }
+
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final currencyFormat = NumberFormat.currency(
+      symbol: '\$',
+      decimalDigits: 2,
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _tipo == MovimientoType.ingreso ? 'Nuevo Ingreso' : 'Nuevo Egreso',
+          _tipo == MovimientoType.ingreso
+              ? l10n.nuevoIngreso
+              : l10n.nuevoEgreso,
         ),
       ),
       body: SingleChildScrollView(
@@ -215,16 +343,16 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SegmentedButton<MovimientoType>(
-                segments: const [
+                segments: [
                   ButtonSegment(
                     value: MovimientoType.ingreso,
-                    label: Text('Ingreso'),
-                    icon: Icon(Icons.add_circle_outline),
+                    label: Text(l10n.ingreso),
+                    icon: const Icon(Icons.add_circle_outline),
                   ),
                   ButtonSegment(
                     value: MovimientoType.egreso,
-                    label: Text('Egreso'),
-                    icon: Icon(Icons.remove_circle_outline),
+                    label: Text(l10n.egreso),
+                    icon: const Icon(Icons.remove_circle_outline),
                   ),
                 ],
                 selected: {_tipo},
@@ -242,42 +370,26 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                     flex: 3,
                     child: TextFormField(
                       controller: _montoController,
-                      decoration: const InputDecoration(
-                        labelText: 'Monto Total',
+                      decoration: InputDecoration(
+                        labelText: l10n.montoTotal,
                         prefixText: '\$ ',
                         hintText: '0.00',
+                        helperText: _productos.isNotEmpty
+                            ? l10n.calculadoAutomaticamente
+                            : null,
                       ),
+                      readOnly: _productos.isNotEmpty,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
                       inputFormatters: [InputFormatters.decimal],
+                      onChanged: (_) => setState(() {}),
                       validator: (value) {
                         if (value == null || value.isEmpty)
-                          return 'Ingrese un monto';
+                          return l10n.ingreseMonto;
                         final num = NumberFormatter.parseAmount(value);
-                        if (num <= 0) return 'Monto inválido';
-                        if (num > 999999999) return 'Máximo 999,999,999';
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 2,
-                    child: TextFormField(
-                      controller: _cantidadController,
-                      decoration: const InputDecoration(labelText: 'Cantidad'),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [InputFormatters.digitsOnly],
-                      onChanged: (value) => _updateMontoAuto(),
-                      validator: (value) {
-                        if (_productoId != null) {
-                          if (value == null || value.isEmpty)
-                            return 'Requerido';
-                          if (int.tryParse(value) == null ||
-                              int.parse(value) <= 0)
-                            return '> 0';
-                        }
+                        if (num <= 0) return l10n.montoInvalido;
+                        if (num > 999999999) return l10n.maximoMonto;
                         return null;
                       },
                     ),
@@ -287,15 +399,15 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _conceptoController,
-                decoration: const InputDecoration(
-                  labelText: 'Concepto',
-                  hintText: 'Ej. Venta de insumos',
+                decoration: InputDecoration(
+                  labelText: l10n.concepto,
+                  hintText: l10n.ingreseConceptoVenta,
                 ),
                 textCapitalization: TextCapitalization.sentences,
                 inputFormatters: [InputFormatters.textOnly],
                 validator: (value) {
                   if (value == null || value.isEmpty)
-                    return 'Ingrese un concepto';
+                    return l10n.ingreseConcepto;
                   return null;
                 },
               ),
@@ -305,21 +417,19 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                   final categories = mvm.categorias;
                   return DropdownButtonFormField<String>(
                     isExpanded: true,
-                    initialValue: categories.contains(_categoria)
-                        ? _categoria
-                        : null,
-                    decoration: const InputDecoration(
-                      labelText: 'Categoría',
-                      prefixIcon: Icon(Icons.category_outlined),
-                      hintText: 'Seleccione una categoría',
+                    initialValue: categories.contains(_categoria) ? _categoria : null,
+                    decoration: InputDecoration(
+                      labelText: l10n.categoria,
+                      prefixIcon: const Icon(Icons.category_outlined),
+                      hintText: l10n.seleccioneCategoria,
                     ),
                     items: [
                       ...categories.map(
                         (c) => DropdownMenuItem(value: c, child: Text(c)),
                       ),
-                      const DropdownMenuItem(
+                      DropdownMenuItem(
                         value: _kNewCategoryValue,
-                        child: Text('+ Nueva categoría'),
+                        child: Text('+ ${l10n.nuevaCategoria}'),
                       ),
                     ],
                     onChanged: (value) async {
@@ -335,7 +445,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                     },
                     validator: (value) {
                       if (_categoria == null || _categoria!.isEmpty) {
-                        return 'Seleccione o cree una categoría';
+                        return l10n.seleccioneOCreeCategoria;
                       }
                       return null;
                     },
@@ -345,22 +455,17 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
               const SizedBox(height: 16),
               Consumer<ClientesViewModel>(
                 builder: (context, cvm, child) {
-                  // Removed type restriction as requested by user
-
                   final clientes = cvm.items;
                   return DropdownButtonFormField<String?>(
                     isExpanded: true,
                     initialValue: _clienteId,
-                    decoration: const InputDecoration(
-                      labelText: 'Cliente (Opcional)',
-                      prefixIcon: Icon(Icons.person_outline),
-                      hintText: 'Seleccione un cliente',
+                    decoration: InputDecoration(
+                      labelText: l10n.clienteOpcionalLabel,
+                      prefixIcon: const Icon(Icons.person_outline),
+                      hintText: l10n.seleccionarLocal,
                     ),
                     items: [
-                      const DropdownMenuItem(
-                        value: null,
-                        child: Text('Ninguno'),
-                      ),
+                      DropdownMenuItem(value: null, child: Text(l10n.ninguno)),
                       ...clientes.map(
                         (c) => DropdownMenuItem(
                           value: c.id,
@@ -381,21 +486,17 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                 builder: (context, pvm, child) {
                   if (_tipo == MovimientoType.ingreso)
                     return const SizedBox.shrink();
-
                   final proveedores = pvm.proveedores;
                   return DropdownButtonFormField<String?>(
                     isExpanded: true,
                     initialValue: _proveedorId,
-                    decoration: const InputDecoration(
-                      labelText: 'Proveedor (Opcional)',
-                      prefixIcon: Icon(Icons.local_shipping_outlined),
-                      hintText: 'Seleccione un proveedor',
+                    decoration: InputDecoration(
+                      labelText: l10n.proveedorOpcional,
+                      prefixIcon: const Icon(Icons.local_shipping_outlined),
+                      hintText: l10n.seleccionarLocal,
                     ),
                     items: [
-                      const DropdownMenuItem(
-                        value: null,
-                        child: Text('Ninguno'),
-                      ),
+                      DropdownMenuItem(value: null, child: Text(l10n.ninguno)),
                       ...proveedores.map(
                         (p) => DropdownMenuItem(
                           value: p.id,
@@ -403,75 +504,142 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                         ),
                       ),
                     ],
-                    onChanged: (value) => setState(() {
-                      _proveedorId = value;
-                    }),
+                    onChanged: (value) => setState(() => _proveedorId = value),
                   );
                 },
               ),
               if (_tipo == MovimientoType.ingreso && _clienteId != null) ...[
                 const SizedBox(height: 8),
                 SwitchListTile(
-                  title: const Text('Venta Fiada'),
-                  subtitle: const Text('Añadir al saldo pendiente del cliente'),
+                  title: Text(l10n.ventaFiada),
+                  subtitle: Text(l10n.anadirSaldoPendiente),
                   value: _esFiado,
                   onChanged: (value) => setState(() => _esFiado = value),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                  contentPadding: EdgeInsets.zero,
                   dense: true,
                 ),
               ],
-              const SizedBox(height: 16),
-              Consumer<InventarioViewModel>(
-                builder: (context, ivm, child) {
-                  final productos = ivm.productos;
-                  return DropdownButtonFormField<String?>(
-                    isExpanded: true,
-                    initialValue: _productoId,
-                    decoration: const InputDecoration(
-                      labelText: 'Producto (Asociar)',
-                      prefixIcon: Icon(Icons.inventory_2_outlined),
-                      hintText: 'Seleccione un producto',
-                    ),
-                    items: [
-                      const DropdownMenuItem(
-                        value: null,
-                        child: Text('Ninguno'),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    l10n.productos,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  Row(
+                    children: [
+                      TextButton.icon(
+                        onPressed: _escanearProducto,
+                        icon: const Icon(Icons.qr_code_scanner, size: 18),
+                        label: Text(l10n.escanear),
                       ),
-                      ...productos.map(
-                        (p) => DropdownMenuItem(
-                          value: p.id,
-                          child: Text('${p.nombre} (\$${p.precio})'),
-                        ),
+                      TextButton.icon(
+                        onPressed: _agregarProducto,
+                        icon: const Icon(Icons.add, size: 18),
+                        label: Text(l10n.agregar),
                       ),
                     ],
-                    onChanged: (value) {
-                      setState(() {
-                        _productoId = value;
-                        if (value != null) {
-                          _updateMontoAuto();
-                        }
-                      });
-                    },
-                  );
-                },
+                  ),
+                ],
               ),
+              const SizedBox(height: 8),
+              if (_productos.isEmpty)
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.inventory_2_outlined,
+                          size: 48,
+                          color: AppTheme.textSecondary.withValues(alpha: 0.5),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(l10n.noHayProductos),
+                        const SizedBox(height: 4),
+                        Text(
+                          l10n.escaneeOAgregueProductos,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                ...List.generate(_productos.length, (index) {
+                  final producto = _productos[index];
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
+                      title: Text(producto.nombre),
+                      subtitle: Text(
+                        '${producto.cantidad} x ${currencyFormat.format(producto.precioUnitario)}',
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            currencyFormat.format(producto.subtotal),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _productos.removeAt(index);
+                                _actualizarMonto();
+                              });
+                            },
+                            icon: const Icon(
+                              Icons.delete_outline,
+                              color: AppTheme.errorColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              if (_productos.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Card(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          l10n.totalProductos,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          currencyFormat.format(_montoTotal),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 24),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.calendar_today),
-                title: const Text('Fecha'),
+                title: Text(l10n.fecha),
                 subtitle: Text('${_fecha.day}/${_fecha.month}/${_fecha.year}'),
                 onTap: () async {
                   final picked = await showDatePicker(
                     context: context,
                     initialDate: _fecha,
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime(2101),
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime.now(),
                   );
                   if (picked != null) {
-                    setState(() {
-                      _fecha = picked;
-                    });
+                    setState(() => _fecha = picked);
                   }
                 },
                 trailing: const Icon(Icons.edit_calendar),
@@ -486,13 +654,195 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                       : AppTheme.errorColor,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text(
-                  'GUARDAR',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                child: Text(
+                  l10n.guardar.toUpperCase(),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MovimientoProductoState {
+  final String productoId;
+  final String nombre;
+  double cantidad;
+  double precioUnitario;
+
+  _MovimientoProductoState({
+    required this.productoId,
+    required this.nombre,
+    required this.cantidad,
+    required this.precioUnitario,
+  });
+
+  double get subtotal => cantidad * precioUnitario;
+}
+
+class _AgregarProductoSheet extends StatefulWidget {
+  const _AgregarProductoSheet();
+
+  @override
+  State<_AgregarProductoSheet> createState() => _AgregarProductoSheetState();
+}
+
+class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
+  final _busquedaController = TextEditingController();
+  final _cantidadController = TextEditingController(text: '1');
+  final _precioController = TextEditingController();
+  String? _productoSeleccionadoId;
+  String? _productoSeleccionadoNombre;
+  double _precioUnitario = 0;
+
+  @override
+  void dispose() {
+    _busquedaController.dispose();
+    _cantidadController.dispose();
+    _precioController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      maxChildSize: 0.9,
+      minChildSize: 0.5,
+      expand: false,
+      builder: (context, scrollController) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Agregar Producto',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _busquedaController,
+              decoration: const InputDecoration(
+                labelText: 'Buscar producto',
+                prefixIcon: Icon(Icons.search),
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+            const SizedBox(height: 16),
+            if (_productoSeleccionadoId == null)
+              Expanded(
+                child: Consumer<InventarioViewModel>(
+                  builder: (context, invm, child) {
+                    var productos = invm.productos;
+                    final busqueda = _busquedaController.text
+                        .trim()
+                        .toLowerCase();
+                    if (busqueda.isNotEmpty) {
+                      productos = productos
+                          .where(
+                            (p) =>
+                                p.nombre.toLowerCase().contains(busqueda) ||
+                                p.categoria.toLowerCase().contains(busqueda),
+                          )
+                          .toList();
+                    }
+                    return ListView.builder(
+                      controller: scrollController,
+                      itemCount: productos.length,
+                      itemBuilder: (context, index) {
+                        final producto = productos[index];
+                        return ListTile(
+                          title: Text(producto.nombre),
+                          subtitle: Text(
+                            'Stock: ${producto.cantidad} • \$${producto.precioVenta.toStringAsFixed(2)}',
+                          ),
+                          onTap: () {
+                            setState(() {
+                              _productoSeleccionadoId = producto.id;
+                              _productoSeleccionadoNombre = producto.nombre;
+                              _precioUnitario = producto.precioVenta;
+                              _precioController.text = producto.precioVenta
+                                  .toString();
+                            });
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              )
+            else
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Card(
+                    child: ListTile(
+                      title: Text(_productoSeleccionadoNombre!),
+                      trailing: IconButton(
+                        onPressed: () =>
+                            setState(() => _productoSeleccionadoId = null),
+                        icon: const Icon(Icons.edit),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _cantidadController,
+                    decoration: const InputDecoration(labelText: 'Cantidad'),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _precioController,
+                    decoration: const InputDecoration(
+                      labelText: 'Precio Unitario',
+                      prefixText: '\$ ',
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    onChanged: (value) =>
+                        _precioUnitario = double.tryParse(value) ?? 0,
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final cantidad =
+                            double.tryParse(_cantidadController.text) ?? 0;
+                        if (_productoSeleccionadoId != null &&
+                            cantidad > 0 &&
+                            _precioUnitario > 0) {
+                          Navigator.pop(
+                            context,
+                            _MovimientoProductoState(
+                              productoId: _productoSeleccionadoId!,
+                              nombre: _productoSeleccionadoNombre!,
+                              cantidad: cantidad,
+                              precioUnitario: _precioUnitario,
+                            ),
+                          );
+                        }
+                      },
+                      child: const Text('Agregar'),
+                    ),
+                  ),                ],
+              ),
+          ],
         ),
       ),
     );

@@ -1,87 +1,23 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
-
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
-.dart_tool/
-.flutter-plugins-dependencies
-.pub-cache/
-.pub/
-/build/
-/coverage/
-*.txt
-bitacora/
-bitacora/*
-
-# Symbolication related
-app.*.symbols
+# Environment variables - contains sensitive credentials
 .env
-
-# Obfuscation related
-app.*.map.json
-
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
-# Project specific
-shorebird.yaml
-android/app/src/main/AndroidManifest.xml
-macos/Runner/Release.entitlements
-docs/DEEP_DIVE.md
-/docs/
-/docs/DEEP_DIVE.md
-/specs/
-/test/
+.env.example
+supabase_setup.sql
 LEARNING.md
-bitacora/diaria/2026-03-15-dashboard-spec-002.md
-bitacora/diaria/2026-03-15-initial-sdd-setup.md
-bitacora/diaria/2026-03-15-next-specs-planning.md
-bitacora/diaria/2026-03-15-stabilization-and-lint-fixes.md
-bitacora/diaria/2026-03-15-ui-overhaul-ocr-enhancement.md
-bitacora/diaria/2026-03-15-visual-excellence-and-charts.md
-bitacora/templates/daily-log-template.md
-docs/DEEP_DIVE.md
-idea/IDEA_GENERAL.md
-bitacora/diaria/2026-03-15-dashboard-spec-002.md
-bitacora/diaria/2026-03-15-initial-sdd-setup.md
-bitacora/diaria/2026-03-15-next-specs-planning.md
-bitacora/diaria/2026-03-15-stabilization-and-lint-fixes.md
-bitacora/diaria/2026-03-15-ui-overhaul-ocr-enhancement.md
-bitacora/diaria/2026-03-15-visual-excellence-and-charts.md
-bitacora/templates/daily-log-template.md
-docs/DEEP_DIVE.md
-idea/IDEA_GENERAL.md
-bitacora/diaria/2026-03-15-dashboard-spec-002.md
-bitacora/diaria/2026-03-15-initial-sdd-setup.md
-bitacora/diaria/2026-03-15-next-specs-planning.md
-bitacora/diaria/2026-03-15-stabilization-and-lint-fixes.md
-bitacora/diaria/2026-03-15-ui-overhaul-ocr-enhancement.md
-bitacora/diaria/2026-03-15-visual-excellence-and-charts.md
-bitacora/templates/daily-log-template.md
-docs/DEEP_DIVE.md
-idea/IDEA_GENERAL.md
-bitacora/diaria/2026-03-15-dashboard-spec-002.md
+idea/
+docs/
+build/
+specs/
+test/
+android
+android/
+macos
+.idea
+.dart_tool
+linux
+expo_vocabulary.md
+SECURITY_AND_ARCHITECTURE_ANALYSIS.md
+SECURITY_IMPLEMENTATION.md
+SECURITY_QUICK_REFERENCE.md
+OVERVIEW.md
+OVERVIEW.md
+refactor.md

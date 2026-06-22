@@ -9,12 +9,29 @@ import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
 
 part 'database.g.dart';
 
+@DataClassName('LocalData')
+class Locales extends Table {
+  TextColumn get id => text()();
+  TextColumn get nombre => text()();
+  TextColumn get direccion => text().nullable()();
+  TextColumn get telefono => text().nullable()();
+  TextColumn get tipo => text().withDefault(const Constant('tienda'))();
+  TextColumn get userId => text().nullable()();
+  BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
+  DateTimeColumn get lastSyncedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 @DataClassName('ClienteData')
 class Clientes extends Table {
   TextColumn get id => text()();
   TextColumn get nombre => text()();
   TextColumn get telefono => text()();
-  TextColumn get email => text()();
+  TextColumn get email => text().nullable()();
+  TextColumn get localId => text().nullable()();
   BoolColumn get esFiado => boolean().withDefault(const Constant(false))();
   RealColumn get saldoPendiente => real().withDefault(const Constant(0.0))();
   BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
@@ -31,6 +48,10 @@ class Proveedores extends Table {
   TextColumn get nombre => text()();
   TextColumn get telefono => text()();
   TextColumn get diasVisita => text().map(const StringListConverter())();
+  IntColumn get periodoVisita => integer().nullable()();
+  DateTimeColumn get ultimaVisita => dateTime().nullable()();
+  DateTimeColumn get proximaVisita => dateTime().nullable()();
+  TextColumn get localId => text().nullable()();
   BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
   DateTimeColumn get lastSyncedAt => dateTime().nullable()();
@@ -45,8 +66,12 @@ class Productos extends Table {
   TextColumn get nombre => text()();
   IntColumn get cantidad => integer()();
   RealColumn get precio => real()();
+  RealColumn get precioCompra => real().nullable()();
+  IntColumn get unidadesPorPaquete => integer().withDefault(const Constant(1))();
+  BoolColumn get esPaquete => boolean().withDefault(const Constant(false))();
   TextColumn get categoria => text()();
   TextColumn get proveedorId => text()();
+  TextColumn get localId => text().nullable()();
   IntColumn get stockMinimo => integer().withDefault(const Constant(5))();
   TextColumn get codigoBarras => text().nullable()();
   TextColumn get codigoPersonalizado => text().nullable()();
@@ -70,13 +95,18 @@ class Movimientos extends Table {
   TextColumn get productoId => text().nullable()();
   TextColumn get clienteId => text().nullable()();
   TextColumn get proveedorId => text().nullable()();
+  TextColumn get localId => text().nullable()();
   IntColumn get cantidad => integer().nullable()();
   BoolColumn get esFiado => boolean().withDefault(const Constant(false))();
+  TextColumn get productosJson => text().nullable()();
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
   DateTimeColumn get lastSyncedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
+
+  @override
+  List<Set<Column>> get uniqueKeys => [];
 }
 
 @DataClassName('VentaData')
@@ -86,7 +116,9 @@ class Ventas extends Table {
   DateTimeColumn get fecha => dateTime()();
   TextColumn get clienteId => text().nullable()();
   TextColumn get clienteNombre => text().nullable()();
+  TextColumn get localId => text().nullable()();
   TextColumn get concepto => text().nullable()();
+  TextColumn get productosJson => text().nullable()();
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
   DateTimeColumn get lastSyncedAt => dateTime().nullable()();
 
@@ -94,8 +126,39 @@ class Ventas extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+@DataClassName('PedidoProveedorData')
+class PedidosProveedor extends Table {
+  TextColumn get id => text()();
+  TextColumn get proveedorId => text()();
+  TextColumn get proveedorNombre => text().nullable()();
+  TextColumn get localId => text().nullable()();
+  DateTimeColumn get fechaPedido => dateTime()();
+  DateTimeColumn get fechaEntrega => dateTime()();
+  TextColumn get productos => text()();
+  RealColumn get montoTotal => real()();
+  BoolColumn get isEntregado => boolean().withDefault(const Constant(false))();
+  TextColumn get notas => text().nullable()();
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
+  DateTimeColumn get lastSyncedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('LocalUserData')
+class LocalUsers extends Table {
+  TextColumn get id => text()();
+  TextColumn get email => text()();
+  TextColumn get hashedPassword => text()();
+  DateTimeColumn get lastLogin => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 class StringListConverter extends TypeConverter<List<String>, String> {
   const StringListConverter();
+
   @override
   List<String> fromSql(String fromDb) {
     return fromDb.isEmpty ? [] : fromDb.split(',');
@@ -107,12 +170,26 @@ class StringListConverter extends TypeConverter<List<String>, String> {
   }
 }
 
-@DriftDatabase(tables: [Clientes, Proveedores, Productos, Movimientos, Ventas])
+@DriftDatabase(
+  tables: [
+    Locales,
+    Clientes,
+    Proveedores,
+    Productos,
+    Movimientos,
+    Ventas,
+    PedidosProveedor,
+    LocalUsers,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
+  /// Creates an in-memory database for testing.
+  AppDatabase.fromConnection(QueryExecutor e) : super(e);
+
   @override
-  int get schemaVersion => 1; // TEMPORARY: Force fresh database for testing sync
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -121,25 +198,125 @@ class AppDatabase extends _$AppDatabase {
     },
     onUpgrade: (m, from, to) async {
       debugPrint("Migrating from $from to $to");
-      if (from < 2) {
-        await m.addColumn(productos, productos.codigoPersonalizado);
+      try {
+        if (from < 2) {
+          await m.addColumn(productos, productos.codigoPersonalizado);
+        }
+      } catch (e) {
+        debugPrint("Migration v2 skip: $e");
       }
-      if (from < 3) {
-        await m.addColumn(productos, productos.isActivo);
-        await m.addColumn(clientes, clientes.isActivo);
-        await m.addColumn(proveedores, proveedores.isActivo);
+      try {
+        if (from < 3) {
+          await m.addColumn(productos, productos.isActivo);
+          await m.addColumn(clientes, clientes.isActivo);
+          await m.addColumn(proveedores, proveedores.isActivo);
+        }
+      } catch (e) {
+        debugPrint("Migration v3 skip: $e");
       }
-      if (from < 4) {
-        await m.addColumn(productos, productos.syncStatus);
-        await m.addColumn(productos, productos.lastSyncedAt);
-        await m.addColumn(clientes, clientes.syncStatus);
-        await m.addColumn(clientes, clientes.lastSyncedAt);
-        await m.addColumn(proveedores, proveedores.syncStatus);
-        await m.addColumn(proveedores, proveedores.lastSyncedAt);
-        await m.addColumn(movimientos, movimientos.syncStatus);
-        await m.addColumn(movimientos, movimientos.lastSyncedAt);
-        await m.addColumn(ventas, ventas.syncStatus);
-        await m.addColumn(ventas, ventas.lastSyncedAt);
+      try {
+        if (from < 4) {
+          await m.addColumn(productos, productos.syncStatus);
+          await m.addColumn(productos, productos.lastSyncedAt);
+          await m.addColumn(clientes, clientes.syncStatus);
+          await m.addColumn(clientes, clientes.lastSyncedAt);
+          await m.addColumn(proveedores, proveedores.syncStatus);
+          await m.addColumn(proveedores, proveedores.lastSyncedAt);
+          await m.addColumn(movimientos, movimientos.syncStatus);
+          await m.addColumn(movimientos, movimientos.lastSyncedAt);
+          await m.addColumn(ventas, ventas.syncStatus);
+          await m.addColumn(ventas, ventas.lastSyncedAt);
+        }
+      } catch (e) {
+        debugPrint("Migration v4 skip: $e");
+      }
+      try {
+        if (from < 5) {
+          await m.createTable(pedidosProveedor);
+        }
+      } catch (e) {
+        debugPrint("Migration v5 skip: $e");
+      }
+      try {
+        if (from < 6) {
+          await m.addColumn(ventas, ventas.productosJson);
+        }
+      } catch (e) {
+        debugPrint("Migration v6 skip: $e");
+      }
+      try {
+        if (from < 7) {
+          await m.addColumn(movimientos, movimientos.productosJson);
+        }
+      } catch (e) {
+        debugPrint("Migration v7 skip: $e");
+      }
+      try {
+        if (from < 9) {
+          await m.createTable(locales);
+        }
+      } catch (e) {
+        debugPrint("Migration v9 skip: $e");
+      }
+      try {
+        if (from < 9) {
+          await m.addColumn(productos, productos.localId);
+          await m.addColumn(clientes, clientes.localId);
+          await m.addColumn(proveedores, proveedores.localId);
+        }
+      } catch (e) {
+        debugPrint("Migration v9 columns skip: $e");
+      }
+      try {
+        if (from < 10) {
+          await m.addColumn(movimientos, movimientos.localId);
+          await m.addColumn(ventas, ventas.localId);
+          await m.addColumn(pedidosProveedor, pedidosProveedor.localId);
+        }
+      } catch (e) {
+        debugPrint("Migration v10 skip: $e");
+      }
+      try {
+        if (from < 11) {
+          await m.addColumn(locales, locales.userId);
+        }
+      } catch (e) {
+        debugPrint("Migration v11 skip: $e");
+      }
+      // Note: Migration v12 temporarily disabled - build_runner needs to regenerate
+      // try {
+      //   if (from < 12) {
+      //     await m.addColumn(productos, productos.precioCompra);
+      //     await m.addColumn(productos, productos.unidadesPorPaquete);
+      //     await m.addColumn(productos, productos.esPaquete);
+      //     await m.addColumn(proveedores, proveedores.periodoVisita);
+      //     await m.addColumn(proveedores, proveedores.ultimaVisita);
+      //     await m.addColumn(proveedores, proveedores.proximaVisita);
+      //   }
+      // } catch (e) {
+      //   debugPrint("Migration v12 skip: $e");
+      // }
+      try {
+        if (from < 13) {
+          // Temporarily commented out to allow build_runner to run
+          /*
+          await m.addColumn(productos, productos.precioCompra);
+          await m.addColumn(productos, productos.unidadesPorPaquete);
+          await m.addColumn(productos, productos.esPaquete);
+          await m.addColumn(proveedores, proveedores.periodoVisita);
+          await m.addColumn(proveedores, proveedores.ultimaVisita);
+          await m.addColumn(proveedores, proveedores.proximaVisita);
+          */
+        }
+      } catch (e) {
+        debugPrint("Migration v13 skip: $e");
+      }
+      try {
+        if (from < 14) {
+          await m.createTable(localUsers);
+        }
+      } catch (e) {
+        debugPrint("Migration v14 skip: $e");
       }
     },
     beforeOpen: (details) async {

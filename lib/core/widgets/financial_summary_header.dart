@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import '../utils/number_formatter.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 
 class FinancialSummaryHeader extends StatelessWidget {
   final double totalIngresos;
@@ -51,8 +51,8 @@ class FinancialSummaryHeader extends StatelessWidget {
     return NumberFormatter.formatNumber(val.toInt());
   }
 
-  String _formatDateRange() {
-    if (startDate == null || endDate == null) return 'Hoy';
+  String _formatDateRange(BuildContext context) {
+    if (startDate == null || endDate == null) return AppLocalizations.of(context)!.hoy;
     final df = DateFormat('dd MMM');
     if (startDate!.year == endDate!.year &&
         startDate!.month == endDate!.month &&
@@ -64,15 +64,22 @@ class FinancialSummaryHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: isDark ? AppTheme.darkCard : AppTheme.surfaceColor,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
+        border: Border.all(
+          color: isDark ? AppTheme.darkBorder : AppTheme.borderLightColor,
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryColor.withValues(alpha: 0.05),
+            color: AppTheme.primaryColor.withValues(
+              alpha: isDark ? 0.15 : 0.05,
+            ),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -86,20 +93,39 @@ class FinancialSummaryHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
-                child: Text(
-                  title,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.textPrimary,
-                    letterSpacing: -1,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        title,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: isDark
+                              ? AppTheme.darkTextPrimary
+                              : AppTheme.textPrimary,
+                          letterSpacing: -1,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      balance >= 0
+                          ? Icons.trending_up_rounded
+                          : Icons.trending_down_rounded,
+                      size: 20,
+                      color: balance >= 0
+                          ? AppTheme.successColor
+                          : AppTheme.errorColor,
+                    ),
+                  ],
                 ),
               ),
               if (onDateTap != null || (actions != null && actions!.isNotEmpty))
-                Row(
-                  mainAxisSize: MainAxisSize.min,
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     if (onDateTap != null)
                       Material(
@@ -113,27 +139,30 @@ class FinancialSummaryHeader extends StatelessWidget {
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
-                              color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                              color: AppTheme.primaryColor.withValues(
+                                alpha: 0.08,
+                              ),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: AppTheme.primaryColor.withValues(alpha: 0.15),
+                                color: AppTheme.primaryColor.withValues(
+                                  alpha: 0.15,
+                                ),
                               ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.calendar_month_rounded,
                                   size: 16,
                                   color: AppTheme.primaryColor,
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  _formatDateRange(),
-                                  style: GoogleFonts.plusJakartaSans(
+                                  _formatDateRange(context),
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: AppTheme.primaryColor,
                                     fontWeight: FontWeight.w700,
-                                    fontSize: 12,
                                   ),
                                 ),
                               ],
@@ -141,10 +170,7 @@ class FinancialSummaryHeader extends StatelessWidget {
                           ),
                         ),
                       ),
-                    if (actions != null) ...[
-                      const SizedBox(width: 8),
-                      ...actions!,
-                    ],
+                    if (actions != null) ...actions!,
                   ],
                 ),
             ],
@@ -155,26 +181,35 @@ class FinancialSummaryHeader extends StatelessWidget {
             children: [
               Expanded(
                 child: _StatItem(
-                  label: label1 ?? 'Ingresos',
+                  label: label1 ?? l10n.ingresos,
                   value: _formatValue(totalIngresos, isCurrency1),
                   color: AppTheme.successColor,
                   icon: icon1 ?? Icons.south_west_rounded,
+                  isDark: isDark,
                 ),
               ),
-              Container(width: 1, height: 40, color: const Color(0xFFF1F5F9)),
+              Container(
+                width: 1,
+                height: 40,
+                color: isDark ? AppTheme.darkBorder : AppTheme.borderLightColor,
+              ),
               Expanded(
                 child: _StatItem(
-                  label: label2 ?? 'Egresos',
+                  label: label2 ?? l10n.egresos,
                   value: _formatValue(totalEgresos, isCurrency2),
                   color: AppTheme.errorColor,
                   icon: icon2 ?? Icons.north_east_rounded,
+                  isDark: isDark,
                 ),
               ),
             ],
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Divider(height: 1, color: Color(0xFFF1F5F9)),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Divider(
+              height: 1,
+              color: isDark ? AppTheme.darkBorder : AppTheme.borderLightColor,
+            ),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -184,9 +219,11 @@ class FinancialSummaryHeader extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      label3 ?? 'Balance Neto',
+                      label3 ?? l10n.balanceNeto,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: AppTheme.textSecondary,
+                        color: isDark
+                            ? AppTheme.darkTextSecondary
+                            : AppTheme.textSecondary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -206,27 +243,6 @@ class FinancialSummaryHeader extends StatelessWidget {
                   ],
                 ),
               ),
-              if (isCurrency3)
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color:
-                        (balance >= 0
-                                ? AppTheme.primaryColor
-                                : AppTheme.errorColor)
-                            .withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    balance >= 0
-                        ? Icons.trending_up_rounded
-                        : Icons.trending_down_rounded,
-                    size: 18,
-                    color: balance >= 0
-                        ? AppTheme.primaryColor
-                        : AppTheme.errorColor,
-                  ),
-                ),
             ],
           ),
         ],
@@ -240,12 +256,14 @@ class _StatItem extends StatelessWidget {
   final String value;
   final Color color;
   final IconData icon;
+  final bool isDark;
 
   const _StatItem({
     required this.label,
     required this.value,
     required this.color,
     required this.icon,
+    required this.isDark,
   });
 
   @override
@@ -284,6 +302,7 @@ class _StatItem extends StatelessWidget {
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w900,
             letterSpacing: -0.5,
+            color: isDark ? AppTheme.darkTextPrimary : null,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,

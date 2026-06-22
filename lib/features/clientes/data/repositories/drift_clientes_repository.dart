@@ -44,7 +44,12 @@ class DriftClientesRepository implements ClientesRepository {
             id: item.id,
             nombre: item.nombre,
             telefono: item.telefono,
-            email: item.email,
+            email: item.email != null
+                ? Value(item.email)
+                : const Value.absent(),
+            localId: item.localId != null
+                ? Value(item.localId)
+                : const Value.absent(),
             esFiado: Value(item.esFiado),
             saldoPendiente: Value(item.saldoPendiente),
             isActivo: Value(item.isActivo),
@@ -59,7 +64,10 @@ class DriftClientesRepository implements ClientesRepository {
       ClientesCompanion(
         nombre: Value(item.nombre),
         telefono: Value(item.telefono),
-        email: Value(item.email),
+        email: item.email != null ? Value(item.email) : const Value.absent(),
+        localId: item.localId != null
+            ? Value(item.localId)
+            : const Value.absent(),
         esFiado: Value(item.esFiado),
         saldoPendiente: Value(item.saldoPendiente),
         isActivo: Value(item.isActivo),
@@ -87,7 +95,8 @@ class DriftClientesRepository implements ClientesRepository {
       id: data.id,
       nombre: data.nombre,
       telefono: data.telefono,
-      email: data.email,
+      email: data.email == null || data.email!.isEmpty ? null : data.email,
+      localId: data.localId,
       esFiado: data.esFiado,
       saldoPendiente: data.saldoPendiente,
       isActivo: data.isActivo,

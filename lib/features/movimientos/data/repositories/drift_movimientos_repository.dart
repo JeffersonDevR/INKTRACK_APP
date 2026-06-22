@@ -36,8 +36,12 @@ class DriftMovimientosRepository implements MovimientosRepository {
             productoId: Value(item.productoId),
             clienteId: Value(item.clienteId),
             proveedorId: Value(item.proveedorId),
-            cantidad: Value(item.cantidad),
+            localId: item.localId != null
+                ? Value(item.localId)
+                : const Value.absent(),
+            cantidad: Value(item.cantidad?.toInt()),
             esFiado: Value(item.esFiado),
+            productosJson: Value(item.productosJson),
             syncStatus: const Value('pending_upload'),
           ),
         );
@@ -55,8 +59,12 @@ class DriftMovimientosRepository implements MovimientosRepository {
         productoId: Value(item.productoId),
         clienteId: Value(item.clienteId),
         proveedorId: Value(item.proveedorId),
-        cantidad: Value(item.cantidad),
+        localId: item.localId != null
+            ? Value(item.localId)
+            : const Value.absent(),
+        cantidad: Value(item.cantidad?.toInt()),
         esFiado: Value(item.esFiado),
+        productosJson: Value(item.productosJson),
         syncStatus: const Value('pending_upload'),
       ),
     );
@@ -78,8 +86,10 @@ class DriftMovimientosRepository implements MovimientosRepository {
       productoId: data.productoId,
       clienteId: data.clienteId,
       proveedorId: data.proveedorId,
+      localId: data.localId,
       cantidad: data.cantidad,
       esFiado: data.esFiado,
+      productosJson: data.productosJson,
     );
   }
 }

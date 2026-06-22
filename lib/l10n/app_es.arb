@@ -1,0 +1,577 @@
+{
+  "@@locale": "es",
+  "appTitle": "InkTrack",
+  "home": "Inicio",
+  "clientes": "Clientes",
+  "proveedores": "Proveedores",
+  "inventario": "Inventario",
+  "stock": "Stock",
+  "reportes": "Reportes",
+  "perfil": "Perfil",
+  "modoOscuro": "Modo Oscuro",
+  "cerrarSesion": "Cerrar Sesión",
+  "email": "Email",
+  "cancelar": "Cancelar",
+  "guardar": "Guardar",
+  "idioma": "Idioma",
+  "usuario": "Usuario",
+  "admin": "Admin",
+  "userId": "ID de Usuario",
+  "noDisponible": "No disponible",
+  "cerrarSesionTitulo": "Cerrar Sesión",
+  "cerrarSesionPregunta": "¿Estás seguro de que quieres cerrar sesión?",
+  "panelDeInicio": "Panel de Inicio",
+  "gestionDeClientes": "Gestión de Clientes",
+  "proveedoresHeader": "Proveedores",
+  "controlDeInventario": "Control de Inventario",
+  "reportesDeNegocio": "Reportes de Negocio",
+  "sinLocal": "Sin local",
+  "movimientos": "Movimientos",
+  "productos": "Productos",
+  "excel": "Excel",
+  "pdf": "PDF",
+  "egreso": "Egreso",
+  "ingreso": "Ingreso",
+  "ocr": "OCR",
+  "codigo": "Código",
+  "producto": "Producto",
+  "cliente": "Cliente",
+  "proveedor": "Proveedor",
+  "nuevoPedido": "Nuevo Pedido",
+  "restock": "Restock",
+  "clientesTitulo": "Clientes",
+  "proveedoresTitulo": "Proveedores",
+  "inventarioTitulo": "Inventario",
+  "reportesTitulo": "Reportes",
+  "pdfExportado": "PDF exportado: {filename}",
+  "excelExportado": "Excel exportado: {filename}",
+  "errorAlExportarPdf": "Error al exportar PDF: {error}",
+  "errorAlExportarExcel": "Error al exportar Excel: {error}",
+  "entregasPendientes": "{count, plural, =1{1 entrega pendiente} other{{count} entregas pendientes}}",
+  "verPedidos": "Ver Pedidos",
+  "detalleMovimiento": "Detalle de movimiento",
+  "concepto": "Concepto",
+  "monto": "Monto",
+  "fecha": "Fecha",
+  "categoria": "Categoría",
+  "tipo": "Tipo",
+  "resultados": "Resultados",
+  "acumuladoTotal": "Reporte general",
+  "ventasTotales": "Ventas",
+  "gastosTotales": "Gastos",
+  "patrimonio": "Patrimonio",
+  "balanceNeto": "Balance Neto",
+  "tendenciaFlujo": "Tendencia de Flujo",
+  "actividadReciente": "Actividad Reciente",
+  "resultadosFiltro": "Resultados del Filtro",
+  "limpiar": "Limpiar",
+  "noHayActividadRegistrada": "No hay actividad registrada",
+  "tusMovimientosApareceranAqui": "Tus movimientos aparecerán aquí",
+  "ingreso": "Ingreso",
+  "egresoTipo": "Egreso",
+  "actividad": "Actividad",
+  "resumenClientes": "Resumen\nClientes",
+  "resumenFinanciero": "Resumen\nFinanciero",
+  "hoy": "Hoy",
+  "si": "Sí",
+  "no": "No",
+  "inicio": "Inicio",
+  "fin": "Fin",
+  "periodo": "Período: {start} - {end}",
+  "inventarioHoja": "Inventario",
+  "clientesHoja": "Clientes",
+  "nombre": "Nombre",
+  "precio": "Precio",
+  "valorTotal": "Valor Total",
+  "clientesCategoria": "Clientes",
+  "proveedoresCategoria": "Proveedores",
+  "fiado": "Acreedores",
+  "miercoles": "Mié",
+  "resumenProveedores": "Resumen\nProveedores",
+  "total": "Total",
+  "listadoProveedores": "Listado de Proveedores",
+  "editar": "Editar",
+  "eliminar": "Eliminar",
+  "crear": "Crear",
+  "actualizar": "Actualizar",
+  "agregar": "Agregar",
+  "buscar": "Buscar",
+  "filtro": "Filtro",
+  "productos": "Productos",
+  "catalogoProductos": "Catálogo de Productos",
+  "controlDeInventarioTitle": "Control de\nInventario",
+  "valorStock": "Valor Stock",
+  "deudaTotal": "Deuda Total",
+  "listadoClientes": "Listado de Clientes",
+  "pedidosProveedores": "Pedidos a Proveedores",
+  "pedidosPendientes": "Pedidos Pendientes",
+  "nuevoIngreso": "Nuevo Ingreso",
+  "nuevoEgreso": "Nuevo Egreso",
+  "montoTotal": "Monto Total",
+  "totalProductos": "Total Productos",
+  "nuevoPedidoProveedor": "Nuevo Pedido",
+  "seleccionarProveedor": "Seleccionar Proveedor",
+  "fechaEntrega": "Fecha de Entrega",
+  "estado": "Estado",
+  "estadoPendiente": "Pendiente",
+  "estadoCompletado": "Completado",
+  "estadoCancelado": "Cancelado",
+  "noDataAvailable": "No hay datos disponibles",
+  "onCredit": "Acreedores",
+  "cash": "Efectivo",
+  "registrarVenta": "Registrar Venta",
+  "carrito": "Carrito",
+  "finalizarVenta": "Finalizar Venta",
+  "cobrar": "Cobrar",
+  "efectivo": "Efectivo",
+  "transferencia": "Transferencia",
+  "pagoMixto": "Pago Mixto",
+  "contenido": "Contenido",
+  "observaciones": "Observaciones",
+  "descripcion": "Descripción",
+  "nombre": "Nombre",
+  "telefono": "Teléfono",
+  "direccion": "Dirección",
+  "notas": "Notas",
+  "tipo": "Tipo",
+  "bodega": "Bodega",
+  "local": "Local",
+  "resetData": "Restablecer Datos",
+  "resetearData": "Esto eliminará TODOS los datos de la app (productos, clientes, proveedores, ventas, movimientos, locales).",
+  "resetDataTitle": "Restablecer Todos los Datos",
+  "noLocales": "No hay locales registrados",
+  "datosIncorrectos": "Datos incorrectos",
+  "nombreRequerido": "El nombre es requerido",
+  "camposRequeridos": "Campos requeridos",
+  "verificarInformacion": "Por favor verifica la información",
+  "seleccionarLocal": "Seleccionar Local",
+  "ubicacion": "Ubicación",
+  "stockMinimo": "Stock Mínimo",
+  "stockActual": "Stock Actual",
+  "codigoBarras": "Código de Barras",
+  "precioVenta": "Precio de Venta",
+  "precioCompra": "Precio de Compra",
+  "ganancia": "Ganancia",
+  "categoria": "Categoría",
+  "nuevoProducto": "Nuevo Producto",
+  "nuevoCliente": "Nuevo Cliente",
+  "nuevoProveedor": "Nuevo Proveedor",
+  "saldoPendiente": "Saldo Pendiente",
+  "abonar": "Abonar",
+  "abono": "Abono",
+  "abonos": "Abonos",
+  "abonoAgregado": "Abono agregado",
+  "errorAgregarAbono": "Error al agregar abono",
+  "montoAbono": "Monto del Abono",
+  "deudaPendiente": "Deuda Pendiente",
+  "deudaActual": "Deuda Actual",
+  "nuevoMovimiento": "Nuevo Movimiento",
+  "conceptoMovimiento": "Concepto del Movimiento",
+  "movimientoAgregado": "Movimiento agregado",
+  "errorAgregarMovimiento": "Error al agregar movimiento",
+  "misLocales": "Mis Locales",
+  "agregarLocal": "Agregar Local",
+  "eliminarTodosLosDatos": "Eliminar Todos los Datos",
+  "agregaTuPrimeraTienda": "Agrega tu primera tienda o local",
+  "actual": "Actual",
+  "seleccionar": "Seleccionar",
+  "nuevoLocal": "Nuevo Local",
+  "editarLocal": "Editar Local",
+  "nombre": "Nombre",
+  "direccion": "Dirección",
+  "telefono": "Teléfono",
+  "tipo": "Tipo",
+  "tienda": "Tienda",
+  "bodega": "Bodega",
+  "oficina": "Oficina",
+  "crear": "Crear",
+  "noHayPedidos": "No hay pedidos",
+  "creaUnPedidoProveedor": "Crea un pedido a proveedor para recibir alertas de entrega.",
+  "pedidosDelProveedor": "Pedidos del Proveedor",
+  "stock": "Stock",
+  "bajo": "Bajo",
+  "editarProducto": "Editar Producto",
+  "desactivarProducto": "Desactivar Producto",
+  "reactivarProducto": "Reactivar Producto",
+  "reactivarEnCatalogo": "¿Reactivar \"{name}\" en el catálogo?",
+  "inventarioVacio": "Inventario vacío",
+  "comienzaAgregandoProductos": "Comienza agregando productos manualmente o escaneando códigos de barras.",
+  "errorAlGuardar": "Error al guardar",
+  "productoGuardado": "Producto guardado",
+  "stockMinimo": "Stock Mínimo",
+  "stockActual": "Stock Actual",
+  "codigoBarras": "Código de Barras",
+  "precioVenta": "Precio de Venta",
+  "precioCompra": "Precio de Compra",
+  "ganancia": "Ganancia",
+  "categoriaProducto": "Categoría",
+  "proveedorProducto": "Proveedor",
+  "sinProveedor": "Sin proveedor",
+  "seleccionarProveedor": "Seleccionar Proveedor",
+  "escanerCodigoBarras": "Escáner de Código de Barras",
+  "subiendoCambios": "Subiendo cambios...",
+  "descargandoDeLaNube": "Descargando de la nube...",
+  "sincronizandoTodo": "Sincronizando todo...",
+  "subirCambios": "Subir Cambios",
+  "descargarDeLaNube": "Descargar de la Nube",
+  "sincronizarTodo": "Sincronizar Todo",
+  "reportesFinancieros": "Reportes Financieros",
+  "periodoDeAnalisis": "PERÍODO DE ANÁLISIS",
+  "seleccionarPeriodo": "Seleccionar Período",
+  "ingresosTotales": "INGRESOS TOTALES",
+  "egresosTotales": "EGRESOS TOTALES",
+  "ventasRealizadas": "VENTAS REALIZADAS",
+  "utilidadNeta": "UTILIDAD NETA",
+  "ventasVsGastos": "Ventas vs Gastos",
+  "distribucionGastos": "Distribución de Gastos",
+  "sinCategoria": "Sin Categoría",
+  "semana": "SEM {number}",
+  "sinGastosRegistrados": "Sin gastos registrados",
+  "nuevoProveedor": "Nuevo Proveedor",
+  "editarProveedor": "Editar Proveedor",
+  "nuevoCliente": "Nuevo Cliente",
+  "editarCliente": "Editar Cliente",
+  "nuevoProducto": "Nuevo Producto",
+  "editarProducto": "Editar Producto",
+  "nuevoMovimiento": "Nuevo Movimiento",
+  "guardarActualizar": "Actualizar",
+  "cantidad": "Cantidad",
+  "agregarProducto": "Agregar Producto",
+  "montoTotal": "Monto Total",
+  "fecha": "Fecha",
+  "escanerCodigoBarras": "Escáner de Código de Barras",
+  "telefono": "Teléfono",
+  "email": "Email",
+  "direccion": "Dirección",
+  "notas": "Notas",
+  "observaciones": "Observaciones",
+  "descripcion": "Descripción",
+  "categoria": "Categoría",
+  "proveedor": "Proveedor",
+  "sinProveedor": "Sin proveedor",
+  "seleccionarProveedor": "Seleccionar Proveedor",
+  "stockMinimo": "Stock Mínimo",
+  "stockActual": "Stock Actual",
+  "codigoBarras": "Código de Barras",
+  "precioVenta": "Precio de Venta",
+  "precioCompra": "Precio de Compra",
+  "ganancia": "Ganancia",
+  "escanearCodigoBarras": "Escanear Código de Barras",
+  "buscarProducto": "Buscar Producto",
+  "registrarVenta": "Registrar Venta",
+  "carrito": "Carrito",
+  "totalProductos": "Total Productos",
+  "monto": "Monto",
+  "concepto": "Concepto",
+  "ingreso": "Ingreso",
+  "egreso": "Egreso",
+  "nuevoIngreso": "Nuevo Ingreso",
+  "nuevoEgreso": "Nuevo Egreso",
+  "errorAlGuardar": "Error al guardar",
+  "guardadoExitoso": "Guardado exitosamente",
+  "nuevoCliente": "Nuevo Cliente",
+  "editarCliente": "Editar Cliente",
+  "ingreseNombre": "Por favor ingrese el nombre",
+  "minimo2Caracteres": "Mínimo 2 caracteres",
+  "ingreseTelefono": "Por favor ingrese el teléfono",
+  "telefono10Digitos": "El teléfono debe tener exactamente 10 dígitos",
+  "digitos10SinEspacios": "10 dígitos sin espacios",
+  "ingreseEmail": "Por favor ingrese el email",
+  "ingreseEmailValido": "Por favor ingrese un email válido",
+  "diasVisita": "Días de visita",
+  "lunes": "Lunes",
+  "martes": "Martes",
+  "miercoles": "Miércoles",
+  "jueves": "Jueves",
+  "viernes": "Viernes",
+  "sabado": "Sábado",
+  "domingo": "Domingo",
+  "nuevaCategoria": "Nueva Categoría",
+  "nombreCategoria": "Nombre de la categoría",
+  "seleccioneCategoria": "Seleccione una categoría",
+  "seleccioneOCreeCategoria": "Seleccione o cree una categoría",
+  "ingreseMonto": "Ingrese un monto",
+  "montoInvalido": "Monto inválido",
+  "ingreseConcepto": "Ingrese un concepto",
+  "clienteOpcional": "Cliente (Opcional)",
+  "ninguno": "Ninguno",
+  "ventaFiada": "Venta Fiada",
+  "anadirSaldoPendiente": "Añadir al saldo pendiente del cliente",
+  "calculadoAutomaticamente": "Calculado automáticamente",
+  "sinClienteVentaGeneral": "Sin cliente (venta general)",
+  "escribirNombreCliente": "Escribir nombre del cliente",
+  "ingreseNombreCliente": "Ingrese el nombre del cliente",
+  "ventaCreditoFiado": "Venta a crédito (Acreedores)",
+  "aumentaraSaldoPendiente": "Aumentará el saldo pendiente del cliente",
+  "noHayProductos": "No hay productos",
+  "escaneeOAgregueProductos": "Escanee o agregue productos del inventario",
+  "ingreseMontoVenta": "Ingrese el monto",
+  "montoMayorCero": "El monto debe ser mayor a 0",
+  "precioUnitario": "Precio unitario",
+  "escanearNotaRecibo": "Escanear Nota / Recibo",
+  "camara": "Cámara",
+  "galeria": "Galería",
+  "datosDetectados": "Datos detectados:",
+  "montoDetectado": "Monto: {amount}",
+  "clienteDetectado": "Cliente: {name}",
+  "noSeDetectaronDatos": "No se detectaron datos claros. Intente de nuevo.",
+  "ingreseConceptoVenta": "Ingrese el concepto",
+  "productoInactivo": "El producto \"{name}\" está inactivo",
+  "noHaySuficienteStock": "No hay suficiente stock de \"{name}\". Disponible: {available}",
+  "ventaRegistradaExito": "Venta registrada con éxito",
+  "escanear": "Escanear",
+  "agregarProductoTitle": "Agregar Producto",
+  "buscarProductoPlaceholder": "Buscar producto",
+  "stockLabel": "Stock: {stock}",
+  "ejemploNombre": "Ej. Juan Pérez",
+  "ejemploTelefono": "Ej. 3001234567",
+  "ejemploEmail": "ejemplo@correo.com",
+  "proveedorOpcional": "Proveedor (Opcional)",
+  "clienteOpcionalLabel": "Cliente (Opcional)",
+  "ingreseElMonto": "Ingrese el monto",
+  "maximoMonto": "Máximo 999,999,999",
+  "clienteOpcional2": "Cliente (opcional)",
+  "guardarVenta": "Guardar venta",
+  "ventaRegistradaExitoMsg": "Venta registrada con éxito",
+  "productoNoEncontrado": "Producto no encontrado en el inventario",
+  "restockLabel": "Restock: {name}",
+  "escanearCodigoTitulo": "Escanear Código",
+  "historialMovimientos": "Historial de Movimientos",
+  "historialVisitas": "Historial de Visitas",
+  "recentRecords": "Registros Recientes",
+  "resultadosFiltroTitle": "Resultados Filtrados",
+  "totalItems": "Total: {count}",
+  "limpiarFiltro": "Limpiar Filtro",
+  "eliminarRegistro": "Eliminar Registro",
+  "confirmarEliminarRegistro": "¿Estás seguro de que deseas eliminar este registro permanentemente?",
+  "historialVacio": "Historial vacío",
+  "noHayRegistros": "No hay registros de ingresos o egresos todavía.",
+  "editarRegistro": "Editar",
+  "movementHistoryTitle": "Historial de Movimientos",
+  "clearFilterBtn": "Limpiar Filtro",
+  "emptyHistoryTitle": "Historial vacío",
+  "noRecordsYet": "No hay registros de ingresos o egresos todavía.",
+  "deleteRecordTitle": "Eliminar Registro",
+  "confirmDeleteRecord": "¿Estás seguro de que deseas eliminar este registro permanentemente?",
+  "password": "Contraseña",
+  "@password": {
+    "description": "Password field label"
+  },
+  "signIn": "Iniciar sesión",
+  "@signIn": {
+    "description": "Sign in button label"
+  },
+  "signInToContinue": "Inicia sesión para continuar",
+  "@signInToContinue": {
+    "description": "Sign in subtitle"
+  },
+  "forgotPassword": "¿Olvidaste tu contraseña?",
+  "@forgotPassword": {
+    "description": "Forgot password link"
+  },
+  "dontHaveAccount": "¿No tienes cuenta?",
+  "@dontHaveAccount": {
+    "description": "Don't have account question"
+  },
+  "signUp": "Registrarse",
+  "@signUp": {
+    "description": "Sign up link text"
+  },
+  "createAccount": "Crear cuenta",
+  "@createAccount": {
+    "description": "Create account title"
+  },
+  "firstUserAdmin": "El primer usuario será admin",
+  "@firstUserAdmin": {
+    "description": "First user admin hint"
+  },
+  "fullName": "Nombre completo",
+  "@fullName": {
+    "description": "Full name label"
+  },
+  "confirmPassword": "Confirmar contraseña",
+  "@confirmPassword": {
+    "description": "Confirm password label"
+  },
+  "alreadyHaveAccount": "¿Ya tienes cuenta?",
+  "@alreadyHaveAccount": {
+    "description": "Already have account question"
+  },
+  "enterYourEmail": "Ingresa tu correo",
+  "@enterYourEmail": {
+    "description": "Enter email validator message"
+  },
+  "enterValidEmail": "Ingresa un correo válido",
+  "@enterValidEmail": {
+    "description": "Valid email validator message"
+  },
+  "enterYourPassword": "Ingresa tu contraseña",
+  "@enterYourPassword": {
+    "description": "Enter password validator message"
+  },
+  "enterYourName": "Ingresa tu nombre",
+  "@enterYourName": {
+    "description": "Enter name validator message"
+  },
+  "enterAPassword": "Ingresa una contraseña",
+  "@enterAPassword": {
+    "description": "Enter a password validator message"
+  },
+  "confirmYourPassword": "Confirma tu contraseña",
+  "@confirmYourPassword": {
+    "description": "Confirm password validator message"
+  },
+  "passwordsDoNotMatch": "Las contraseñas no coinciden",
+  "@passwordsDoNotMatch": {
+    "description": "Passwords do not match error"
+  },
+  "passwordResetSent": "Correo de restablecimiento enviado",
+  "@passwordResetSent": {
+    "description": "Password reset sent message"
+  },
+  "failedToSendReset": "Error al enviar correo",
+  "@failedToSendReset": {
+    "description": "Failed to send reset message"
+  },
+  "loginFailed": "Error al iniciar sesión",
+  "@loginFailed": {
+    "description": "Login failed error"
+  },
+  "passwordHint": "Mín 8 carac., 1 mayúsc., 3 núm., sin caracteres especiales",
+  "@passwordHint": {
+    "description": "Password validation hint"
+  },
+  "ingresos": "Ingresos",
+  "@ingresos": {
+    "description": "Income label (plural)"
+  },
+  "egresos": "Egresos",
+  "@egresos": {
+    "description": "Expenses label (plural)"
+  },
+  "acreedores": "Acreedores",
+  "@acreedores": {
+    "description": "Creditors label"
+  },
+  "ocultar": "Ocultar",
+  "@ocultar": {
+    "description": "Hide label"
+  },
+  "ver": "Ver",
+  "@ver": {
+    "description": "View/Show label"
+  },
+  "import": "Importar",
+  "@import": {
+    "description": "Import label"
+  },
+  "importando": "Importando...",
+  "@importando": {
+    "description": "Importing status"
+  },
+  "importSuccess": "Importación exitosa",
+  "@importSuccess": {
+    "description": "Import success message"
+  },
+  "importError": "Error de importación",
+  "@importError": {
+    "description": "Import error message"
+  },
+  "reactivate": "Reactivar",
+  "@reactivate": {
+    "description": "Reactivate button"
+  },
+  "deactivate": "Desactivar",
+  "@deactivate": {
+    "description": "Deactivate button"
+  },
+  "inactive": "INACTIVO",
+  "@inactive": {
+    "description": "Inactive badge label"
+  },
+  "stockBajo": "Stock Bajo",
+  "@stockBajo": {
+    "description": "Low Stock label"
+  },
+  "valor": "Valor",
+  "@valor": {
+    "description": "Value label"
+  },
+  "sincro": "Sincro",
+  "@sincro": {
+    "description": "Sync label"
+  },
+  "view": "Ver",
+  "@view": {
+    "description": "View action label"
+  },
+  "delete": "Eliminar",
+  "@delete": {
+    "description": "Delete action label"
+  },
+  "registrarPago": "Registrar pago",
+  "@registrarPago": {
+    "description": "Register payment label"
+  },
+  "montoAPagar": "Monto a pagar",
+  "@montoAPagar": {
+    "description": "Amount to pay label"
+  },
+  "codigoProducto": "Código del producto",
+  "@codigoProducto": {
+    "description": "Product code label"
+  },
+  "ean13Colombia": "EAN-13 Colombia",
+  "@ean13Colombia": {
+    "description": "EAN-13 Colombia label"
+  },
+  "cerrar": "Cerrar",
+  "@cerrar": {
+    "description": "Close button"
+  },
+  "importData": "Importar datos",
+  "@importData": {
+    "description": "Import data label"
+  },
+  "localConDatos": "Local con datos",
+  "@localConDatos": {
+    "description": "Location with data label"
+  },
+  "queDeseasHacer": "¿Qué deseas hacer?",
+  "@queDeseasHacer": {
+    "description": "What do you want to do question"
+  },
+  "eliminarIgual": "Eliminar igual",
+  "@eliminarIgual": {
+    "description": "Delete anyway button"
+  },
+  "todosLosDatosEliminados": "Todos los datos eliminados",
+  "@todosLosDatosEliminados": {
+    "description": "All data deleted message"
+  },
+  "ultimasTransacciones": "Últimas transacciones",
+  "@ultimasTransacciones": {
+    "description": "Last transactions label"
+  },
+  "ventas": "Ventas",
+  "@ventas": {
+    "description": "Sales label"
+  },
+  "gastos": "Gastos",
+  "@gastos": {
+    "description": "Expenses label"
+  },
+  "reporteGeneral": "Reporte general",
+  "@reporteGeneral": {
+    "description": "General report label"
+  },
+  "tendenciaUltimos": "Tendencia (últimos {days} días)",
+  "@tendenciaUltimos": {
+    "description": "Trend label with day count",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
+}
