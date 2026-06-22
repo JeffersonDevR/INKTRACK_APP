@@ -27,7 +27,7 @@ class HistorialAcreedoresPage extends StatelessWidget {
               .toList();
 
           if (clientes.isEmpty) {
-            return _buildEmpty();
+            return _buildEmpty(context);
           }
 
           return ListView.builder(
@@ -48,11 +48,11 @@ class HistorialAcreedoresPage extends StatelessWidget {
     );
   }
 
-  Widget _buildEmpty() {
+  Widget _buildEmpty(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           Icon(
             Icons.account_balance_wallet_rounded,
             size: 72,
@@ -61,7 +61,8 @@ class HistorialAcreedoresPage extends StatelessWidget {
           SizedBox(height: 16),
           Text(
             'No hay acreedores registrados',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 8),
           Text('Las ventas a crédito aparecerán aquí para hacer abonos.'),

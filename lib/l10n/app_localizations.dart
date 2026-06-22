@@ -62,8 +62,7 @@ import 'app_localizations_es.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -71,8 +70,7 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate =
-      _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -84,18 +82,17 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
-      <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('es'),
+    Locale('es')
   ];
 
   /// The application name
@@ -1784,6 +1781,12 @@ abstract class AppLocalizations {
   /// **'Movement History'**
   String get historialMovimientos;
 
+  /// Visit history title
+  ///
+  /// In en, this message translates to:
+  /// **'Visit History'**
+  String get historialVisitas;
+
   /// Recent records label
   ///
   /// In en, this message translates to:
@@ -1873,10 +1876,333 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Are you sure you want to permanently delete this record?'**
   String get confirmDeleteRecord;
+
+  /// Password field label
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// Sign in button label
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get signIn;
+
+  /// Sign in subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to continue'**
+  String get signInToContinue;
+
+  /// Forgot password link
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot Password?'**
+  String get forgotPassword;
+
+  /// Don't have account question
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account?'**
+  String get dontHaveAccount;
+
+  /// Sign up link text
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Up'**
+  String get signUp;
+
+  /// Create account title
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get createAccount;
+
+  /// First user admin hint
+  ///
+  /// In en, this message translates to:
+  /// **'First user will be admin'**
+  String get firstUserAdmin;
+
+  /// Full name label
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get fullName;
+
+  /// Confirm password label
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Password'**
+  String get confirmPassword;
+
+  /// Already have account question
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get alreadyHaveAccount;
+
+  /// Enter email validator message
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email'**
+  String get enterYourEmail;
+
+  /// Valid email validator message
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email'**
+  String get enterValidEmail;
+
+  /// Enter password validator message
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password'**
+  String get enterYourPassword;
+
+  /// Enter name validator message
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your name'**
+  String get enterYourName;
+
+  /// Enter a password validator message
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a password'**
+  String get enterAPassword;
+
+  /// Confirm password validator message
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your password'**
+  String get confirmYourPassword;
+
+  /// Passwords do not match error
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get passwordsDoNotMatch;
+
+  /// Password reset sent message
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset email sent'**
+  String get passwordResetSent;
+
+  /// Failed to send reset message
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send reset email'**
+  String get failedToSendReset;
+
+  /// Login failed error
+  ///
+  /// In en, this message translates to:
+  /// **'Login failed'**
+  String get loginFailed;
+
+  /// Password validation hint
+  ///
+  /// In en, this message translates to:
+  /// **'Min 8 chars, 1 capital, 3 numbers, no special chars'**
+  String get passwordHint;
+
+  /// Income label (plural)
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get ingresos;
+
+  /// Expenses label (plural)
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get egresos;
+
+  /// Creditors label
+  ///
+  /// In en, this message translates to:
+  /// **'Creditors'**
+  String get acreedores;
+
+  /// Hide label
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get ocultar;
+
+  /// View/Show label
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get ver;
+
+  /// Import label
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get import;
+
+  /// Importing status
+  ///
+  /// In en, this message translates to:
+  /// **'Importing...'**
+  String get importando;
+
+  /// Import success message
+  ///
+  /// In en, this message translates to:
+  /// **'Successful import'**
+  String get importSuccess;
+
+  /// Import error message
+  ///
+  /// In en, this message translates to:
+  /// **'Import error'**
+  String get importError;
+
+  /// Reactivate button
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate'**
+  String get reactivate;
+
+  /// Deactivate button
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get deactivate;
+
+  /// Inactive badge label
+  ///
+  /// In en, this message translates to:
+  /// **'INACTIVE'**
+  String get inactive;
+
+  /// Low Stock label
+  ///
+  /// In en, this message translates to:
+  /// **'Low Stock'**
+  String get stockBajo;
+
+  /// Value label
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get valor;
+
+  /// Sync label
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get sincro;
+
+  /// View action label
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get view;
+
+  /// Delete action label
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// Register payment label
+  ///
+  /// In en, this message translates to:
+  /// **'Register payment'**
+  String get registrarPago;
+
+  /// Amount to pay label
+  ///
+  /// In en, this message translates to:
+  /// **'Amount to pay'**
+  String get montoAPagar;
+
+  /// Product code label
+  ///
+  /// In en, this message translates to:
+  /// **'Product Code'**
+  String get codigoProducto;
+
+  /// EAN-13 Colombia label
+  ///
+  /// In en, this message translates to:
+  /// **'EAN-13 Colombia'**
+  String get ean13Colombia;
+
+  /// Close button
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get cerrar;
+
+  /// Import data label
+  ///
+  /// In en, this message translates to:
+  /// **'Import Data'**
+  String get importData;
+
+  /// Location with data label
+  ///
+  /// In en, this message translates to:
+  /// **'Location with data'**
+  String get localConDatos;
+
+  /// What do you want to do question
+  ///
+  /// In en, this message translates to:
+  /// **'What do you want to do?'**
+  String get queDeseasHacer;
+
+  /// Delete anyway button
+  ///
+  /// In en, this message translates to:
+  /// **'Delete anyway'**
+  String get eliminarIgual;
+
+  /// All data deleted message
+  ///
+  /// In en, this message translates to:
+  /// **'All data deleted'**
+  String get todosLosDatosEliminados;
+
+  /// Last transactions label
+  ///
+  /// In en, this message translates to:
+  /// **'Last transactions'**
+  String get ultimasTransacciones;
+
+  /// Sales label
+  ///
+  /// In en, this message translates to:
+  /// **'Sales'**
+  String get ventas;
+
+  /// Expenses label
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get gastos;
+
+  /// General report label
+  ///
+  /// In en, this message translates to:
+  /// **'General Report'**
+  String get reporteGeneral;
+
+  /// Trend label with day count
+  ///
+  /// In en, this message translates to:
+  /// **'Trend (last {days} days)'**
+  String tendenciaUltimos(int days);
 }
 
-class _AppLocalizationsDelegate
-    extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -1885,26 +2211,25 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en', 'es'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['en', 'es'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en':
-      return AppLocalizationsEn();
-    case 'es':
-      return AppLocalizationsEs();
+    case 'en': return AppLocalizationsEn();
+    case 'es': return AppLocalizationsEs();
   }
 
   throw FlutterError(
     'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
     'an issue with the localizations generation tool. Please file an issue '
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
+    'that was used.'
   );
 }

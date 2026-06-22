@@ -1,10 +1,22 @@
+import 'package:bcrypt/bcrypt.dart';
+import 'package:drift/drift.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:InkTrack/core/data/local/database.dart';
 
 class AuthService {
   final SupabaseClient _supabase;
+  final AppDatabase? _database;
 
-  AuthService(this._supabase);
+  /// Maximum number of locally cached users before LRU eviction.
+  static const int _maxCachedUsers = 5;
+
+  bool _offlineMode = false;
+
+  /// Whether the last successful login was performed offline.
+  bool get offlineMode => _offlineMode;
+
+  AuthService(this._supabase, {AppDatabase? database})
+      : _database = database;
 
   User? get currentUser {
     try {
@@ -38,17 +50,92 @@ class AuthService {
         password: password,
       );
       if (response.user != null) {
+        _offlineMode = false;
+        await _cacheCredentials(response.user!.id, email, password);
         return AuthResult(success: true, user: response.user);
       }
       return AuthResult(success: false, error: 'Login failed');
     } on AuthException catch (e) {
+      if (e is AuthRetryableFetchException) {
+        final offlineResult = await _validateOffline(email, password);
+        if (offlineResult.success) {
+          _offlineMode = true;
+        }
+        return offlineResult;
+      }
       return AuthResult(success: false, error: e.message);
     } catch (e) {
+      final offlineResult = await _validateOffline(email, password);
+      if (offlineResult.success) {
+        _offlineMode = true;
+      }
+      return offlineResult;
+    }
+  }
+
+  /// Hashes [password] with bcrypt and stores/updates the credential in the
+  /// LocalUsers table. After insert, evicts the oldest user if over limit.
+  Future<void> _cacheCredentials(
+    String userId,
+    String email,
+    String password,
+  ) async {
+    final db = _database;
+    if (db == null) return;
+
+    final hashed = BCrypt.hashpw(password, BCrypt.gensalt());
+    await db.into(db.localUsers).insertOnConflictUpdate(
+      LocalUsersCompanion(
+        id: Value(userId),
+        email: Value(email),
+        hashedPassword: Value(hashed),
+        lastLogin: Value(DateTime.now()),
+      ),
+    );
+
+    await _evictIfNeeded(db);
+  }
+
+  /// Deletes the user with the oldest [lastLogin] when the cached count
+  /// exceeds [_maxCachedUsers].
+  Future<void> _evictIfNeeded(AppDatabase db) async {
+    final count = await db.select(db.localUsers).get();
+    if (count.length <= _maxCachedUsers) return;
+
+    count.sort((a, b) => a.lastLogin.compareTo(b.lastLogin));
+    await db.delete(db.localUsers).delete(count.first);
+  }
+
+  /// Looks up [email] in the local cache and verifies [password] with bcrypt.
+  Future<AuthResult> _validateOffline(
+    String email,
+    String password,
+  ) async {
+    final db = _database;
+    if (db == null) {
       return AuthResult(
         success: false,
-        error: 'Connection error. Please check your internet.',
+        error: 'Database not available for offline login',
       );
     }
+
+    final rows = await (db.select(db.localUsers)
+          ..where((u) => u.email.equals(email)))
+        .get();
+
+    if (rows.isEmpty) {
+      return AuthResult(
+        success: false,
+        error: 'Initial online login required',
+      );
+    }
+
+    final cached = rows.first;
+    if (BCrypt.checkpw(password, cached.hashedPassword)) {
+      return AuthResult(success: true);
+    }
+
+    return AuthResult(success: false, error: 'Invalid credentials');
   }
 
   Future<AuthResult> signUp({

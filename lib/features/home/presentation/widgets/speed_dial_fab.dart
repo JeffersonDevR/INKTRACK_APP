@@ -115,8 +115,35 @@ class _SpeedDialFabState extends State<SpeedDialFab>
         );
         break;
       case FabTab.home:
-      default:
-        // FAB is usually hidden in Home, but if it were shown, we could add options here
+        options.add(
+          _buildOption(
+            icon: Icons.point_of_sale_rounded,
+            label: l10n.registrarVenta,
+            color: AppTheme.primaryColor,
+            onTap: widget.onVentaPressed,
+            delay: 0,
+          ),
+        );
+        options.add(const SizedBox(height: 12));
+        options.add(
+          _buildOption(
+            icon: Icons.add_circle_outline_rounded,
+            label: l10n.nuevoIngreso,
+            color: AppTheme.successColor,
+            onTap: widget.onIngresoPressed,
+            delay: 1,
+          ),
+        );
+        options.add(const SizedBox(height: 12));
+        options.add(
+          _buildOption(
+            icon: Icons.remove_circle_outline_rounded,
+            label: l10n.nuevoEgreso,
+            color: AppTheme.errorColor,
+            onTap: widget.onEgresoPressed,
+            delay: 2,
+          ),
+        );
         break;
     }
 

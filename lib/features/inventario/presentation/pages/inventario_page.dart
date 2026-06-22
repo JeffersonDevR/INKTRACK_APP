@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:InkTrack/core/data/local/database.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/inventario/data/models/producto.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
@@ -10,6 +12,7 @@ import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
 import 'package:InkTrack/core/services/supabase_sync_service.dart';
+import 'package:InkTrack/core/services/import_service.dart';
 import 'package:InkTrack/core/widgets/app_card.dart';
 import 'package:InkTrack/l10n/app_localizations.dart';
 import 'producto_form_page.dart';
@@ -37,7 +40,7 @@ class InventarioPage extends StatelessWidget {
                         icon: showInactive
                             ? Icons.visibility_rounded
                             : Icons.visibility_off_rounded,
-                        label: showInactive ? 'Ocultar' : 'Ver',
+                        label: showInactive ? l10n.ocultar : l10n.ver,
                         onTap: () => viewModel.toggleShowInactive(),
                         color: showInactive
                             ? AppTheme.warningColor
@@ -45,17 +48,23 @@ class InventarioPage extends StatelessWidget {
                       ),
                       _HeaderAction(
                         icon: Icons.cloud_sync_rounded,
-                        label: 'Sincro',
+                        label: l10n.sincro,
                         onTap: () => _showSyncOptions(context, viewModel),
                         color: AppTheme.primaryColor,
+                      ),
+                      _HeaderAction(
+                        icon: Icons.file_upload_rounded,
+                        label: l10n.import,
+                        onTap: () => _performImport(context),
+                        color: AppTheme.secondaryColor,
                       ),
                     ],
                     totalIngresos: viewModel.totalProductos,
                     totalEgresos: viewModel.productosConStockBajo.length.toDouble(),
                     balance: viewModel.valorTotalInventario,
                     label1: l10n.total,
-                    label2: 'Stock Bajo',
-                    label3: 'Valor',
+                    label2: l10n.stockBajo,
+                    label3: l10n.valor,
                     icon1: Icons.inventory_2_rounded,
                     icon2: Icons.warning_amber_rounded,
                     icon3: Icons.account_balance_wallet_rounded,
@@ -102,6 +111,7 @@ class InventarioPage extends StatelessWidget {
   }
 
   void _showSyncOptions(BuildContext context, InventarioViewModel viewModel) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       builder: (ctx) => SafeArea(
@@ -110,7 +120,7 @@ class InventarioPage extends StatelessWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.cloud_upload_rounded),
-              title: const Text('Subir cambios'),
+              title: Text(l10n.subirCambios),
               onTap: () {
                 Navigator.pop(ctx);
                 _performSync(context, viewModel, 'upload');
@@ -118,7 +128,7 @@ class InventarioPage extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.cloud_download_rounded),
-              title: const Text('Descargar de la nube'),
+              title: Text(l10n.descargarDeLaNube),
               onTap: () {
                 Navigator.pop(ctx);
                 _performSync(context, viewModel, 'download');
@@ -126,7 +136,7 @@ class InventarioPage extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.sync_rounded),
-              title: const Text('Sincronización total'),
+              title: Text(l10n.sincronizarTodo),
               onTap: () {
                 Navigator.pop(ctx);
                 _performSync(context, viewModel, 'both');
@@ -146,14 +156,15 @@ class InventarioPage extends StatelessWidget {
     final syncService = context.read<SupabaseSyncService>();
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
+    final l10n = AppLocalizations.of(context)!;
     scaffoldMessenger.showSnackBar(
       SnackBar(
         content: Text(
           mode == 'upload'
-              ? 'Subiendo cambios...'
+              ? l10n.subiendoCambios
               : mode == 'download'
-              ? 'Descargando de la nube...'
-              : 'Sincronizando todo...',
+              ? l10n.descargandoDeLaNube
+              : l10n.sincronizandoTodo,
         ),
         duration: const Duration(seconds: 1),
       ),
@@ -197,10 +208,79 @@ class InventarioPage extends StatelessWidget {
       SnackBar(
         content: Text(
           result.isSuccess
-              ? '¡Sincronización completa!'
-              : 'Error en sincronización: ${result.errors} errores',
+              ? l10n.sincronizarTodo
+              : '${l10n.importError}: ${result.errors} errores',
         ),
         backgroundColor: result.isSuccess ? AppTheme.successColor : AppTheme.errorColor,
+      ),
+    );
+  }
+
+  Future<void> _performImport(BuildContext context) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['xlsx', 'csv'],
+    );
+
+    if (result == null || result.files.single.path == null) return;
+
+    final filePath = result.files.single.path!;
+    final db = context.read<AppDatabase>();
+    final importService = ImportService(db);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    final l10n = AppLocalizations.of(context)!;
+    scaffoldMessenger.showSnackBar(
+      SnackBar(
+        content: Text(l10n.importando),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+
+    final importResult = await importService.importFile(filePath, 'productos');
+    if (context.mounted) {
+      await context.read<InventarioViewModel>().refresh();
+      _showImportResultDialog(context, importResult);
+    }
+  }
+
+  void _showImportResultDialog(BuildContext context, ImportResult result) {
+    final l10n = AppLocalizations.of(context)!;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        title: Text(result.success ? l10n.importSuccess : l10n.importError),
+      content: result.success
+          ? Text(l10n.importSuccess)
+          : SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.importError),
+                  const SizedBox(height: 12),
+                  ...?result.errors?.map(
+                    (e) => Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        e.toString(),
+                        style: const TextStyle(
+                          color: AppTheme.errorColor,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.cancelar),
+          ),
+        ],
       ),
     );
   }
@@ -211,9 +291,9 @@ class InventarioPage extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: Text('Desactivar ${l10n.producto}'),
+        title: Text('${l10n.deactivate} ${l10n.producto}'),
         content: Text(
-          '¿Desactivar "${producto.nombre}"?\n\nNo aparecerá en listados o nuevas ventas, pero se conservarán sus registros históricos.',
+          '${l10n.deactivate} "${producto.nombre}"?\n\n${l10n.noDisponible}',
         ),
         actions: [
           TextButton(
@@ -229,7 +309,7 @@ class InventarioPage extends StatelessWidget {
               backgroundColor: AppTheme.errorColor,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Desactivar'),
+            child: Text(l10n.deactivate),
           ),
         ],
       ),
@@ -242,8 +322,8 @@ class InventarioPage extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: Text('Reactivar ${l10n.producto}'),
-        content: Text('¿Reactivar "${producto.nombre}" en el catálogo?'),
+        title: Text('${l10n.reactivate} ${l10n.producto}'),
+        content: Text(l10n.reactivarEnCatalogo(producto.nombre)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -254,7 +334,7 @@ class InventarioPage extends StatelessWidget {
               context.read<InventarioViewModel>().reactivar(producto.id);
               Navigator.pop(ctx);
             },
-            child: const Text('Reactivar'),
+            child: Text(l10n.reactivate),
           ),
         ],
       ),
@@ -266,6 +346,7 @@ class _EmptyInventario extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -286,14 +367,14 @@ class _EmptyInventario extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'Inventario vacío',
+              l10n.inventarioVacio,
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 12),
             Text(
-              'Comienza agregando productos manualmente o escaneando códigos de barras.',
+              l10n.comienzaAgregandoProductos,
               textAlign: TextAlign.center,
               style: Theme.of(
                 context,
@@ -390,9 +471,9 @@ class _ProductoCard extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                'INACTIVO',
+                                l10n.inactive,
                                 style: TextStyle(
-                                  fontSize: 8,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.w900,
                                   color: isDark
                                       ? AppTheme.darkTextSecondary
@@ -447,8 +528,8 @@ class _ProductoCard extends StatelessWidget {
                               size: 20,
                             ),
                             const SizedBox(width: 12),
-                            const Text(
-                              'Reactivar',
+                            Text(
+                              l10n.reactivate,
                               style: TextStyle(color: AppTheme.successColor),
                             ),
                           ],
@@ -466,7 +547,7 @@ class _ProductoCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 12),
                             Text(
-                              'Desactivar',
+                              l10n.deactivate,
                               style: TextStyle(color: AppTheme.errorColor),
                             ),
                           ],
@@ -487,7 +568,7 @@ class _ProductoCard extends StatelessWidget {
                       l10n.precioVenta.toUpperCase(),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         letterSpacing: 1,
-                        fontSize: 9,
+                        fontSize: 11,
                         fontWeight: FontWeight.w800,
                         color: AppTheme.textTertiary,
                       ),
@@ -579,7 +660,7 @@ class _HeaderAction extends StatelessWidget {
               label,
               style: TextStyle(
                 color: color,
-                fontSize: 9,
+                fontSize: 11,
                 fontWeight: FontWeight.w800,
               ),
             ),

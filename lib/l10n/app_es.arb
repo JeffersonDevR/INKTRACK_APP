@@ -337,6 +337,7 @@
   "restockLabel": "Restock: {name}",
   "escanearCodigoTitulo": "Escanear Código",
   "historialMovimientos": "Historial de Movimientos",
+  "historialVisitas": "Historial de Visitas",
   "recentRecords": "Registros Recientes",
   "resultadosFiltroTitle": "Resultados Filtrados",
   "totalItems": "Total: {count}",
@@ -351,5 +352,226 @@
   "emptyHistoryTitle": "Historial vacío",
   "noRecordsYet": "No hay registros de ingresos o egresos todavía.",
   "deleteRecordTitle": "Eliminar Registro",
-  "confirmDeleteRecord": "¿Estás seguro de que deseas eliminar este registro permanentemente?"
+  "confirmDeleteRecord": "¿Estás seguro de que deseas eliminar este registro permanentemente?",
+  "password": "Contraseña",
+  "@password": {
+    "description": "Password field label"
+  },
+  "signIn": "Iniciar sesión",
+  "@signIn": {
+    "description": "Sign in button label"
+  },
+  "signInToContinue": "Inicia sesión para continuar",
+  "@signInToContinue": {
+    "description": "Sign in subtitle"
+  },
+  "forgotPassword": "¿Olvidaste tu contraseña?",
+  "@forgotPassword": {
+    "description": "Forgot password link"
+  },
+  "dontHaveAccount": "¿No tienes cuenta?",
+  "@dontHaveAccount": {
+    "description": "Don't have account question"
+  },
+  "signUp": "Registrarse",
+  "@signUp": {
+    "description": "Sign up link text"
+  },
+  "createAccount": "Crear cuenta",
+  "@createAccount": {
+    "description": "Create account title"
+  },
+  "firstUserAdmin": "El primer usuario será admin",
+  "@firstUserAdmin": {
+    "description": "First user admin hint"
+  },
+  "fullName": "Nombre completo",
+  "@fullName": {
+    "description": "Full name label"
+  },
+  "confirmPassword": "Confirmar contraseña",
+  "@confirmPassword": {
+    "description": "Confirm password label"
+  },
+  "alreadyHaveAccount": "¿Ya tienes cuenta?",
+  "@alreadyHaveAccount": {
+    "description": "Already have account question"
+  },
+  "enterYourEmail": "Ingresa tu correo",
+  "@enterYourEmail": {
+    "description": "Enter email validator message"
+  },
+  "enterValidEmail": "Ingresa un correo válido",
+  "@enterValidEmail": {
+    "description": "Valid email validator message"
+  },
+  "enterYourPassword": "Ingresa tu contraseña",
+  "@enterYourPassword": {
+    "description": "Enter password validator message"
+  },
+  "enterYourName": "Ingresa tu nombre",
+  "@enterYourName": {
+    "description": "Enter name validator message"
+  },
+  "enterAPassword": "Ingresa una contraseña",
+  "@enterAPassword": {
+    "description": "Enter a password validator message"
+  },
+  "confirmYourPassword": "Confirma tu contraseña",
+  "@confirmYourPassword": {
+    "description": "Confirm password validator message"
+  },
+  "passwordsDoNotMatch": "Las contraseñas no coinciden",
+  "@passwordsDoNotMatch": {
+    "description": "Passwords do not match error"
+  },
+  "passwordResetSent": "Correo de restablecimiento enviado",
+  "@passwordResetSent": {
+    "description": "Password reset sent message"
+  },
+  "failedToSendReset": "Error al enviar correo",
+  "@failedToSendReset": {
+    "description": "Failed to send reset message"
+  },
+  "loginFailed": "Error al iniciar sesión",
+  "@loginFailed": {
+    "description": "Login failed error"
+  },
+  "passwordHint": "Mín 8 carac., 1 mayúsc., 3 núm., sin caracteres especiales",
+  "@passwordHint": {
+    "description": "Password validation hint"
+  },
+  "ingresos": "Ingresos",
+  "@ingresos": {
+    "description": "Income label (plural)"
+  },
+  "egresos": "Egresos",
+  "@egresos": {
+    "description": "Expenses label (plural)"
+  },
+  "acreedores": "Acreedores",
+  "@acreedores": {
+    "description": "Creditors label"
+  },
+  "ocultar": "Ocultar",
+  "@ocultar": {
+    "description": "Hide label"
+  },
+  "ver": "Ver",
+  "@ver": {
+    "description": "View/Show label"
+  },
+  "import": "Importar",
+  "@import": {
+    "description": "Import label"
+  },
+  "importando": "Importando...",
+  "@importando": {
+    "description": "Importing status"
+  },
+  "importSuccess": "Importación exitosa",
+  "@importSuccess": {
+    "description": "Import success message"
+  },
+  "importError": "Error de importación",
+  "@importError": {
+    "description": "Import error message"
+  },
+  "reactivate": "Reactivar",
+  "@reactivate": {
+    "description": "Reactivate button"
+  },
+  "deactivate": "Desactivar",
+  "@deactivate": {
+    "description": "Deactivate button"
+  },
+  "inactive": "INACTIVO",
+  "@inactive": {
+    "description": "Inactive badge label"
+  },
+  "stockBajo": "Stock Bajo",
+  "@stockBajo": {
+    "description": "Low Stock label"
+  },
+  "valor": "Valor",
+  "@valor": {
+    "description": "Value label"
+  },
+  "sincro": "Sincro",
+  "@sincro": {
+    "description": "Sync label"
+  },
+  "view": "Ver",
+  "@view": {
+    "description": "View action label"
+  },
+  "delete": "Eliminar",
+  "@delete": {
+    "description": "Delete action label"
+  },
+  "registrarPago": "Registrar pago",
+  "@registrarPago": {
+    "description": "Register payment label"
+  },
+  "montoAPagar": "Monto a pagar",
+  "@montoAPagar": {
+    "description": "Amount to pay label"
+  },
+  "codigoProducto": "Código del producto",
+  "@codigoProducto": {
+    "description": "Product code label"
+  },
+  "ean13Colombia": "EAN-13 Colombia",
+  "@ean13Colombia": {
+    "description": "EAN-13 Colombia label"
+  },
+  "cerrar": "Cerrar",
+  "@cerrar": {
+    "description": "Close button"
+  },
+  "importData": "Importar datos",
+  "@importData": {
+    "description": "Import data label"
+  },
+  "localConDatos": "Local con datos",
+  "@localConDatos": {
+    "description": "Location with data label"
+  },
+  "queDeseasHacer": "¿Qué deseas hacer?",
+  "@queDeseasHacer": {
+    "description": "What do you want to do question"
+  },
+  "eliminarIgual": "Eliminar igual",
+  "@eliminarIgual": {
+    "description": "Delete anyway button"
+  },
+  "todosLosDatosEliminados": "Todos los datos eliminados",
+  "@todosLosDatosEliminados": {
+    "description": "All data deleted message"
+  },
+  "ultimasTransacciones": "Últimas transacciones",
+  "@ultimasTransacciones": {
+    "description": "Last transactions label"
+  },
+  "ventas": "Ventas",
+  "@ventas": {
+    "description": "Sales label"
+  },
+  "gastos": "Gastos",
+  "@gastos": {
+    "description": "Expenses label"
+  },
+  "reporteGeneral": "Reporte general",
+  "@reporteGeneral": {
+    "description": "General report label"
+  },
+  "tendenciaUltimos": "Tendencia (últimos {days} días)",
+  "@tendenciaUltimos": {
+    "description": "Trend label with day count",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }

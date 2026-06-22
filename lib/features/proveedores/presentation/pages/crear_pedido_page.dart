@@ -232,9 +232,9 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
                     .toList();
 
                 return DropdownButtonFormField<String>(
-                  value: _proveedorId,
-                  decoration: const InputDecoration(
-                    labelText: 'Proveedor',
+                  initialValue: _proveedorId,
+                    decoration: const InputDecoration(
+                      labelText: 'Proveedor',
                     prefixIcon: Icon(Icons.local_shipping_outlined),
                   ),
                   items: items,
@@ -362,18 +362,16 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Total',
-                      style: TextStyle(
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
-                        fontSize: 18,
                       ),
                     ),
                     Text(
                       currencyFormat.format(_montoTotal),
-                      style: const TextStyle(
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
-                        fontSize: 18,
                         color: AppTheme.primaryColor,
                       ),
                     ),
@@ -419,6 +417,7 @@ class _ProductoPedido {
 }
 
 class _AgregarProductoSheet extends StatefulWidget {
+  // ignore: unused_element_parameter
   const _AgregarProductoSheet({super.key});
 
   @override

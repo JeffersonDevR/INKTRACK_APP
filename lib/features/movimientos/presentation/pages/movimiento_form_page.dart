@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:InkTrack/l10n/app_localizations.dart';
@@ -418,7 +417,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                   final categories = mvm.categorias;
                   return DropdownButtonFormField<String>(
                     isExpanded: true,
-                    value: categories.contains(_categoria) ? _categoria : null,
+                    initialValue: categories.contains(_categoria) ? _categoria : null,
                     decoration: InputDecoration(
                       labelText: l10n.categoria,
                       prefixIcon: const Icon(Icons.category_outlined),
@@ -459,7 +458,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                   final clientes = cvm.items;
                   return DropdownButtonFormField<String?>(
                     isExpanded: true,
-                    value: _clienteId,
+                    initialValue: _clienteId,
                     decoration: InputDecoration(
                       labelText: l10n.clienteOpcionalLabel,
                       prefixIcon: const Icon(Icons.person_outline),
@@ -490,7 +489,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                   final proveedores = pvm.proveedores;
                   return DropdownButtonFormField<String?>(
                     isExpanded: true,
-                    value: _proveedorId,
+                    initialValue: _proveedorId,
                     decoration: InputDecoration(
                       labelText: l10n.proveedorOpcional,
                       prefixIcon: const Icon(Icons.local_shipping_outlined),

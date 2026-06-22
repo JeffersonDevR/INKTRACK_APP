@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:InkTrack/core/data/local/database.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
 import 'package:InkTrack/features/proveedores/data/models/proveedor.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
+import 'package:InkTrack/core/widgets/app_card.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
+import 'package:InkTrack/core/services/import_service.dart';
 import 'package:InkTrack/l10n/app_localizations.dart';
 import 'proveedor_form_page.dart';
 import 'pedidos_proveedor_page.dart';
@@ -44,16 +48,22 @@ class ProveedoresPage extends StatelessWidget {
                     ),
                   ),
                   icon: Icons.history_rounded,
-                  label: 'Historial',
+                  label: l10n.historialVisitas,
                   color: AppTheme.primaryColor,
                 ),
                 _HeaderAction(
                   onTap: () => viewModel.toggleShowInactive(),
                   icon: showInactive ? Icons.visibility : Icons.visibility_off,
-                  label: showInactive ? 'Ocultar' : 'Ver',
+                  label: showInactive ? l10n.ocultar : l10n.ver,
                   color: showInactive
                       ? AppTheme.warningColor
                       : AppTheme.textSecondary,
+                ),
+                _HeaderAction(
+                  onTap: () => _performImport(context),
+                  icon: Icons.file_upload_rounded,
+                  label: l10n.import,
+                  color: AppTheme.secondaryColor,
                 ),
               ],
               totalIngresos: viewModel.proveedores.length.toDouble(),
@@ -63,8 +73,8 @@ class ProveedoresPage extends StatelessWidget {
                   .toDouble(),
               balance: 0,
               label1: l10n.total,
-              label2: 'With Route',
-              label3: 'Statistics',
+              label2: l10n.diasVisita,
+              label3: l10n.reportes,
               icon1: Icons.local_shipping_rounded,
               icon2: Icons.route_rounded,
               icon3: Icons.bar_chart_rounded,
@@ -93,11 +103,10 @@ class ProveedoresPage extends StatelessWidget {
                 final proveedor = viewModel.proveedores[index];
                 final isInactive = !proveedor.isActivo;
                 final isDark = Theme.of(context).brightness == Brightness.dark;
-                return Card(
+                return AppCard(
                   margin: const EdgeInsets.only(bottom: 12),
-                  color: isInactive
-                      ? (isDark ? AppTheme.darkCard : Colors.grey.shade100)
-                      : (isDark ? AppTheme.darkCard : null),
+                  isInactive: isInactive,
+                  padding: EdgeInsets.zero,
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(16),
                     leading: CircleAvatar(
@@ -130,10 +139,10 @@ class ProveedoresPage extends StatelessWidget {
                                   : Colors.grey.shade400,
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text(
-                              'INACTIVE',
+                            child: Text(
+                              l10n.inactive,
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: 11,
                                 fontWeight: FontWeight.w900,
                                 color: Colors.white,
                               ),
@@ -163,8 +172,8 @@ class ProveedoresPage extends StatelessWidget {
                                 child: FittedBox(
                                   fit: BoxFit.scaleDown,
                                   alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    'Visit: ${proveedor.diasVisitaShort}',
+                                    child: Text(
+                                      '${l10n.diasVisita}: ${proveedor.diasVisitaShort}',
                                     style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
                                           color: AppTheme.infoColor,
@@ -243,7 +252,7 @@ class ProveedoresPage extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Reactivate',
+                                  l10n.reactivate,
                                   style: TextStyle(
                                     color: AppTheme.successColor,
                                   ),
@@ -285,9 +294,9 @@ class ProveedoresPage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Delete ${l10n.proveedor}'),
+        title: Text('${l10n.eliminar} ${l10n.proveedor}'),
         content: Text(
-          'Delete ${proveedor.nombre}?\n(It will be marked as inactive for traceability)',
+          '${l10n.eliminar} ${proveedor.nombre}?\n(${l10n.noDisponible})',
         ),
         actions: [
           TextButton(
@@ -306,6 +315,81 @@ class ProveedoresPage extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> _performImport(BuildContext context) async {
+  final result = await FilePicker.platform.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: ['xlsx', 'csv'],
+  );
+
+  if (result == null || result.files.single.path == null) return;
+
+  final filePath = result.files.single.path!;
+  final db = context.read<AppDatabase>();
+  final importService = ImportService(db);
+  final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+  final l10n = AppLocalizations.of(context)!;
+  scaffoldMessenger.showSnackBar(
+    SnackBar(
+      content: Text(l10n.importando),
+      duration: const Duration(seconds: 1),
+    ),
+  );
+
+  final importResult = await importService.importFile(filePath, 'proveedores');
+  if (context.mounted) {
+    await context.read<ProveedoresViewModel>().refresh();
+    _showImportResultDialog(context, importResult, 'proveedores');
+  }
+}
+
+void _showImportResultDialog(
+  BuildContext context,
+  ImportResult result,
+  String moduleLabel,
+) {
+  final l10n = AppLocalizations.of(context)!;
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      title: Text(
+        result.success ? l10n.importSuccess : l10n.importError,
+      ),
+      content: result.success
+          ? Text(l10n.importSuccess)
+          : SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.importError),
+                  const SizedBox(height: 12),
+                  ...?result.errors?.map(
+                    (e) => Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        e.toString(),
+                        style: const TextStyle(
+                          color: AppTheme.errorColor,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(l10n.cancelar),
+        ),
+      ],
+    ),
+  );
 }
 
 class _HeaderAction extends StatelessWidget {
@@ -336,7 +420,7 @@ class _HeaderAction extends StatelessWidget {
               label,
               style: TextStyle(
                 color: color,
-                fontSize: 9,
+                fontSize: 11,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -372,7 +456,7 @@ class _EmptyProveedores extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Register suppliers to associate them with inventory products.',
+              l10n.comienzaAgregandoProductos,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium,
             ),

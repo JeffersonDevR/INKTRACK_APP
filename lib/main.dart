@@ -60,7 +60,7 @@ Future<void> main() async {
 
     final database = AppDatabase();
     final supabase = Supabase.instance.client;
-    final authService = AuthService(supabase);
+    final authService = AuthService(supabase, database: database);
     final currentUser = authService.currentUser;
 
     runApp(
@@ -197,13 +197,7 @@ class _InkTrackAppState extends State<InkTrackApp> {
             Provider.value(value: _pedidosRepo),
             Provider.value(value: _localesRepo),
             ChangeNotifierProvider(
-              create: (_) => LocalesViewModel(
-                _localesRepo,
-                productosRepo: _productosRepo,
-                clientesRepo: _clientesRepo,
-                proveedoresRepo: _proveedoresRepo,
-                movimientosRepo: _movimientosRepo,
-              ),
+              create: (_) => LocalesViewModel(_localesRepo),
             ),
             ChangeNotifierProvider(
               create: (_) => ClientesViewModel(_clientesRepo),
@@ -268,13 +262,7 @@ class _InkTrackAppState extends State<InkTrackApp> {
           create: (_) => ProveedoresViewModel(_proveedoresRepo),
         ),
         ChangeNotifierProvider(
-          create: (_) => LocalesViewModel(
-            _localesRepo,
-            productosRepo: _productosRepo,
-            clientesRepo: _clientesRepo,
-            proveedoresRepo: _proveedoresRepo,
-            movimientosRepo: _movimientosRepo,
-          ),
+          create: (_) => LocalesViewModel(_localesRepo),
         ),
         ChangeNotifierProvider(
           create: (_) => PedidosProveedorViewModel(_pedidosRepo),

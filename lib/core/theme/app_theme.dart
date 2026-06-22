@@ -82,6 +82,15 @@ class AppTheme {
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       ),
 
+      dialogTheme: DialogThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(28),
+        ),
+        elevation: 0,
+        backgroundColor: surfaceColor,
+        surfaceTintColor: surfaceColor,
+      ),
+
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
@@ -257,6 +266,15 @@ class AppTheme {
           side: const BorderSide(color: darkBorder, width: 1),
         ),
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      ),
+
+      dialogTheme: DialogThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(28),
+        ),
+        elevation: 0,
+        backgroundColor: darkSurface,
+        surfaceTintColor: darkSurface,
       ),
 
       elevatedButtonTheme: ElevatedButtonThemeData(

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:InkTrack/core/services/auth_service.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/features/auth/presentation/pages/signup_page.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 
 class LoginPage extends StatefulWidget {
   final VoidCallback onLoginSuccess;
@@ -50,7 +51,7 @@ class _LoginPageState extends State<LoginPage> {
       widget.onLoginSuccess();
     } else if (mounted) {
       setState(() {
-        _errorMessage = result.error ?? 'Login failed';
+        _errorMessage = result.error ?? AppLocalizations.of(context)!.loginFailed;
       });
     }
   }
@@ -58,9 +59,10 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _resetPassword() async {
     final email = _emailController.text.trim();
     if (email.isEmpty) {
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Enter your email first')));
+      ).showSnackBar(SnackBar(content: Text(l10n.enterYourEmail)));
       return;
     }
 
@@ -68,12 +70,13 @@ class _LoginPageState extends State<LoginPage> {
     final result = await authService.resetPassword(email);
 
     if (mounted) {
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             result.success
-                ? 'Password reset email sent'
-                : result.error ?? 'Failed to send reset email',
+                ? l10n.passwordResetSent
+                : result.error ?? l10n.failedToSendReset,
           ),
         ),
       );
@@ -82,8 +85,8 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -93,11 +96,6 @@ class _LoginPageState extends State<LoginPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 60),
-                // Icon(
-                //   Icons.store_rounded,
-                //   size: 80,
-                //   color: AppTheme.primaryColor,
-                // ),
                 SizedBox(
                   //logo login 
                   width: 90,
@@ -110,7 +108,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'InkTrack',
+                  l10n.appTitle,
                   style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppTheme.secondaryColor,
@@ -119,7 +117,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Sign in to continue',
+                  l10n.signInToContinue,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: AppTheme.textSecondary,
                   ),
@@ -146,20 +144,15 @@ class _LoginPageState extends State<LoginPage> {
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
-                    labelText: 'Email',
+                    labelText: l10n.email,
                     prefixIcon: const Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Enter your email';
+                      return l10n.enterYourEmail;
                     }
                     if (!value.contains('@')) {
-                      return 'Enter a valid email';
+                      return l10n.enterValidEmail;
                     }
                     return null;
                   },
@@ -171,7 +164,7 @@ class _LoginPageState extends State<LoginPage> {
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _signIn(),
                   decoration: InputDecoration(
-                    labelText: 'Password',
+                    labelText: l10n.password,
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -185,15 +178,10 @@ class _LoginPageState extends State<LoginPage> {
                         });
                       },
                     ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Enter your password';
+                      return l10n.enterYourPassword;
                     }
                     return null;
                   },
@@ -203,7 +191,7 @@ class _LoginPageState extends State<LoginPage> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: _resetPassword,
-                    child: const Text('Forgot Password?', style: TextStyle(color: AppTheme.secondaryColor)),
+                    child: Text(l10n.forgotPassword, style: const TextStyle(color: AppTheme.secondaryColor)),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -211,13 +199,6 @@ class _LoginPageState extends State<LoginPage> {
                   height: 56,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _signIn,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.secondaryColor,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
                     child: _isLoading
                         ? const SizedBox(
                             height: 24,
@@ -227,9 +208,9 @@ class _LoginPageState extends State<LoginPage> {
                               strokeWidth: 2,
                             ),
                           )
-                        : const Text(
-                            'Sign In',
-                              style: TextStyle(
+                        : Text(
+                            l10n.signIn,
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -240,7 +221,7 @@ class _LoginPageState extends State<LoginPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Don't have an account?"),
+                    Text(l10n.dontHaveAccount),
                     TextButton(
                       onPressed: () {
                         Navigator.of(context).push(
@@ -254,7 +235,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         );
                       },
-                      child: const Text('Sign Up', style: TextStyle(color: AppTheme.secondaryColor)),
+                      child: Text(l10n.signUp, style: const TextStyle(color: AppTheme.secondaryColor)),
                     ),
                   ],
                 ),

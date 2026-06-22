@@ -176,6 +176,7 @@ class SupabaseSyncService {
         try {
           final data = {
             'id': producto.id,
+            'local_id': producto.localId,
             'nombre': producto.nombre,
             'cantidad': producto.cantidad,
             'precio': producto.precio,
@@ -237,6 +238,7 @@ class SupabaseSyncService {
         try {
           final data = {
             'id': cliente.id,
+            'local_id': cliente.localId,
             'nombre': cliente.nombre,
             'telefono': cliente.telefono,
             'email': cliente.email,
@@ -294,6 +296,7 @@ class SupabaseSyncService {
         try {
           final data = {
             'id': proveedor.id,
+            'local_id': proveedor.localId,
             'nombre': proveedor.nombre,
             'telefono': proveedor.telefono,
             'dias_visita': proveedor.diasVisita.join(','),
@@ -349,6 +352,7 @@ class SupabaseSyncService {
         try {
           final data = {
             'id': movimiento.id,
+            'local_id': movimiento.localId,
             'monto': movimiento.monto,
             'fecha': movimiento.fecha.toIso8601String(),
             'tipo': movimiento.tipo.index,
@@ -412,6 +416,7 @@ class SupabaseSyncService {
         try {
           final data = {
             'id': venta.id,
+            'local_id': venta.localId,
             'monto': venta.monto,
             'fecha': venta.fecha.toIso8601String(),
             'cliente_id': venta.clienteId,
@@ -483,6 +488,7 @@ class SupabaseSyncService {
             await (_db.into(_db.productos)).insertOnConflictUpdate(
               ProductosCompanion(
                 id: Value(id),
+                localId: Value(item['local_id'] as String?),
                 nombre: Value(item['nombre'] as String? ?? ''),
                 cantidad: Value(item['cantidad'] as int? ?? 0),
                 precio: Value((item['precio'] as num?)?.toDouble() ?? 0.0),
@@ -547,6 +553,7 @@ class SupabaseSyncService {
             await (_db.into(_db.clientes)).insertOnConflictUpdate(
               ClientesCompanion(
                 id: Value(id),
+                localId: Value(item['local_id'] as String?),
                 nombre: Value(item['nombre'] as String? ?? ''),
                 telefono: Value(item['telefono'] as String? ?? ''),
                 email: Value(emailValue),
@@ -611,6 +618,7 @@ class SupabaseSyncService {
             await (_db.into(_db.proveedores)).insertOnConflictUpdate(
               ProveedoresCompanion(
                 id: Value(id),
+                localId: Value(item['local_id'] as String?),
                 nombre: Value(item['nombre'] as String? ?? ''),
                 telefono: Value(item['telefono'] as String? ?? ''),
                 diasVisita: Value(diasVisita),
@@ -666,6 +674,7 @@ class SupabaseSyncService {
             await (_db.into(_db.movimientos)).insertOnConflictUpdate(
               MovimientosCompanion(
                 id: Value(id),
+                localId: Value(item['local_id'] as String?),
                 monto: Value((item['monto'] as num?)?.toDouble() ?? 0.0),
                 fecha: Value(DateTime.parse(item['fecha'] as String)),
                 tipo: Value(MovimientoType.values[item['tipo'] as int? ?? 0]),
@@ -727,6 +736,7 @@ class SupabaseSyncService {
             await (_db.into(_db.ventas)).insertOnConflictUpdate(
               VentasCompanion(
                 id: Value(id),
+                localId: Value(item['local_id'] as String?),
                 monto: Value((item['monto'] as num?)?.toDouble() ?? 0.0),
                 fecha: Value(DateTime.parse(item['fecha'] as String)),
                 clienteId: Value(item['cliente_id'] as String?),

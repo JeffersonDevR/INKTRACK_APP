@@ -415,15 +415,16 @@ class PedidosProveedorPage extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'TOTAL',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     currencyFormat.format(pedido.montoTotal),
-                    style: const TextStyle(
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
                       color: AppTheme.primaryColor,
                     ),
                   ),

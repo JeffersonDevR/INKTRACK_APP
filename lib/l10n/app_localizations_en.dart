@@ -426,8 +426,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resetData => 'Reset Data';
 
   @override
-  String get resetearData =>
-      'This will delete ALL app data (products, clients, suppliers, sales, movements, locations).';
+  String get resetearData => 'This will delete ALL app data (products, clients, suppliers, sales, movements, locations).';
 
   @override
   String get resetDataTitle => 'Reset All Data';
@@ -553,8 +552,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noHayPedidos => 'No orders';
 
   @override
-  String get creaUnPedidoProveedor =>
-      'Create a supplier order to receive delivery alerts.';
+  String get creaUnPedidoProveedor => 'Create a supplier order to receive delivery alerts.';
 
   @override
   String get pedidosDelProveedor => 'Supplier Orders';
@@ -580,8 +578,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inventarioVacio => 'Empty inventory';
 
   @override
-  String get comienzaAgregandoProductos =>
-      'Start by adding products manually or scanning barcodes.';
+  String get comienzaAgregandoProductos => 'Start by adding products manually or scanning barcodes.';
 
   @override
   String get errorAlGuardar => 'Error saving';
@@ -772,8 +769,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ventaCreditoFiado => 'Credit sale (Creditors)';
 
   @override
-  String get aumentaraSaldoPendiente =>
-      'Will increase the client\'s pending balance';
+  String get aumentaraSaldoPendiente => 'Will increase the client\'s pending balance';
 
   @override
   String get noHayProductos => 'No products';
@@ -890,6 +886,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historialMovimientos => 'Movement History';
 
   @override
+  String get historialVisitas => 'Visit History';
+
+  @override
   String get recentRecords => 'Recent Records';
 
   @override
@@ -907,8 +906,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eliminarRegistro => 'Delete Record';
 
   @override
-  String get confirmarEliminarRegistro =>
-      'Are you sure you want to permanently delete this record?';
+  String get confirmarEliminarRegistro => 'Are you sure you want to permanently delete this record?';
 
   @override
   String get historialVacio => 'Empty history';
@@ -935,6 +933,169 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteRecordTitle => 'Delete Record';
 
   @override
-  String get confirmDeleteRecord =>
-      'Are you sure you want to permanently delete this record?';
+  String get confirmDeleteRecord => 'Are you sure you want to permanently delete this record?';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get signIn => 'Sign In';
+
+  @override
+  String get signInToContinue => 'Sign in to continue';
+
+  @override
+  String get forgotPassword => 'Forgot Password?';
+
+  @override
+  String get dontHaveAccount => 'Don\'t have an account?';
+
+  @override
+  String get signUp => 'Sign Up';
+
+  @override
+  String get createAccount => 'Create Account';
+
+  @override
+  String get firstUserAdmin => 'First user will be admin';
+
+  @override
+  String get fullName => 'Full Name';
+
+  @override
+  String get confirmPassword => 'Confirm Password';
+
+  @override
+  String get alreadyHaveAccount => 'Already have an account?';
+
+  @override
+  String get enterYourEmail => 'Enter your email';
+
+  @override
+  String get enterValidEmail => 'Enter a valid email';
+
+  @override
+  String get enterYourPassword => 'Enter your password';
+
+  @override
+  String get enterYourName => 'Enter your name';
+
+  @override
+  String get enterAPassword => 'Enter a password';
+
+  @override
+  String get confirmYourPassword => 'Confirm your password';
+
+  @override
+  String get passwordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get passwordResetSent => 'Password reset email sent';
+
+  @override
+  String get failedToSendReset => 'Failed to send reset email';
+
+  @override
+  String get loginFailed => 'Login failed';
+
+  @override
+  String get passwordHint => 'Min 8 chars, 1 capital, 3 numbers, no special chars';
+
+  @override
+  String get ingresos => 'Income';
+
+  @override
+  String get egresos => 'Expenses';
+
+  @override
+  String get acreedores => 'Creditors';
+
+  @override
+  String get ocultar => 'Hide';
+
+  @override
+  String get ver => 'View';
+
+  @override
+  String get import => 'Import';
+
+  @override
+  String get importando => 'Importing...';
+
+  @override
+  String get importSuccess => 'Successful import';
+
+  @override
+  String get importError => 'Import error';
+
+  @override
+  String get reactivate => 'Reactivate';
+
+  @override
+  String get deactivate => 'Deactivate';
+
+  @override
+  String get inactive => 'INACTIVE';
+
+  @override
+  String get stockBajo => 'Low Stock';
+
+  @override
+  String get valor => 'Value';
+
+  @override
+  String get sincro => 'Sync';
+
+  @override
+  String get view => 'View';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get registrarPago => 'Register payment';
+
+  @override
+  String get montoAPagar => 'Amount to pay';
+
+  @override
+  String get codigoProducto => 'Product Code';
+
+  @override
+  String get ean13Colombia => 'EAN-13 Colombia';
+
+  @override
+  String get cerrar => 'Close';
+
+  @override
+  String get importData => 'Import Data';
+
+  @override
+  String get localConDatos => 'Location with data';
+
+  @override
+  String get queDeseasHacer => 'What do you want to do?';
+
+  @override
+  String get eliminarIgual => 'Delete anyway';
+
+  @override
+  String get todosLosDatosEliminados => 'All data deleted';
+
+  @override
+  String get ultimasTransacciones => 'Last transactions';
+
+  @override
+  String get ventas => 'Sales';
+
+  @override
+  String get gastos => 'Expenses';
+
+  @override
+  String get reporteGeneral => 'General Report';
+
+  @override
+  String tendenciaUltimos(int days) {
+    return 'Trend (last $days days)';
+  }
 }

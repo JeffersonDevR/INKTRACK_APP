@@ -5,6 +5,8 @@ import 'package:InkTrack/core/services/theme_provider.dart';
 import 'package:InkTrack/core/services/locale_provider.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/l10n/app_localizations.dart';
+import 'package:InkTrack/features/auth/presentation/pages/login_page.dart';
+import 'package:InkTrack/features/home/presentation/pages/main_layout_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -246,9 +248,21 @@ class ProfilePage extends StatelessWidget {
                   if (confirmed == true && context.mounted) {
                     await authService.signOut();
                     if (context.mounted) {
-                      Navigator.of(
-                        context,
-                      ).pushNamedAndRemoveUntil('/login', (route) => false);
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (_) => LoginPage(
+                            onLoginSuccess: () {
+                              Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(
+                                  builder: (_) => const MainLayoutPage(),
+                                ),
+                                (route) => false,
+                              );
+                            },
+                          ),
+                        ),
+                        (route) => false,
+                      );
                     }
                   }
                 },
@@ -265,7 +279,7 @@ class ProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: 40),
             Text(
-              'InkTrack v1.0.0',
+              '${l10n.appTitle} v1.0.0',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? AppTheme.darkTextSecondary

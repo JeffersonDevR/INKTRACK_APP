@@ -6,13 +6,6 @@ import 'package:InkTrack/features/locales/data/models/local.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/utils/id_utils.dart';
 import 'package:InkTrack/core/services/auth_service.dart';
-import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
-import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
-import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
-import 'package:InkTrack/features/inventario/data/repositories/drift_productos_repository.dart';
-import 'package:InkTrack/features/clientes/data/repositories/drift_clientes_repository.dart';
-import 'package:InkTrack/features/proveedores/data/repositories/drift_proveedores_repository.dart';
-import 'package:InkTrack/core/data/local/database.dart';
 
 class OnboardingLocalPage extends StatefulWidget {
   final String userId;
@@ -98,7 +91,7 @@ class _OnboardingLocalPageState extends State<OnboardingLocalPage> {
         );
       }
 
-      await _autoMigrateData(nuevoLocal.id);
+      await viewModel.migrateData(nuevoLocal.id);
 
       Navigator.of(context).pop();
     } catch (e) {
@@ -111,63 +104,6 @@ class _OnboardingLocalPageState extends State<OnboardingLocalPage> {
       if (mounted) {
         setState(() => _isLoading = false);
       }
-    }
-  }
-
-  Future<void> _autoMigrateData(String localId) async {
-    final invVM = context.read<InventarioViewModel>();
-    final cliVM = context.read<ClientesViewModel>();
-    final provVM = context.read<ProveedoresViewModel>();
-
-    final db = context.read<AppDatabase>();
-    final productosRepo = DriftProductosRepository(db);
-    final clientesRepo = DriftClientesRepository(db);
-    final proveedoresRepo = DriftProveedoresRepository(db);
-
-    final productosSinLocal = invVM.items
-        .where((p) => p.localId == null)
-        .toList();
-    final clientesSinLocal = cliVM.items
-        .where((c) => c.localId == null)
-        .toList();
-    final proveedoresSinLocal = provVM.items
-        .where((p) => p.localId == null)
-        .toList();
-
-    if (productosSinLocal.isEmpty &&
-        clientesSinLocal.isEmpty &&
-        proveedoresSinLocal.isEmpty) {
-      return;
-    }
-
-    for (final p in productosSinLocal) {
-      final actualizado = p.copyWith(localId: localId);
-      await productosRepo.update(p.id, actualizado);
-      invVM.update(p.id, actualizado);
-    }
-
-    for (final c in clientesSinLocal) {
-      final actualizado = c.copyWith(localId: localId);
-      await clientesRepo.update(c.id, actualizado);
-      cliVM.update(c.id, actualizado);
-    }
-
-    for (final p in proveedoresSinLocal) {
-      final actualizado = p.copyWith(localId: localId);
-      await proveedoresRepo.update(p.id, actualizado);
-      provVM.update(p.id, actualizado);
-    }
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Se migraron ${productosSinLocal.length} productos, '
-            '${clientesSinLocal.length} clientes, '
-            '${proveedoresSinLocal.length} proveedores',
-          ),
-        ),
-      );
     }
   }
 
@@ -247,7 +183,7 @@ class _OnboardingLocalPageState extends State<OnboardingLocalPage> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _tipo,
+                initialValue: _tipo,
                 decoration: const InputDecoration(
                   labelText: 'Tipo de local',
                   prefixIcon: Icon(Icons.category_outlined),

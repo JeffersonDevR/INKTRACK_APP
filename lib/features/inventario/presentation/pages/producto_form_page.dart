@@ -122,7 +122,6 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
   bool get _useCustomProveedor => _proveedorId == _kCustomProveedorValue;
 
   void _vincularCodigoPersonalizado() {
-    final l10n = AppLocalizations.of(context)!;
     if (_codigoPersonalizadoController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

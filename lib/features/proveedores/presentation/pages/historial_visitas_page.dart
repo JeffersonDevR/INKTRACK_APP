@@ -48,9 +48,11 @@ class HistorialVisitasPage extends StatelessWidget {
             color: AppTheme.textSecondary.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'No hay historial de visitas',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 8),
           const Text('Las entregas confirmadas aparecerán aquí.'),

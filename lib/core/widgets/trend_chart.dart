@@ -5,6 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 
 class TrendChart extends StatelessWidget {
   final List<Movimiento> movimientos;
@@ -19,14 +20,17 @@ class TrendChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final data = _processData();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Container(
       height: 240,
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: isDark ? AppTheme.darkCard : AppTheme.surfaceColor,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
+        border: Border.all(
+          color: isDark ? AppTheme.darkBorder : AppTheme.borderLightColor,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -36,7 +40,7 @@ class TrendChart extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Tendencia (Últimos $days días)',
+                  AppLocalizations.of(context)!.tendenciaUltimos(days),
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppTheme.textPrimary,
@@ -55,8 +59,8 @@ class TrendChart extends StatelessWidget {
                   show: true,
                   drawVerticalLine: false,
                   horizontalInterval: _calculateInterval(data),
-                  getDrawingHorizontalLine: (value) => const FlLine(
-                    color: Color(0xFFF1F5F9),
+                  getDrawingHorizontalLine: (value) => FlLine(
+                    color: isDark ? AppTheme.darkBorder : AppTheme.borderLightColor,
                     strokeWidth: 1,
                   ),
                 ),
@@ -76,7 +80,7 @@ class TrendChart extends StatelessWidget {
                           child: Text(
                             data[value.toInt()].label,
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontSize: 10,
+                              fontSize: 11,
                               color: AppTheme.textSecondary,
                             ),
                           ),
@@ -93,7 +97,7 @@ class TrendChart extends StatelessWidget {
                         return Text(
                           NumberFormat.compact().format(value),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontSize: 10,
+                            fontSize: 11,
                             color: AppTheme.textSecondary,
                           ),
                         );
@@ -119,16 +123,17 @@ class TrendChart extends StatelessWidget {
   }
 
   Widget _buildLegend(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
-        _legendItem('Ingresos', AppTheme.tertiaryColor),
+        _legendItem(context, l10n.ingresos, AppTheme.tertiaryColor),
         const SizedBox(width: 12),
-        _legendItem('Egresos', AppTheme.errorColor),
+        _legendItem(context, l10n.egresos, AppTheme.errorColor),
       ],
     );
   }
 
-  Widget _legendItem(String label, Color color) {
+  Widget _legendItem(BuildContext context, String label, Color color) {
     return Row(
       children: [
         Container(
@@ -139,7 +144,9 @@ class TrendChart extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           label,
-          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ],
     );

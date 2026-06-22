@@ -145,6 +145,17 @@ class PedidosProveedor extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+@DataClassName('LocalUserData')
+class LocalUsers extends Table {
+  TextColumn get id => text()();
+  TextColumn get email => text()();
+  TextColumn get hashedPassword => text()();
+  DateTimeColumn get lastLogin => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 class StringListConverter extends TypeConverter<List<String>, String> {
   const StringListConverter();
 
@@ -168,13 +179,17 @@ class StringListConverter extends TypeConverter<List<String>, String> {
     Movimientos,
     Ventas,
     PedidosProveedor,
+    LocalUsers,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
+  /// Creates an in-memory database for testing.
+  AppDatabase.fromConnection(QueryExecutor e) : super(e);
+
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -295,6 +310,13 @@ class AppDatabase extends _$AppDatabase {
         }
       } catch (e) {
         debugPrint("Migration v13 skip: $e");
+      }
+      try {
+        if (from < 14) {
+          await m.createTable(localUsers);
+        }
+      } catch (e) {
+        debugPrint("Migration v14 skip: $e");
       }
     },
     beforeOpen: (details) async {

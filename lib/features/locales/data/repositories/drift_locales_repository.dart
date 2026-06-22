@@ -59,6 +59,99 @@ class DriftLocalesRepository implements LocalesRepository {
     await (_db.delete(_db.locales)..where((t) => t.id.equals(id))).go();
   }
 
+  @override
+  Future<MigrationSummary> getOrphanedCounts() async {
+    final productos =
+        await _countWhereNull(_db.productos, _db.productos.localId);
+    final clientes =
+        await _countWhereNull(_db.clientes, _db.clientes.localId);
+    final proveedores =
+        await _countWhereNull(_db.proveedores, _db.proveedores.localId);
+    final movimientos =
+        await _countWhereNull(_db.movimientos, _db.movimientos.localId);
+    final ventas = await _countWhereNull(_db.ventas, _db.ventas.localId);
+    final pedidos =
+        await _countWhereNull(_db.pedidosProveedor, _db.pedidosProveedor.localId);
+
+    return MigrationSummary(
+      productos: productos,
+      clientes: clientes,
+      proveedores: proveedores,
+      movimientos: movimientos,
+      ventas: ventas,
+      pedidos: pedidos,
+    );
+  }
+
+  @override
+  Future<void> assignLocalId(String localId) async {
+    await _db.transaction(() async {
+      await _assignToTable(
+        _db.productos,
+        _db.productos.localId,
+        _db.productos.syncStatus,
+        localId,
+      );
+      await _assignToTable(
+        _db.clientes,
+        _db.clientes.localId,
+        _db.clientes.syncStatus,
+        localId,
+      );
+      await _assignToTable(
+        _db.proveedores,
+        _db.proveedores.localId,
+        _db.proveedores.syncStatus,
+        localId,
+      );
+      await _assignToTable(
+        _db.movimientos,
+        _db.movimientos.localId,
+        _db.movimientos.syncStatus,
+        localId,
+      );
+      await _assignToTable(
+        _db.ventas,
+        _db.ventas.localId,
+        _db.ventas.syncStatus,
+        localId,
+      );
+      await _assignToTable(
+        _db.pedidosProveedor,
+        _db.pedidosProveedor.localId,
+        _db.pedidosProveedor.syncStatus,
+        localId,
+      );
+    });
+  }
+
+  /// Count rows where the given column is NULL.
+  Future<int> _countWhereNull(
+    TableInfo table,
+    GeneratedColumn<String> column,
+  ) async {
+    final result = await _db.customSelect(
+      'SELECT COUNT(*) AS cnt FROM ${table.actualTableName} '
+      'WHERE ${column.name} IS NULL',
+    ).getSingle();
+    return result.read<int>('cnt');
+  }
+
+  /// Update rows where localId IS NULL, setting localId and syncStatus.
+  Future<void> _assignToTable(
+    TableInfo table,
+    GeneratedColumn<String> localIdCol,
+    GeneratedColumn<String> syncStatusCol,
+    String localId,
+  ) async {
+    await _db.customUpdate(
+      'UPDATE ${table.actualTableName} '
+      'SET ${localIdCol.name} = ?, ${syncStatusCol.name} = ? '
+      'WHERE ${localIdCol.name} IS NULL',
+      variables: [Variable(localId), const Variable('pending_upload')],
+    );
+  }
+
   Local _toModel(LocalData data) {
     return Local(
       id: data.id,

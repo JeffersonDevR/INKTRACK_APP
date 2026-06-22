@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:InkTrack/core/data/local/database.dart';
 import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmodel.dart';
 import 'package:InkTrack/features/locales/data/models/local.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
+import 'package:InkTrack/core/services/import_service.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
@@ -16,27 +19,47 @@ class LocalesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mis Locales'),
+        title: Text(l10n.misLocales),
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) {
               final viewModel = context.read<LocalesViewModel>();
               if (value == 'add') {
                 _showLocalDialog(context);
+              } else if (value == 'import') {
+                _performImport(context);
               } else if (value == 'delete_all') {
                 _confirmDeleteAllData(context, viewModel);
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'add',
                 child: Row(
                   children: [
                     Icon(Icons.add, size: 20),
                     SizedBox(width: 8),
-                    Text('Agregar Local'),
+                    Text(l10n.agregarLocal),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'import',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.file_upload_rounded,
+                      size: 20,
+                      color: AppTheme.primaryColor,
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      l10n.importData,
+                      style: TextStyle(color: AppTheme.primaryColor),
+                    ),
                   ],
                 ),
               ),
@@ -49,9 +72,9 @@ class LocalesPage extends StatelessWidget {
                       size: 20,
                       color: AppTheme.errorColor,
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Text(
-                      'Eliminar Todos los Datos',
+                      l10n.eliminarTodosLosDatos,
                       style: TextStyle(color: AppTheme.errorColor),
                     ),
                   ],
@@ -75,19 +98,19 @@ class LocalesPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No hay locales registrados',
+                    l10n.noLocales,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Agrega tu primera tienda o local',
+                    l10n.agregaTuPrimeraTienda,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
                     onPressed: () => _showLocalDialog(context),
                     icon: const Icon(Icons.add),
-                    label: const Text('Agregar Local'),
+                    label: Text(l10n.agregarLocal),
                   ),
                 ],
               ),
@@ -135,8 +158,8 @@ class LocalesPage extends StatelessWidget {
                             color: AppTheme.primaryColor,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Text(
-                            'Actual',
+                          child: Text(
+                            l10n.actual,
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 12,
@@ -155,23 +178,23 @@ class LocalesPage extends StatelessWidget {
                           }
                         },
                         itemBuilder: (context) => [
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'select',
                             child: Row(
                               children: [
                                 Icon(Icons.check_circle_outline, size: 20),
                                 SizedBox(width: 8),
-                                Text('Seleccionar'),
+                                Text(l10n.seleccionar),
                               ],
                             ),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'edit',
                             child: Row(
                               children: [
                                 Icon(Icons.edit_outlined, size: 20),
                                 SizedBox(width: 8),
-                                Text('Editar'),
+                                Text(l10n.editar),
                               ],
                             ),
                           ),
@@ -186,7 +209,7 @@ class LocalesPage extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Eliminar',
+                                  l10n.eliminar,
                                   style: TextStyle(color: AppTheme.errorColor),
                                 ),
                               ],
@@ -206,6 +229,7 @@ class LocalesPage extends StatelessWidget {
   }
 
   void _showLocalDialog(BuildContext context, {Local? local}) {
+    final l10n = AppLocalizations.of(context)!;
     final nombreController = TextEditingController(text: local?.nombre);
     final direccionController = TextEditingController(text: local?.direccion);
     final telefonoController = TextEditingController(text: local?.telefono);
@@ -215,43 +239,43 @@ class LocalesPage extends StatelessWidget {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: Text(local == null ? 'Nuevo Local' : 'Editar Local'),
+          title: Text(local == null ? l10n.nuevoLocal : l10n.editarLocal),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: nombreController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nombre',
-                    hintText: 'Ej. Tienda Principal',
+                  decoration: InputDecoration(
+                    labelText: l10n.nombre,
+                    hintText: l10n.ejemploNombre,
                   ),
                   textCapitalization: TextCapitalization.words,
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: direccionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Dirección (opcional)',
-                    hintText: 'Ej. Calle 123 #45-67',
+                  decoration: InputDecoration(
+                    labelText: '${l10n.direccion} (${l10n.clienteOpcional})',
+                    hintText: l10n.ejemploTelefono,
                   ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: telefonoController,
-                  decoration: const InputDecoration(
-                    labelText: 'Teléfono (opcional)',
+                  decoration: InputDecoration(
+                    labelText: '${l10n.telefono} (${l10n.clienteOpcional})',
                   ),
                   keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: tipo,
-                  decoration: const InputDecoration(labelText: 'Tipo'),
-                  items: const [
-                    DropdownMenuItem(value: 'tienda', child: Text('Tienda')),
-                    DropdownMenuItem(value: 'bodega', child: Text('Bodega')),
-                    DropdownMenuItem(value: 'oficina', child: Text('Oficina')),
+                  initialValue: tipo,
+                  decoration: InputDecoration(labelText: l10n.tipo),
+                  items: [
+                    DropdownMenuItem(value: 'tienda', child: Text(l10n.tienda)),
+                    DropdownMenuItem(value: 'bodega', child: Text(l10n.bodega)),
+                    DropdownMenuItem(value: 'oficina', child: Text(l10n.oficina)),
                   ],
                   onChanged: (value) {
                     setState(() => tipo = value ?? 'tienda');
@@ -263,7 +287,7 @@ class LocalesPage extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancelar'),
+              child: Text(l10n.cancelar),
             ),
             FilledButton(
               onPressed: () {
@@ -289,7 +313,7 @@ class LocalesPage extends StatelessWidget {
                 }
                 Navigator.pop(ctx);
               },
-              child: Text(local == null ? 'Crear' : 'Guardar'),
+              child: Text(local == null ? l10n.crear : l10n.guardar),
             ),
           ],
         ),
@@ -333,54 +357,58 @@ class LocalesPage extends StatelessWidget {
         ventasCount;
 
     if (totalDatos > 0) {
+      final l10n = AppLocalizations.of(context)!;
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('📦 Local con datos'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('El local "${local.nombre}" tiene datos vinculados:'),
-              const SizedBox(height: 12),
-              if (productosCount > 0) Text('• $productosCount productos'),
-              if (clientesCount > 0) Text('• $clientesCount clientes'),
-              if (proveedoresCount > 0) Text('• $proveedoresCount proveedores'),
-              if (pedidosCount > 0) Text('• $pedidosCount pedidos'),
-              if (movimientosCount > 0) Text('• $movimientosCount movimientos'),
-              if (ventasCount > 0) Text('• $ventasCount ventas'),
-              const SizedBox(height: 12),
-              const Text(
-                '¿Qué deseas hacer?',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ],
+          title: Text(l10n.localConDatos),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${l10n.localConDatos}: "${local.nombre}"'),
+                const SizedBox(height: 12),
+                if (productosCount > 0) Text('• $productosCount ${l10n.productos}'),
+                if (clientesCount > 0) Text('• $clientesCount ${l10n.clientes}'),
+                if (proveedoresCount > 0) Text('• $proveedoresCount ${l10n.proveedores}'),
+                if (pedidosCount > 0) Text('• $pedidosCount ${l10n.pedidosProveedores}'),
+                if (movimientosCount > 0) Text('• $movimientosCount ${l10n.movimientos}'),
+                if (ventasCount > 0) Text('• $ventasCount ${l10n.ventas}'),
+                const SizedBox(height: 12),
+                Text(
+                  l10n.queDeseasHacer,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancelar'),
+              child: Text(l10n.cancelar),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(ctx);
                 viewModel.eliminar(local.id);
               },
-              child: const Text('Eliminar igual'),
+              child: Text(l10n.eliminarIgual),
             ),
           ],
         ),
       );
     } else {
+      final l10n = AppLocalizations.of(context)!;
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Eliminar Local'),
-          content: Text('¿Estás seguro de eliminar "${local.nombre}"?'),
+          title: Text('${l10n.eliminar} ${l10n.local}'),
+          content: Text('${l10n.eliminar} "${local.nombre}"?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancelar'),
+              child: Text(l10n.cancelar),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
@@ -390,7 +418,7 @@ class LocalesPage extends StatelessWidget {
                 viewModel.eliminar(local.id);
                 Navigator.pop(ctx);
               },
-              child: const Text('Eliminar'),
+              child: Text(l10n.eliminar),
             ),
           ],
         ),
@@ -399,18 +427,16 @@ class LocalesPage extends StatelessWidget {
   }
 
   void _confirmDeleteAllData(BuildContext context, LocalesViewModel viewModel) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('⚠️ Eliminar Todos los Datos'),
-        content: const Text(
-          'Esto eliminará TODOS los datos de la app (productos, clientes, proveedores, ventas, movimientos, locales).\n\n'
-          'Asegúrate de syncear primero si quieres guardar algo en Supabase.',
-        ),
+        title: Text(l10n.eliminarTodosLosDatos),
+        content: Text(l10n.resetearData),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: Text(l10n.cancelar),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
@@ -432,16 +458,95 @@ class LocalesPage extends StatelessWidget {
 
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Todos los datos eliminados')),
+                  SnackBar(content: Text(l10n.todosLosDatosEliminados)),
                 );
               }
 
               if (ctx.mounted) Navigator.pop(ctx);
             },
-            child: const Text('Eliminar Todo'),
+            child: Text(l10n.eliminarTodosLosDatos),
           ),
         ],
       ),
     );
   }
+}
+
+// ---------------------------------------------------------------------------
+// Import helpers
+// ---------------------------------------------------------------------------
+
+Future<void> _performImport(BuildContext context) async {
+  final result = await FilePicker.platform.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: ['xlsx', 'csv'],
+  );
+
+  if (result == null || result.files.single.path == null) return;
+
+  final filePath = result.files.single.path!;
+  final db = context.read<AppDatabase>();
+  final importService = ImportService(db);
+  final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+  final l10n = AppLocalizations.of(context)!;
+  scaffoldMessenger.showSnackBar(
+    SnackBar(
+      content: Text(l10n.importando),
+      duration: const Duration(seconds: 1),
+    ),
+  );
+
+  final importResult = await importService.importFile(filePath, 'locales');
+  if (context.mounted) {
+    await context.read<LocalesViewModel>().refresh();
+    _showImportResultDialog(context, importResult, 'locales');
+  }
+}
+
+void _showImportResultDialog(
+  BuildContext context,
+  ImportResult result,
+  String moduleLabel,
+) {
+  final l10n = AppLocalizations.of(context)!;
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      title: Text(
+        result.success ? l10n.importSuccess : l10n.importError,
+      ),
+      content: result.success
+          ? Text(l10n.importSuccess)
+          : SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.importError),
+                  const SizedBox(height: 12),
+                  ...?result.errors?.map(
+                    (e) => Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        e.toString(),
+                        style: const TextStyle(
+                          color: AppTheme.errorColor,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(l10n.cancelar),
+        ),
+      ],
+    ),
+  );
 }

@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -104,7 +103,7 @@ class HomePage extends StatelessWidget {
           name: filename,
           mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ),
-      ], text: 'InkTrack Report');
+      ], text: l10n.appTitle);
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -127,7 +126,8 @@ class HomePage extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
+      builder: (context) => SafeArea(
+        child: Container(
         decoration: BoxDecoration(
           color: isDark ? AppTheme.darkSurface : AppTheme.surfaceColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
@@ -216,7 +216,8 @@ class HomePage extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 
   Map<String, double> _groupExpensesByCategory(
@@ -241,8 +242,8 @@ class HomePage extends StatelessWidget {
         builder: (context, movVM, invVM, child) {
           final isFiltered = movVM.startDateFilter != null;
           
-          final summary = FinancialSummaryHeader(
-            title: isFiltered ? l10n.resultados : 'Reporte general',
+            final summary = FinancialSummaryHeader(
+            title: isFiltered ? l10n.resultados : l10n.reporteGeneral,
             totalIngresos: isFiltered
                 ? movVM.totalIngresosFiltered
                 : movVM.totalIngresos,
@@ -253,8 +254,8 @@ class HomePage extends StatelessWidget {
             startDate: movVM.startDateFilter,
             endDate: movVM.endDateFilter,
             onDateTap: () => _selectDateRange(context),
-            label1: isFiltered ? l10n.ingreso : 'Ventas',
-            label2: isFiltered ? l10n.egresoTipo : 'Gastos',
+            label1: isFiltered ? l10n.ingreso : l10n.ventas,
+            label2: isFiltered ? l10n.egresoTipo : l10n.gastos,
             label3: isFiltered ? l10n.balanceNeto : l10n.patrimonio,
             icon1: isFiltered ? Icons.trending_up : Icons.summarize_rounded,
             icon2: isFiltered ? Icons.trending_down : Icons.payments_rounded,
@@ -295,7 +296,7 @@ class HomePage extends StatelessWidget {
                           Expanded(
                             child: _ExportButton(
                               icon: Icons.picture_as_pdf_rounded,
-                              label: 'PDF',
+                              label: l10n.pdf,
                               color: Colors.red.shade700,
                               onTap: () => _exportPdf(context),
                             ),
@@ -304,7 +305,7 @@ class HomePage extends StatelessWidget {
                           Expanded(
                             child: _ExportButton(
                               icon: Icons.table_chart_rounded,
-                              label: 'Excel',
+                              label: l10n.excel,
                               color: Colors.green.shade700,
                               onTap: () => _exportExcel(context),
                             ),
@@ -326,7 +327,7 @@ class HomePage extends StatelessWidget {
                           Expanded(
                             child: _ActionButton(
                               icon: Icons.add_circle_outline_rounded,
-                              label: 'Ingreso',
+                              label: l10n.ingreso,
                               color: AppTheme.successColor,
                               onTap: () => Navigator.push(
                                 context,
@@ -342,7 +343,7 @@ class HomePage extends StatelessWidget {
                           Expanded(
                             child: _ActionButton(
                               icon: Icons.remove_circle_outline_rounded,
-                              label: 'Egreso',
+                              label: l10n.egreso,
                               color: AppTheme.errorColor,
                               onTap: () => Navigator.push(
                                 context,
@@ -360,7 +361,7 @@ class HomePage extends StatelessWidget {
                       // Pie Chart Integration
                       if (totalEgresos > 0) ...[
                         Text(
-                          'Distribución de Gastos',
+                          l10n.distribucionGastos,
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.w800),
                         ),
@@ -380,7 +381,7 @@ class HomePage extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Últimas transacciones',
+                            l10n.ultimasTransacciones,
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(fontWeight: FontWeight.w800),
                           ),
@@ -426,7 +427,7 @@ class HomePage extends StatelessWidget {
             ],
           );
         },
-      ),
+        ),
     );
   }
 
@@ -518,7 +519,6 @@ class _ExportButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -608,9 +608,10 @@ class _ActionButton extends StatelessWidget {
 class _HistoryTableHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textStyle = GoogleFonts.plusJakartaSans(
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: FontWeight.w800,
       color: isDark ? AppTheme.darkTextTertiary : AppTheme.textTertiary,
       letterSpacing: 0.5,
@@ -624,9 +625,9 @@ class _HistoryTableHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Expanded(flex: 2, child: Text('FECHA', style: textStyle)),
-          Expanded(flex: 4, child: Text('CONCEPTO', style: textStyle)),
-          Expanded(flex: 3, child: Text('VALOR', style: textStyle, textAlign: TextAlign.end)),
+          Expanded(flex: 2, child: Text(l10n.fecha.toUpperCase(), style: textStyle)),
+          Expanded(flex: 4, child: Text(l10n.concepto.toUpperCase(), style: textStyle)),
+          Expanded(flex: 3, child: Text(l10n.monto.toUpperCase(), style: textStyle, textAlign: TextAlign.end)),
         ],
       ),
     );

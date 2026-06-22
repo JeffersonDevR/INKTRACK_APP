@@ -31,6 +31,7 @@ import 'package:InkTrack/core/services/pdf_export_service.dart';
 import 'package:InkTrack/core/services/excel_export_service.dart';
 import 'package:InkTrack/core/services/auth_service.dart';
 import 'package:InkTrack/core/services/notification_service.dart';
+import 'package:InkTrack/core/widgets/offline_banner.dart';
 import 'package:InkTrack/features/auth/presentation/pages/profile_page.dart';
 import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmodel.dart';
 import 'package:InkTrack/features/locales/presentation/pages/locales_page.dart';
@@ -85,13 +86,14 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (!mounted) return;
               final locVM = context.read<LocalesViewModel>();
-              locVM.migrarDatosExistentes(
-                invVM: invVM,
-                cliVM: cliVM,
-                provVM: provVM,
-                movVM: movVM,
-                context: context,
-              );
+              final currentId = locVM.localIdSeleccionado;
+              if (currentId != null) {
+                locVM.migrateData(
+                  currentId,
+                  showConfirmation: true,
+                  context: context,
+                );
+              }
             });
           }
 
@@ -149,6 +151,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
     }
   }
 
+  // ignore: unused_element
   void _navigateToReports() {
     setState(() {
       _currentIndex = 0; // Go to Home where reports are now
@@ -276,6 +279,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
     }
   }
 
+  // ignore: unused_element
   void _showExportOptions(String format) {
     final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
@@ -363,10 +367,10 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
             return _buildBannerItem(
               context,
               icon: Icons.event_note_rounded,
-              title: 'Visitas para mañana',
+              title: l10n.diasVisita,
               subtitle: visitanManana.length == 1
-                  ? 'Mañana recibes pedido de ${visitanManana.first.nombre}'
-                  : 'Mañana recibes pedidos de: ${visitanManana.map((p) => p.nombre).join(', ')}',
+                  ? '${l10n.diasVisita}: ${visitanManana.first.nombre}'
+                  : '${l10n.diasVisita}: ${visitanManana.map((p) => p.nombre).join(', ')}',
               onTap: () {
                 setState(() => _currentIndex = 2); // Go to Proveedores tab
               },
@@ -451,6 +455,8 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
         return Scaffold(
           body: Column(
             children: [
+              if (widget.authService?.offlineMode == true)
+                const OfflineBanner(),
               Container(
                 padding: EdgeInsets.only(
                   top: MediaQuery.of(context).padding.top + 8,
@@ -491,7 +497,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'InkTrack',
+                              l10n.appTitle,
                               style: GoogleFonts.plusJakartaSans(
                                 color: isDark
                                     ? Colors.white
@@ -503,32 +509,32 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 2),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            [
-                              l10n.panelDeInicio,
-                              l10n.gestionDeClientes,
-                              l10n.proveedoresHeader,
-                              l10n.controlDeInventario,
-                              l10n.reportesDeNegocio,
-                            ][_currentIndex].toUpperCase(),
-                            style: GoogleFonts.plusJakartaSans(
-                              color: AppTheme.primaryColor,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 10,
-                              letterSpacing: 0.5,
+                        if (MediaQuery.of(context).size.width >= 360)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              [
+                                l10n.panelDeInicio,
+                                l10n.gestionDeClientes,
+                                l10n.proveedoresHeader,
+                                l10n.controlDeInventario,
+                                l10n.reportesDeNegocio,
+                              ][_currentIndex].toUpperCase(),
+                              style: GoogleFonts.plusJakartaSans(
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 10,
+                                letterSpacing: 0.5,
+                              ),
                             ),
                           ),
-                        ),
                       ],
                     ),
                     const Spacer(),
@@ -562,7 +568,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 Text(
-                                  user?.email?.split('@').first ?? 'User',
+                                  user?.email?.split('@').first ?? l10n.usuario,
                                   style: GoogleFonts.plusJakartaSans(
                                     color: isDark
                                         ? Colors.white
@@ -801,7 +807,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                     MaterialPageRoute(
                         builder: (context) => const ProductoFormPage()),
                   ),
-                ),
+               ),
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         );
       },

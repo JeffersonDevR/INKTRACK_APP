@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import '../utils/number_formatter.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 
 class FinancialSummaryHeader extends StatelessWidget {
   final double totalIngresos;
@@ -51,8 +51,8 @@ class FinancialSummaryHeader extends StatelessWidget {
     return NumberFormatter.formatNumber(val.toInt());
   }
 
-  String _formatDateRange() {
-    if (startDate == null || endDate == null) return 'Hoy';
+  String _formatDateRange(BuildContext context) {
+    if (startDate == null || endDate == null) return AppLocalizations.of(context)!.hoy;
     final df = DateFormat('dd MMM');
     if (startDate!.year == endDate!.year &&
         startDate!.month == endDate!.month &&
@@ -65,6 +65,7 @@ class FinancialSummaryHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -72,7 +73,7 @@ class FinancialSummaryHeader extends StatelessWidget {
         color: isDark ? AppTheme.darkCard : AppTheme.surfaceColor,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDark ? AppTheme.darkBorder : const Color(0xFFF1F5F9),
+          color: isDark ? AppTheme.darkBorder : AppTheme.borderLightColor,
         ),
         boxShadow: [
           BoxShadow(
@@ -97,8 +98,7 @@ class FinancialSummaryHeader extends StatelessWidget {
                     Flexible(
                       child: Text(
                         title,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 24,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w800,
                           color: isDark
                               ? AppTheme.darkTextPrimary
@@ -122,8 +122,10 @@ class FinancialSummaryHeader extends StatelessWidget {
                 ),
               ),
               if (onDateTap != null || (actions != null && actions!.isNotEmpty))
-                Row(
-                  mainAxisSize: MainAxisSize.min,
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     if (onDateTap != null)
                       Material(
@@ -157,11 +159,10 @@ class FinancialSummaryHeader extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  _formatDateRange(),
-                                  style: GoogleFonts.plusJakartaSans(
+                                  _formatDateRange(context),
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: AppTheme.primaryColor,
                                     fontWeight: FontWeight.w700,
-                                    fontSize: 12,
                                   ),
                                 ),
                               ],
@@ -169,10 +170,7 @@ class FinancialSummaryHeader extends StatelessWidget {
                           ),
                         ),
                       ),
-                    if (actions != null) ...[
-                      const SizedBox(width: 8),
-                      ...actions!,
-                    ],
+                    if (actions != null) ...actions!,
                   ],
                 ),
             ],
@@ -183,7 +181,7 @@ class FinancialSummaryHeader extends StatelessWidget {
             children: [
               Expanded(
                 child: _StatItem(
-                  label: label1 ?? 'Ingresos',
+                  label: label1 ?? l10n.ingresos,
                   value: _formatValue(totalIngresos, isCurrency1),
                   color: AppTheme.successColor,
                   icon: icon1 ?? Icons.south_west_rounded,
@@ -193,11 +191,11 @@ class FinancialSummaryHeader extends StatelessWidget {
               Container(
                 width: 1,
                 height: 40,
-                color: isDark ? AppTheme.darkBorder : const Color(0xFFF1F5F9),
+                color: isDark ? AppTheme.darkBorder : AppTheme.borderLightColor,
               ),
               Expanded(
                 child: _StatItem(
-                  label: label2 ?? 'Egresos',
+                  label: label2 ?? l10n.egresos,
                   value: _formatValue(totalEgresos, isCurrency2),
                   color: AppTheme.errorColor,
                   icon: icon2 ?? Icons.north_east_rounded,
@@ -210,7 +208,7 @@ class FinancialSummaryHeader extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 20),
             child: Divider(
               height: 1,
-              color: isDark ? AppTheme.darkBorder : const Color(0xFFF1F5F9),
+              color: isDark ? AppTheme.darkBorder : AppTheme.borderLightColor,
             ),
           ),
           Row(
@@ -221,7 +219,7 @@ class FinancialSummaryHeader extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      label3 ?? 'Balance Neto',
+                      label3 ?? l10n.balanceNeto,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: isDark
                             ? AppTheme.darkTextSecondary

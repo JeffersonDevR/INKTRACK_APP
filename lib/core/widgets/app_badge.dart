@@ -32,7 +32,7 @@ class AppBadge extends StatelessWidget {
       child: Text(
         label.toUpperCase(),
         style: TextStyle(
-          fontSize: fontSize ?? 10,
+          fontSize: fontSize ?? 11,
           fontWeight: FontWeight.w900,
           color: colors.text,
         ),

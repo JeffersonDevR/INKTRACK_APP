@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:InkTrack/core/data/local/database.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/clientes/data/models/cliente.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
+import 'package:InkTrack/core/services/import_service.dart';
 import 'package:InkTrack/core/widgets/app_card.dart';
 import 'package:InkTrack/l10n/app_localizations.dart';
 import 'cliente_form_page.dart';
@@ -47,23 +50,29 @@ class ClientesPage extends StatelessWidget {
                     ),
                   ),
                   icon: Icons.account_balance_wallet_rounded,
-                  label: 'Acreedores',
+                  label: l10n.acreedores,
                   color: AppTheme.primaryColor,
                 ),
                 _HeaderAction(
                   onTap: () => viewModel.toggleShowInactive(),
                   icon: showInactive ? Icons.visibility : Icons.visibility_off,
-                  label: showInactive ? 'Ocultar' : 'Ver',
+                  label: showInactive ? l10n.ocultar : l10n.ver,
                   color: showInactive
                       ? AppTheme.warningColor
                       : AppTheme.textSecondary,
+                ),
+                _HeaderAction(
+                  onTap: () => _performImport(context),
+                  icon: Icons.file_upload_rounded,
+                  label: l10n.import,
+                  color: AppTheme.secondaryColor,
                 ),
               ],
               totalIngresos: viewModel.totalClientes.toDouble(),
               totalEgresos: viewModel.clientesConDeuda.toDouble(),
               balance: viewModel.totalDeuda,
               label1: l10n.clientes,
-              label2: 'With Debt',
+              label2: l10n.deudaPendiente,
               label3: l10n.deudaTotal,
               icon1: Icons.people_rounded,
               icon2: Icons.assignment_late_rounded,
@@ -123,10 +132,10 @@ class ClientesPage extends StatelessWidget {
                           ),
                           child: Text(
                             cliente.nombre.substring(0, 1).toUpperCase(),
-                            style: const TextStyle(
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
                               color: AppTheme.primaryColor,
                               fontWeight: FontWeight.w900,
-                              fontSize: 18,
                             ),
                           ),
                         ),
@@ -179,9 +188,9 @@ class ClientesPage extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  'INACTIVE',
+                                  l10n.inactive,
                                   style: TextStyle(
-                                    fontSize: 9,
+                                    fontSize: 11,
                                     fontWeight: FontWeight.w900,
                                     color: isDark
                                         ? AppTheme.darkTextSecondary
@@ -201,8 +210,8 @@ class ClientesPage extends StatelessWidget {
                                   ),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Text(
-                                  'Acreedor',
+                                child: Text(
+                                  l10n.acreedores,
                                   style: TextStyle(
                                     fontSize: 9,
                                     fontWeight: FontWeight.w900,
@@ -251,8 +260,8 @@ class ClientesPage extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            child: Text(
-                              'Debe: ${NumberFormatter.formatCurrency(cliente.saldoPendiente)}',
+                                child: Text(
+                                '${l10n.deudaPendiente}: ${NumberFormatter.formatCurrency(cliente.saldoPendiente)}',
                               style: Theme.of(context).textTheme.labelSmall
                                   ?.copyWith(
                                     color: AppTheme.errorColor,
@@ -308,7 +317,7 @@ class ClientesPage extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 12),
                                 Text(
-                                  'Reactivate',
+                                  l10n.reactivate,
                                   style: TextStyle(
                                     color: AppTheme.successColor,
                                   ),
@@ -328,7 +337,7 @@ class ClientesPage extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 12),
                                 Text(
-                                  'Deactivate',
+                                  l10n.deactivate,
                                   style: TextStyle(color: AppTheme.errorColor),
                                 ),
                               ],
@@ -371,9 +380,9 @@ class ClientesPage extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: Text('Deactivate ${l10n.cliente}'),
+        title: Text('${l10n.deactivate} ${l10n.cliente}'),
         content: Text(
-          'Deactivate ${cliente.nombre}?\n\nIt will still appear in reports but will not be available for new sales.',
+          '${l10n.deactivate} ${cliente.nombre}?\n\n${l10n.noDisponible}',
         ),
         actions: [
           TextButton(
@@ -389,12 +398,87 @@ class ClientesPage extends StatelessWidget {
               backgroundColor: AppTheme.errorColor,
               foregroundColor: Colors.white,
             ),
-            child: Text('Deactivate'),
+            child: Text(l10n.deactivate),
           ),
         ],
       ),
     );
   }
+}
+
+Future<void> _performImport(BuildContext context) async {
+  final result = await FilePicker.platform.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: ['xlsx', 'csv'],
+  );
+
+  if (result == null || result.files.single.path == null) return;
+
+  final filePath = result.files.single.path!;
+  final db = context.read<AppDatabase>();
+  final importService = ImportService(db);
+  final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+  final l10n = AppLocalizations.of(context)!;
+  scaffoldMessenger.showSnackBar(
+    SnackBar(
+      content: Text(l10n.importando),
+      duration: const Duration(seconds: 1),
+    ),
+  );
+
+  final importResult = await importService.importFile(filePath, 'clientes');
+  if (context.mounted) {
+    await context.read<ClientesViewModel>().refresh();
+    _showImportResultDialog(context, importResult, 'clientes');
+  }
+}
+
+void _showImportResultDialog(
+  BuildContext context,
+  ImportResult result,
+  String moduleLabel,
+) {
+  final l10n = AppLocalizations.of(context)!;
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      title: Text(
+        result.success ? l10n.importSuccess : l10n.importError,
+      ),
+      content: result.success
+          ? Text(l10n.importSuccess)
+          : SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.importError),
+                  const SizedBox(height: 12),
+                  ...?result.errors?.map(
+                    (e) => Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        e.toString(),
+                        style: const TextStyle(
+                          color: AppTheme.errorColor,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(l10n.cancelar),
+        ),
+      ],
+    ),
+  );
 }
 
 class _HeaderAction extends StatelessWidget {
@@ -425,7 +509,7 @@ class _HeaderAction extends StatelessWidget {
               label,
               style: TextStyle(
                 color: color,
-                fontSize: 9,
+                fontSize: 11,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -468,7 +552,7 @@ class _EmptyClientes extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Start by adding your first client to manage their purchases and debts.',
+              l10n.comienzaAgregandoProductos,
               textAlign: TextAlign.center,
               style: Theme.of(
                 context,
