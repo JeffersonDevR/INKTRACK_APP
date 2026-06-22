@@ -9,6 +9,8 @@ build/
 specs/
 test/
 android
+android/
+macos
 .idea
 .dart_tool
 linux
