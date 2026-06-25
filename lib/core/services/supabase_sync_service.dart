@@ -1,61 +1,108 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:InkTrack/core/data/local/database.dart';
-import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:drift/drift.dart';
+import 'package:InkTrack/core/data/local/database.dart';
+import 'package:InkTrack/core/services/log_service.dart';
+import 'package:InkTrack/core/services/analytics_service.dart';
+import 'package:InkTrack/core/services/sync/batch_uploader.dart';
+import 'package:InkTrack/core/services/sync/sync_strategy.dart';
+import 'package:InkTrack/core/services/sync/strategies/sync_strategies.dart';
 
+/// Coordinates cloud sync across all tables.
+///
+/// Uses per-table [SyncStrategy] instances and a shared [BatchUploader]
+/// to batch-upload pending records with exponential-backoff retry.
+/// Downloads use last-write-wins conflict resolution by comparing
+/// the server's `updated_at` with the local `lastSyncedAt`.
 class SupabaseSyncService {
   final AppDatabase _db;
-  final String _supabaseUrl;
-  final String _supabaseKey;
+  final SupabaseClient _client;
+  final BatchUploader _uploader;
 
-  SupabaseSyncService(this._db, this._supabaseUrl, this._supabaseKey);
+  /// Ordered strategies matching the dependency-safe sync order:
+  /// parents first, then children.
+  final List<SyncStrategy> _strategies;
 
-  Map<String, String> get _headers => {
-    'apikey': _supabaseKey,
-    'Authorization': 'Bearer $_supabaseKey',
-    'Content-Type': 'application/json',
-    'Prefer': 'resolution=merge-duplicates',
-  };
+  SupabaseSyncService(this._db, this._client, {BatchUploader? uploader})
+      : _uploader = uploader ?? BatchUploader(),
+        _strategies = _createStrategies();
 
+  /// Create the default set of per-table strategies in dependency order.
+  static List<SyncStrategy> _createStrategies() {
+    return [
+      LocalesSyncStrategy(),
+      ClientesSyncStrategy(),
+      ProveedoresSyncStrategy(),
+      ProductosSyncStrategy(),
+      PedidosProveedorSyncStrategy(),
+      MovimientosSyncStrategy(),
+      VentasSyncStrategy(),
+    ];
+  }
+
+  /// Expose strategies for testing / selective sync.
+  List<SyncStrategy> get strategies => _strategies;
+
+  /// Get a strategy by Supabase table name.
+  SyncStrategy? strategyFor(String tableName) {
+    try {
+      return _strategies.firstWhere((s) => s.tableName == tableName);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Sync a single table: upload pending + download server changes.
   Future<SyncResult> syncTable(String tableName) async {
+    final log = LogService.instance;
+    final strategy = strategyFor(tableName);
+    if (strategy == null) {
+      log.warning('Sync', 'No strategy found for table: $tableName');
+      return SyncResult(
+        tableName: tableName,
+        uploaded: 0,
+        downloaded: 0,
+        errors: 1,
+      );
+    }
+
+    log.info('Sync', 'Starting sync for $tableName');
+
     int uploaded = 0;
     int downloaded = 0;
     int errors = 0;
+    String? errorMessage;
 
-    switch (tableName) {
-      case 'productos':
-        final result = await _syncProductos();
-        uploaded = result.uploaded;
-        downloaded = result.downloaded;
-        errors = result.errors;
-        break;
-      case 'clientes':
-        final result = await _syncClientes();
-        uploaded = result.uploaded;
-        downloaded = result.downloaded;
-        errors = result.errors;
-        break;
-      case 'proveedores':
-        final result = await _syncProveedores();
-        uploaded = result.uploaded;
-        downloaded = result.downloaded;
-        errors = result.errors;
-        break;
-      case 'movimientos':
-        final result = await _syncMovimientos();
-        uploaded = result.uploaded;
-        downloaded = result.downloaded;
-        errors = result.errors;
-        break;
-      case 'ventas':
-        final result = await _syncVentas();
-        uploaded = result.uploaded;
-        downloaded = result.downloaded;
-        errors = result.errors;
-        break;
-      default:
-        errors = 1;
+    try {
+      uploaded = await _uploader.uploadPending(_db, _client, strategy);
+      if (uploaded > 0) {
+        log.info('Sync', 'Uploaded $uploaded records to $tableName');
+      }
+    } catch (e) {
+      errors++;
+      errorMessage = 'Upload failed for ${strategy.tableName}: $e';
+      log.error('Sync', errorMessage);
+    }
+
+    try {
+      downloaded = await strategy.downloadAndMerge(_db, _client);
+      if (downloaded > 0) {
+        log.info('Sync', 'Downloaded $downloaded records from $tableName');
+      }
+    } catch (e) {
+      errors++;
+      errorMessage = (errorMessage ?? '') + 'Download failed for ${strategy.tableName}: $e';
+      log.error('Sync', 'Download failed for $tableName: $e');
+      return SyncResult(
+        tableName: tableName,
+        uploaded: uploaded,
+        downloaded: 0,
+        errors: errors,
+        errorMessage: errorMessage,
+      );
+    }
+
+    if (errors == 0 && uploaded == 0 && downloaded == 0) {
+      log.debug('Sync', 'No changes for $tableName');
     }
 
     return SyncResult(
@@ -63,96 +110,78 @@ class SupabaseSyncService {
       uploaded: uploaded,
       downloaded: downloaded,
       errors: errors,
+      errorMessage: errorMessage,
     );
   }
 
+  /// Download server changes for a single table (without uploading).
   Future<SyncResult> downloadFromSupabase(String tableName) async {
-    int downloaded = 0;
-    int errors = 0;
-
-    switch (tableName) {
-      case 'productos':
-        final result = await _downloadProductos();
-        downloaded = result.downloaded;
-        errors = result.errors;
-        break;
-      case 'clientes':
-        final result = await _downloadClientes();
-        downloaded = result.downloaded;
-        errors = result.errors;
-        break;
-      case 'proveedores':
-        final result = await _downloadProveedores();
-        downloaded = result.downloaded;
-        errors = result.errors;
-        break;
-      case 'movimientos':
-        final result = await _downloadMovimientos();
-        downloaded = result.downloaded;
-        errors = result.errors;
-        break;
-      case 'ventas':
-        final result = await _downloadVentas();
-        downloaded = result.downloaded;
-        errors = result.errors;
-        break;
-      default:
-        errors = 1;
+    final strategy = strategyFor(tableName);
+    if (strategy == null) {
+      return SyncResult(
+        tableName: tableName,
+        uploaded: 0,
+        downloaded: 0,
+        errors: 1,
+      );
     }
 
-    return SyncResult(
-      tableName: tableName,
-      uploaded: 0,
-      downloaded: downloaded,
-      errors: errors,
-    );
-  }
-
-  Future<SyncResult> downloadAll() async {
-    int totalDownloaded = 0;
-    int totalErrors = 0;
-
-    // Sequential order: parents first, then children
-    final tablesInOrder = [
-      'clientes',
-      'proveedores',
-      'productos',
-      'movimientos',
-      'ventas',
-    ];
-    for (final table in tablesInOrder) {
-      final result = await downloadFromSupabase(table);
-      totalDownloaded += result.downloaded;
-      totalErrors += result.errors;
+    try {
+      final downloaded = await strategy.downloadAndMerge(_db, _client);
+      return SyncResult(
+        tableName: tableName,
+        uploaded: 0,
+        downloaded: downloaded,
+        errors: 0,
+      );
+    } catch (e) {
+      return SyncResult(
+        tableName: tableName,
+        uploaded: 0,
+        downloaded: 0,
+        errors: 1,
+        errorMessage: '$e',
+      );
     }
-
-    return SyncResult(
-      tableName: 'all',
-      uploaded: 0,
-      downloaded: totalDownloaded,
-      errors: totalErrors,
-    );
   }
 
+  /// Sync all tables in dependency order.
+  ///
+  /// Locales are synced first, then any locales referenced by pending child
+  /// rows are force-uploaded to avoid FK violations, then the remaining tables
+  /// are synced.
   Future<SyncResult> syncAll() async {
     int totalUploaded = 0;
     int totalDownloaded = 0;
     int totalErrors = 0;
 
-    // Sequential order: parents first, then children
-    final tablesInOrder = [
-      'clientes',
-      'proveedores',
-      'productos',
-      'movimientos',
-      'ventas',
-    ];
-    for (final table in tablesInOrder) {
-      final result = await syncTable(table);
+    AnalyticsService.instance.track('sync_start');
+    final localeResult = await syncTable('locales');
+    totalUploaded += localeResult.uploaded;
+    totalDownloaded += localeResult.downloaded;
+    totalErrors += localeResult.errors;
+
+    // Upload locales referenced by pending child rows even if they were
+    // already marked as synced locally (e.g. after a cloud reset).
+    try {
+      await _ensureReferencedLocalesUploaded();
+    } catch (e) {
+      totalErrors++;
+    }
+
+    for (final strategy in _strategies) {
+      if (strategy is LocalesSyncStrategy) continue;
+      final result = await syncTable(strategy.tableName);
       totalUploaded += result.uploaded;
       totalDownloaded += result.downloaded;
       totalErrors += result.errors;
     }
+
+    AnalyticsService.instance.track('sync_completed', properties: {
+      'uploaded': totalUploaded,
+      'downloaded': totalDownloaded,
+      'errors': totalErrors,
+    });
 
     return SyncResult(
       tableName: 'all',
@@ -162,619 +191,119 @@ class SupabaseSyncService {
     );
   }
 
-  Future<SyncResult> _syncProductos() async {
-    int uploaded = 0;
-    int downloaded = 0;
-    int errors = 0;
+  /// Uploads every locale that is referenced by a pending child row.
+  ///
+  /// This prevents FK/RLS failures when a child record points to a locale that
+  /// exists locally but is missing from Supabase.
+  Future<void> _ensureReferencedLocalesUploaded() async {
+    final localIds = <String>{};
+
+    for (final strategy in _strategies) {
+      if (strategy is LocalesSyncStrategy) continue;
+      final rows = await strategy.getPendingRows(_db);
+      for (final row in rows) {
+        final id = row['local_id'] as String?;
+        if (id != null && id.isNotEmpty) {
+          localIds.add(id);
+        }
+      }
+    }
+
+    if (localIds.isEmpty) return;
+
+    final locales = await (_db.select(_db.locales)
+          ..where((t) => t.id.isIn(localIds.toList())))
+        .get();
+
+    if (locales.isEmpty) return;
+
+    final log = LogService.instance;
+    log.info('Sync', 'Ensuring ${locales.length} referenced locales exist in cloud');
+
+    final currentUserId = _client.auth.currentUser?.id;
+    final localeRows = locales
+        .map((l) => {
+              'id': l.id,
+              'nombre': l.nombre,
+              'direccion': l.direccion,
+              'telefono': l.telefono,
+              'tipo': l.tipo,
+              'user_id': l.userId ?? currentUserId,
+              'is_activo': l.isActivo,
+            })
+        .toList();
 
     try {
-      final pending = await (_db.select(
-        _db.productos,
-      )..where((t) => t.syncStatus.equals('pending_upload'))).get();
+      await _client.from('locales').upsert(localeRows);
+      log.info('Sync', 'Uploaded ${localeRows.length} referenced locales');
 
-      for (final producto in pending) {
-        try {
-          final data = {
-            'id': producto.id,
-            'nombre': producto.nombre,
-            'cantidad': producto.cantidad,
-            'precio': producto.precio,
-            'categoria': producto.categoria,
-            'proveedor_id': producto.proveedorId,
-            'stock_minimo': producto.stockMinimo,
-            'codigo_barras': producto.codigoBarras,
-            'codigo_personalizado': producto.codigoPersonalizado,
-            'proveedor_nombre': producto.proveedorNombre,
-            'is_activo': producto.isActivo,
-          };
-
-          final response = await http.post(
-            Uri.parse('$_supabaseUrl/rest/v1/productos'),
-            headers: _headers,
-            body: jsonEncode(data),
+      // Keep local records consistent with what was just uploaded.
+      final now = DateTime.now();
+      for (final local in locales) {
+        if (local.userId == null && currentUserId != null) {
+          await (_db.update(_db.locales)..where((t) => t.id.equals(local.id))).write(
+            LocalesCompanion(
+              userId: Value(currentUserId),
+              syncStatus: const Value(syncedStatus),
+              lastSyncedAt: Value(now),
+            ),
           );
-
-          if (response.statusCode == 200 || response.statusCode == 201) {
-            await (_db.update(
-              _db.productos,
-            )..where((t) => t.id.equals(producto.id))).write(
-              ProductosCompanion(
-                syncStatus: const Value('synced'),
-                lastSyncedAt: Value(DateTime.now()),
-              ),
-            );
-            uploaded++;
-          } else {
-            errors++;
-          }
-        } catch (e) {
-          errors++;
-        }
-      }
-    } catch (e) {
-      errors++;
-    }
-
-    return SyncResult(
-      tableName: 'productos',
-      uploaded: uploaded,
-      downloaded: downloaded,
-      errors: errors,
-    );
-  }
-
-  Future<SyncResult> _syncClientes() async {
-    int uploaded = 0;
-    int downloaded = 0;
-    int errors = 0;
-
-    try {
-      final pending = await (_db.select(
-        _db.clientes,
-      )..where((t) => t.syncStatus.equals('pending_upload'))).get();
-
-      for (final cliente in pending) {
-        try {
-          final data = {
-            'id': cliente.id,
-            'nombre': cliente.nombre,
-            'telefono': cliente.telefono,
-            'email': cliente.email,
-            'es_fiado': cliente.esFiado,
-            'saldo_pendiente': cliente.saldoPendiente,
-            'is_activo': cliente.isActivo,
-          };
-
-          final response = await http.post(
-            Uri.parse('$_supabaseUrl/rest/v1/clientes'),
-            headers: _headers,
-            body: jsonEncode(data),
+        } else {
+          await (_db.update(_db.locales)..where((t) => t.id.equals(local.id))).write(
+            LocalesCompanion(
+              syncStatus: const Value(syncedStatus),
+              lastSyncedAt: Value(now),
+            ),
           );
-
-          if (response.statusCode == 200 || response.statusCode == 201) {
-            await (_db.update(
-              _db.clientes,
-            )..where((t) => t.id.equals(cliente.id))).write(
-              ClientesCompanion(
-                syncStatus: const Value('synced'),
-                lastSyncedAt: Value(DateTime.now()),
-              ),
-            );
-            uploaded++;
-          } else {
-            errors++;
-          }
-        } catch (e) {
-          errors++;
         }
       }
     } catch (e) {
-      errors++;
+      log.error('Sync', 'Failed to upload referenced locales: $e');
+      rethrow;
     }
-
-    return SyncResult(
-      tableName: 'clientes',
-      uploaded: uploaded,
-      downloaded: downloaded,
-      errors: errors,
-    );
   }
 
-  Future<SyncResult> _syncProveedores() async {
-    int uploaded = 0;
-    int downloaded = 0;
-    int errors = 0;
+  /// Download all tables in dependency order.
+  Future<SyncResult> downloadAll() async {
+    int totalDownloaded = 0;
+    int totalErrors = 0;
 
-    try {
-      final pending = await (_db.select(
-        _db.proveedores,
-      )..where((t) => t.syncStatus.equals('pending_upload'))).get();
-
-      for (final proveedor in pending) {
-        try {
-          final data = {
-            'id': proveedor.id,
-            'nombre': proveedor.nombre,
-            'telefono': proveedor.telefono,
-            'dias_visita': proveedor.diasVisita.join(','),
-            'is_activo': proveedor.isActivo,
-          };
-
-          final response = await http.post(
-            Uri.parse('$_supabaseUrl/rest/v1/proveedores'),
-            headers: _headers,
-            body: jsonEncode(data),
-          );
-
-          if (response.statusCode == 200 || response.statusCode == 201) {
-            await (_db.update(
-              _db.proveedores,
-            )..where((t) => t.id.equals(proveedor.id))).write(
-              ProveedoresCompanion(
-                syncStatus: const Value('synced'),
-                lastSyncedAt: Value(DateTime.now()),
-              ),
-            );
-            uploaded++;
-          } else {
-            errors++;
-          }
-        } catch (e) {
-          errors++;
-        }
-      }
-    } catch (e) {
-      errors++;
+    for (final strategy in _strategies) {
+      final result = await downloadFromSupabase(strategy.tableName);
+      totalDownloaded += result.downloaded;
+      totalErrors += result.errors;
     }
 
     return SyncResult(
-      tableName: 'proveedores',
-      uploaded: uploaded,
-      downloaded: downloaded,
-      errors: errors,
-    );
-  }
-
-  Future<SyncResult> _syncMovimientos() async {
-    int uploaded = 0;
-    int downloaded = 0;
-    int errors = 0;
-
-    try {
-      final pending = await (_db.select(
-        _db.movimientos,
-      )..where((t) => t.syncStatus.equals('pending_upload'))).get();
-
-      for (final movimiento in pending) {
-        try {
-          final data = {
-            'id': movimiento.id,
-            'monto': movimiento.monto,
-            'fecha': movimiento.fecha.toIso8601String(),
-            'tipo': movimiento.tipo.index,
-            'concepto': movimiento.concepto,
-            'categoria': movimiento.categoria,
-            'producto_id': movimiento.productoId,
-            'cliente_id': movimiento.clienteId,
-            'proveedor_id': movimiento.proveedorId,
-            'cantidad': movimiento.cantidad,
-            'es_fiado': movimiento.esFiado,
-            'sync_status': movimiento.syncStatus,
-            'last_synced_at': movimiento.lastSyncedAt?.toIso8601String(),
-          };
-
-          final response = await http.post(
-            Uri.parse('$_supabaseUrl/rest/v1/movimientos'),
-            headers: _headers,
-            body: jsonEncode(data),
-          );
-
-          if (response.statusCode == 200 || response.statusCode == 201) {
-            await (_db.update(
-              _db.movimientos,
-            )..where((t) => t.id.equals(movimiento.id))).write(
-              MovimientosCompanion(
-                syncStatus: const Value('synced'),
-                lastSyncedAt: Value(DateTime.now()),
-              ),
-            );
-            uploaded++;
-          } else {
-            errors++;
-          }
-        } catch (e) {
-          errors++;
-        }
-      }
-    } catch (e) {
-      errors++;
-    }
-
-    return SyncResult(
-      tableName: 'movimientos',
-      uploaded: uploaded,
-      downloaded: downloaded,
-      errors: errors,
-    );
-  }
-
-  Future<SyncResult> _syncVentas() async {
-    int uploaded = 0;
-    int downloaded = 0;
-    int errors = 0;
-
-    try {
-      final pending = await (_db.select(
-        _db.ventas,
-      )..where((t) => t.syncStatus.equals('pending_upload'))).get();
-
-      for (final venta in pending) {
-        try {
-          final data = {
-            'id': venta.id,
-            'monto': venta.monto,
-            'fecha': venta.fecha.toIso8601String(),
-            'cliente_id': venta.clienteId,
-            'cliente_nombre': venta.clienteNombre,
-            'concepto': venta.concepto,
-            'sync_status': venta.syncStatus,
-            'last_synced_at': venta.lastSyncedAt?.toIso8601String(),
-          };
-
-          final response = await http.post(
-            Uri.parse('$_supabaseUrl/rest/v1/ventas'),
-            headers: _headers,
-            body: jsonEncode(data),
-          );
-
-          if (response.statusCode == 200 || response.statusCode == 201) {
-            await (_db.update(
-              _db.ventas,
-            )..where((t) => t.id.equals(venta.id))).write(
-              VentasCompanion(
-                syncStatus: const Value('synced'),
-                lastSyncedAt: Value(DateTime.now()),
-              ),
-            );
-            uploaded++;
-          } else {
-            errors++;
-          }
-        } catch (e) {
-          errors++;
-        }
-      }
-    } catch (e) {
-      errors++;
-    }
-
-    return SyncResult(
-      tableName: 'ventas',
-      uploaded: uploaded,
-      downloaded: downloaded,
-      errors: errors,
-    );
-  }
-
-  Future<SyncResult> _downloadProductos() async {
-    int downloaded = 0;
-    int errors = 0;
-
-    try {
-      final response = await http.get(
-        Uri.parse('$_supabaseUrl/rest/v1/productos?select=*'),
-        headers: _headers,
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-
-        for (final item in data) {
-          try {
-            final id = item['id'] as String;
-            final existing = await (_db.select(
-              _db.productos,
-            )..where((t) => t.id.equals(id))).getSingleOrNull();
-
-            if (existing != null && existing.syncStatus == 'pending_upload') {
-              continue;
-            }
-
-            await (_db.into(_db.productos)).insertOnConflictUpdate(
-              ProductosCompanion(
-                id: Value(id),
-                nombre: Value(item['nombre'] as String? ?? ''),
-                cantidad: Value(item['cantidad'] as int? ?? 0),
-                precio: Value((item['precio'] as num?)?.toDouble() ?? 0.0),
-                categoria: Value(item['categoria'] as String? ?? ''),
-                proveedorId: Value(item['proveedor_id'] as String? ?? ''),
-                stockMinimo: Value(item['stock_minimo'] as int? ?? 0),
-                codigoBarras: Value(item['codigo_barras'] as String?),
-                codigoPersonalizado: Value(
-                  item['codigo_personalizado'] as String?,
-                ),
-                proveedorNombre: Value(item['proveedor_nombre'] as String?),
-                isActivo: Value(item['is_activo'] as bool? ?? true),
-                syncStatus: const Value('synced'),
-                lastSyncedAt: Value(DateTime.now()),
-              ),
-            );
-            downloaded++;
-          } catch (e) {
-            errors++;
-          }
-        }
-      } else {
-        errors++;
-      }
-    } catch (e) {
-      errors++;
-    }
-
-    return SyncResult(
-      tableName: 'productos',
+      tableName: 'all',
       uploaded: 0,
-      downloaded: downloaded,
-      errors: errors,
-    );
-  }
-
-  Future<SyncResult> _downloadClientes() async {
-    int downloaded = 0;
-    int errors = 0;
-
-    try {
-      final response = await http.get(
-        Uri.parse('$_supabaseUrl/rest/v1/clientes?select=*'),
-        headers: _headers,
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-
-        for (final item in data) {
-          try {
-            final id = item['id'] as String;
-            final existing = await (_db.select(
-              _db.clientes,
-            )..where((t) => t.id.equals(id))).getSingleOrNull();
-
-            if (existing != null && existing.syncStatus == 'pending_upload') {
-              continue;
-            }
-
-            final emailValue = item['email'] as String?;
-            await (_db.into(_db.clientes)).insertOnConflictUpdate(
-              ClientesCompanion(
-                id: Value(id),
-                nombre: Value(item['nombre'] as String? ?? ''),
-                telefono: Value(item['telefono'] as String? ?? ''),
-                email: Value(emailValue),
-                esFiado: Value(item['es_fiado'] as bool? ?? false),
-                saldoPendiente: Value(
-                  (item['saldo_pendiente'] as num?)?.toDouble() ?? 0.0,
-                ),
-                isActivo: Value(item['is_activo'] as bool? ?? true),
-                syncStatus: const Value('synced'),
-                lastSyncedAt: Value(DateTime.now()),
-              ),
-            );
-            downloaded++;
-          } catch (e) {
-            errors++;
-          }
-        }
-      } else {
-        errors++;
-      }
-    } catch (e) {
-      errors++;
-    }
-
-    return SyncResult(
-      tableName: 'clientes',
-      uploaded: 0,
-      downloaded: downloaded,
-      errors: errors,
-    );
-  }
-
-  Future<SyncResult> _downloadProveedores() async {
-    int downloaded = 0;
-    int errors = 0;
-
-    try {
-      final response = await http.get(
-        Uri.parse('$_supabaseUrl/rest/v1/proveedores?select=*'),
-        headers: _headers,
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-
-        for (final item in data) {
-          try {
-            final id = item['id'] as String;
-            final existing = await (_db.select(
-              _db.proveedores,
-            )..where((t) => t.id.equals(id))).getSingleOrNull();
-
-            if (existing != null && existing.syncStatus == 'pending_upload') {
-              continue;
-            }
-
-            final diasVisitaStr = item['dias_visita'] as String? ?? '';
-            final diasVisita = diasVisitaStr.isEmpty
-                ? <String>[]
-                : diasVisitaStr.split(',');
-
-            await (_db.into(_db.proveedores)).insertOnConflictUpdate(
-              ProveedoresCompanion(
-                id: Value(id),
-                nombre: Value(item['nombre'] as String? ?? ''),
-                telefono: Value(item['telefono'] as String? ?? ''),
-                diasVisita: Value(diasVisita),
-                isActivo: Value(item['is_activo'] as bool? ?? true),
-                syncStatus: const Value('synced'),
-                lastSyncedAt: Value(DateTime.now()),
-              ),
-            );
-            downloaded++;
-          } catch (e) {
-            errors++;
-          }
-        }
-      } else {
-        errors++;
-      }
-    } catch (e) {
-      errors++;
-    }
-
-    return SyncResult(
-      tableName: 'proveedores',
-      uploaded: 0,
-      downloaded: downloaded,
-      errors: errors,
-    );
-  }
-
-  Future<SyncResult> _downloadMovimientos() async {
-    int downloaded = 0;
-    int errors = 0;
-
-    try {
-      final response = await http.get(
-        Uri.parse('$_supabaseUrl/rest/v1/movimientos?select=*'),
-        headers: _headers,
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-
-        for (final item in data) {
-          try {
-            final id = item['id'] as String;
-            final existing = await (_db.select(
-              _db.movimientos,
-            )..where((t) => t.id.equals(id))).getSingleOrNull();
-
-            if (existing != null && existing.syncStatus == 'pending_upload') {
-              continue;
-            }
-
-            await (_db.into(_db.movimientos)).insertOnConflictUpdate(
-              MovimientosCompanion(
-                id: Value(id),
-                monto: Value((item['monto'] as num?)?.toDouble() ?? 0.0),
-                fecha: Value(DateTime.parse(item['fecha'] as String)),
-                tipo: Value(MovimientoType.values[item['tipo'] as int? ?? 0]),
-                concepto: Value(item['concepto'] as String? ?? ''),
-                categoria: Value(item['categoria'] as String?),
-                productoId: Value(item['producto_id'] as String?),
-                clienteId: Value(item['cliente_id'] as String?),
-                proveedorId: Value(item['proveedor_id'] as String?),
-                cantidad: Value(item['cantidad'] as int? ?? 0),
-                esFiado: Value(item['es_fiado'] as bool? ?? false),
-                syncStatus: const Value('synced'),
-                lastSyncedAt: Value(DateTime.now()),
-              ),
-            );
-            downloaded++;
-          } catch (e) {
-            errors++;
-          }
-        }
-      } else {
-        errors++;
-      }
-    } catch (e) {
-      errors++;
-    }
-
-    return SyncResult(
-      tableName: 'movimientos',
-      uploaded: 0,
-      downloaded: downloaded,
-      errors: errors,
-    );
-  }
-
-  Future<SyncResult> _downloadVentas() async {
-    int downloaded = 0;
-    int errors = 0;
-
-    try {
-      final response = await http.get(
-        Uri.parse('$_supabaseUrl/rest/v1/ventas?select=*'),
-        headers: _headers,
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-
-        for (final item in data) {
-          try {
-            final id = item['id'] as String;
-            final existing = await (_db.select(
-              _db.ventas,
-            )..where((t) => t.id.equals(id))).getSingleOrNull();
-
-            if (existing != null && existing.syncStatus == 'pending_upload') {
-              continue;
-            }
-
-            await (_db.into(_db.ventas)).insertOnConflictUpdate(
-              VentasCompanion(
-                id: Value(id),
-                monto: Value((item['monto'] as num?)?.toDouble() ?? 0.0),
-                fecha: Value(DateTime.parse(item['fecha'] as String)),
-                clienteId: Value(item['cliente_id'] as String?),
-                clienteNombre: Value(item['cliente_nombre'] as String?),
-                concepto: Value(item['concepto'] as String?),
-                syncStatus: const Value('synced'),
-                lastSyncedAt: Value(DateTime.now()),
-              ),
-            );
-            downloaded++;
-          } catch (e) {
-            errors++;
-          }
-        }
-      } else {
-        errors++;
-      }
-    } catch (e) {
-      errors++;
-    }
-
-    return SyncResult(
-      tableName: 'ventas',
-      uploaded: 0,
-      downloaded: downloaded,
-      errors: errors,
+      downloaded: totalDownloaded,
+      errors: totalErrors,
     );
   }
 }
 
+/// Result of a sync operation for a single table or the full sync.
 class SyncResult {
   final String tableName;
   final int uploaded;
   final int downloaded;
   final int errors;
+  final String? errorMessage;
 
   SyncResult({
     required this.tableName,
     required this.uploaded,
     required this.downloaded,
     required this.errors,
+    this.errorMessage,
   });
 
   bool get isSuccess => errors == 0;
 
   String get message {
     if (errors > 0) {
-      return 'Sync failed: $errors errors';
+      return 'Sync failed: $errors errors${errorMessage != null ? ' — $errorMessage' : ''}';
     }
     if (uploaded == 0 && downloaded == 0) {
       return 'No changes to sync';

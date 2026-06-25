@@ -247,7 +247,7 @@ class _OnboardingLocalPageState extends State<OnboardingLocalPage> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _tipo,
+                initialValue: _tipo,
                 decoration: const InputDecoration(
                   labelText: 'Tipo de local',
                   prefixIcon: Icon(Icons.category_outlined),

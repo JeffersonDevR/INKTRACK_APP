@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
-import 'package:InkTrack/l10n/app_localizations.dart';
-
 enum FabTab { home, clientes, proveedores, inventario }
 
 class SpeedDialFab extends StatefulWidget {
@@ -66,8 +64,8 @@ class _SpeedDialFabState extends State<SpeedDialFab>
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final List<Widget> options = [];
 
     switch (widget.currentTab) {
@@ -75,7 +73,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
         options.add(
           _buildOption(
             icon: Icons.person_add_rounded,
-            label: l10n.nuevoCliente,
+            label: 'Nuevo Cliente',
             color: AppTheme.primaryColor,
             onTap: widget.onClientePressed,
             delay: 0,
@@ -86,7 +84,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
         options.add(
           _buildOption(
             icon: Icons.local_shipping_rounded,
-            label: l10n.nuevoProveedor,
+            label: 'Nuevo Proveedor',
             color: AppTheme.primaryColor,
             onTap: widget.onProveedorPressed,
             delay: 0,
@@ -96,7 +94,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
         options.add(
           _buildOption(
             icon: Icons.shopping_cart_rounded,
-            label: l10n.nuevoPedido,
+            label: 'Nuevo Pedido',
             color: AppTheme.secondaryColor,
             onTap: widget.onPedidoPressed,
             delay: 1,
@@ -107,7 +105,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
         options.add(
           _buildOption(
             icon: Icons.add_box_rounded,
-            label: l10n.nuevoProducto,
+            label: 'Nuevo Producto',
             color: AppTheme.primaryColor,
             onTap: widget.onProductoPressed,
             delay: 0,
@@ -115,8 +113,6 @@ class _SpeedDialFabState extends State<SpeedDialFab>
         );
         break;
       case FabTab.home:
-      default:
-        // FAB is usually hidden in Home, but if it were shown, we could add options here
         break;
     }
 

@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -7,6 +6,8 @@ import 'package:printing/printing.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:InkTrack/core/data/local/database.dart';
+import 'package:InkTrack/core/utils/import_flow.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/features/movimientos/data/models/movimiento.dart'
     as mov_model;
@@ -19,8 +20,9 @@ import 'package:InkTrack/core/utils/number_formatter.dart';
 import 'package:InkTrack/core/widgets/app_card.dart';
 import 'package:InkTrack/core/services/pdf_export_service.dart';
 import 'package:InkTrack/core/services/excel_export_service.dart';
-import 'package:InkTrack/l10n/app_localizations.dart';
-
+import 'package:InkTrack/features/ventas/presentation/viewmodels/ventas_viewmodel.dart';
+import 'package:InkTrack/features/ventas/data/models/venta.dart';
+import 'package:InkTrack/features/ventas/data/importers/ventas_import_validator.dart';
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -59,8 +61,7 @@ class HomePage extends StatelessWidget {
   Future<void> _exportPdf(BuildContext context) async {
     try {
       final movVM = context.read<MovimientosViewModel>();
-      final l10n = AppLocalizations.of(context)!;
-      
+
       final pdfData = await PdfExportService.generateMovementsReport(
         movVM.items,
         startDate: movVM.startDateFilter,
@@ -72,14 +73,13 @@ class HomePage extends StatelessWidget {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.pdfExportado(filename))),
+          SnackBar(content: Text('PDF exportado: $filename')),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.errorAlExportarPdf(e.toString()))),
+          SnackBar(content: Text('Error al exportar PDF: ${e.toString()}')),
         );
       }
     }
@@ -88,7 +88,6 @@ class HomePage extends StatelessWidget {
   Future<void> _exportExcel(BuildContext context) async {
     try {
       final movVM = context.read<MovimientosViewModel>();
-      final l10n = AppLocalizations.of(context)!;
 
       final excelData = await ExcelExportService.generateMovementsReport(
         movVM.items,
@@ -108,22 +107,37 @@ class HomePage extends StatelessWidget {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.excelExportado(filename))),
+          SnackBar(content: Text('Excel exportado: $filename')),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.errorAlExportarExcel(e.toString()))),
+          SnackBar(content: Text('Error al exportar Excel: ${e.toString()}')),
         );
       }
     }
   }
 
+  Future<void> _importVentas(BuildContext context) async {
+    final db = context.read<AppDatabase>();
+    await runImportFlow<Venta>(
+      context: context,
+      moduleName: 'Ventas',
+      requiredColumns: VentasImportValidator.requiredColumns,
+      validate: VentasImportValidator.validate,
+      batchImport: VentasImportValidator.batchImport,
+      db: db,
+      title: 'Importar Ventas',
+    );
+    if (context.mounted) {
+      context.read<MovimientosViewModel>().refresh();
+      context.read<VentasViewModel>().refresh();
+    }
+  }
+
   void _showMovimientoDetalle(BuildContext context, mov_model.Movimiento mov) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -155,9 +169,9 @@ class HomePage extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    l10n.detalleMovimiento,
-                    style: Theme.of(context).textTheme.titleLarge,
+                  const Text(
+                    'Detalle de movimiento',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
@@ -176,10 +190,10 @@ class HomePage extends StatelessWidget {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    _DetailRow(label: l10n.concepto, value: mov.concepto),
+                    _DetailRow(label: 'Concepto', value: mov.concepto),
                     const Divider(height: 32),
                     _DetailRow(
-                      label: l10n.monto,
+                      label: 'Monto',
                       value: NumberFormatter.formatCompact(mov.monto),
                       valueStyle: TextStyle(
                         fontSize: 20,
@@ -193,21 +207,21 @@ class HomePage extends StatelessWidget {
                     ),
                     const Divider(height: 32),
                     _DetailRow(
-                      label: l10n.fecha,
+                      label: 'Fecha',
                       value: DateFormat('dd/MM/yyyy HH:mm').format(mov.fecha),
                     ),
                     if (mov.categoria != null) ...[
                       const Divider(height: 32),
-                      _DetailRow(label: l10n.categoria, value: mov.categoria!),
+                      _DetailRow(label: 'Categoría', value: mov.categoria!),
                     ],
                     const Divider(height: 32),
                     _DetailRow(
-                      label: l10n.tipo,
+                      label: 'Tipo',
                       value: mov.tipo == mov_model.MovimientoType.ingreso
-                          ? l10n.ingreso
+                          ? 'Ingreso'
                           : mov.tipo == mov_model.MovimientoType.egreso
-                          ? l10n.egresoTipo
-                          : l10n.actividad,
+                          ? 'Egreso'
+                          : 'Actividad',
                     ),
                   ],
                 ),
@@ -221,19 +235,18 @@ class HomePage extends StatelessWidget {
 
   Map<String, double> _groupExpensesByCategory(
     List<mov_model.Movimiento> movs,
-    AppLocalizations l10n,
   ) {
     final Map<String, double> data = {};
     for (var m in movs.where((m) => m.tipo == mov_model.MovimientoType.egreso)) {
-      final cat = m.categoria ?? l10n.sinCategoria;
+      final cat = m.categoria ?? 'Sin Categoría';
       data[cat] = (data[cat] ?? 0) + m.monto;
     }
     return data;
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -242,7 +255,12 @@ class HomePage extends StatelessWidget {
           final isFiltered = movVM.startDateFilter != null;
           
           final summary = FinancialSummaryHeader(
-            title: isFiltered ? l10n.resultados : 'Reporte general',
+            title: isFiltered ? 'Resultados' : 'Reporte general',
+            actions: [
+              _ImportAction(
+                onTap: () => _importVentas(context),
+              ),
+            ],
             totalIngresos: isFiltered
                 ? movVM.totalIngresosFiltered
                 : movVM.totalIngresos,
@@ -253,9 +271,9 @@ class HomePage extends StatelessWidget {
             startDate: movVM.startDateFilter,
             endDate: movVM.endDateFilter,
             onDateTap: () => _selectDateRange(context),
-            label1: isFiltered ? l10n.ingreso : 'Ventas',
-            label2: isFiltered ? l10n.egresoTipo : 'Gastos',
-            label3: isFiltered ? l10n.balanceNeto : l10n.patrimonio,
+            label1: isFiltered ? 'Ingreso' : 'Ventas',
+            label2: isFiltered ? 'Egreso' : 'Gastos',
+            label3: isFiltered ? 'Balance Neto' : 'Patrimonio',
             icon1: isFiltered ? Icons.trending_up : Icons.summarize_rounded,
             icon2: isFiltered ? Icons.trending_down : Icons.payments_rounded,
             icon3: Icons.account_balance_wallet_rounded,
@@ -270,7 +288,6 @@ class HomePage extends StatelessWidget {
 
           final expensesByCategory = _groupExpensesByCategory(
             movVM.startDateFilter == null ? movVM.historialCompleto : movVM.filteredItems,
-            l10n,
           );
           final totalEgresos = movVM.startDateFilter == null 
               ? movVM.totalEgresos 
@@ -313,7 +330,7 @@ class HomePage extends StatelessWidget {
                       ),
                       const SizedBox(height: 28),
                       Text(
-                        l10n.tendenciaFlujo,
+                        'Tendencia de Flujo',
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
@@ -371,7 +388,6 @@ class HomePage extends StatelessWidget {
                             expensesByCategory,
                             totalEgresos,
                             isDark,
-                            l10n: l10n,
                           ),
                         ),
                         const SizedBox(height: 32),
@@ -388,7 +404,7 @@ class HomePage extends StatelessWidget {
                             TextButton.icon(
                               onPressed: () => movVM.clearDateFilter(),
                               icon: const Icon(Icons.clear_rounded, size: 18),
-                              label: Text(l10n.limpiar),
+                              label: const Text('Limpiar'),
                               style: TextButton.styleFrom(
                                 foregroundColor: AppTheme.errorColor,
                               ),
@@ -433,9 +449,8 @@ class HomePage extends StatelessWidget {
   Widget _buildPieChart(
     Map<String, double> categoryData,
     double total,
-    bool isDark, {
-    AppLocalizations? l10n,
-  }) {
+    bool isDark,
+  ) {
     final List<Color> colors = [
       AppTheme.primaryColor,
       AppTheme.secondaryColor,
@@ -503,6 +518,41 @@ class HomePage extends StatelessWidget {
   }
 }
 
+class _ImportAction extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _ImportAction({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.upload_file_rounded,
+              color: AppTheme.infoColor,
+              size: 20,
+            ),
+            Text(
+              'Importar',
+              style: TextStyle(
+                color: AppTheme.infoColor,
+                fontSize: 9,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ExportButton extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -518,7 +568,6 @@ class _ExportButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -723,7 +772,6 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 60),
@@ -745,7 +793,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              l10n.noHayActividadRegistrada,
+              'No hay actividad registrada',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: (isDark
                     ? AppTheme.darkTextSecondary
@@ -755,7 +803,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              l10n.tusMovimientosApareceranAqui,
+              'Tus movimientos aparecerán aquí',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: (isDark
                     ? AppTheme.darkTextTertiary

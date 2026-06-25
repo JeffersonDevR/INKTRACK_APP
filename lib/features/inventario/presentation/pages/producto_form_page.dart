@@ -8,11 +8,11 @@ import 'package:InkTrack/core/input_formatters.dart';
 import 'package:InkTrack/core/utils/ean13_generator.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmodel.dart';
+import 'package:InkTrack/features/categorias/presentation/widgets/category_editor_dialog.dart';
 import 'package:InkTrack/features/inventario/presentation/pages/barcode_scanner_page.dart';
-import 'package:InkTrack/l10n/app_localizations.dart';
-
 const String _kCustomProveedorValue = '__custom__';
 const String _kNewCategoryValue = '__new_category__';
+const String _kManageCategoriesValue = '__manage_categories__';
 
 class ProductoFormPage extends StatefulWidget {
   final Producto? producto;
@@ -122,11 +122,10 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
   bool get _useCustomProveedor => _proveedorId == _kCustomProveedorValue;
 
   void _vincularCodigoPersonalizado() {
-    final l10n = AppLocalizations.of(context)!;
     if (_codigoPersonalizadoController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Enter a custom code first'),
+        const SnackBar(
+          content: Text('Primero ingresa un código personalizado'),
           backgroundColor: AppTheme.warningColor,
         ),
       );
@@ -140,12 +139,12 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.producto == null ? l10n.nuevoProducto : l10n.editarProducto,
+          widget.producto == null ? 'Nuevo Producto' : 'Editar Producto',
         ),
       ),
       body: Padding(
@@ -157,8 +156,8 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
               TextFormField(
                 controller: _nombreController,
                 decoration: InputDecoration(
-                  labelText: l10n.nombre,
-                  hintText: 'Ex. Black ink 50ml',
+                  labelText: 'Nombre',
+                  hintText: 'Ej. Tinta Negra 50ml',
                   counterText: '',
                 ),
                 maxLength: 40,
@@ -166,10 +165,10 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                 inputFormatters: [InputFormatters.textOnly],
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Enter product name';
+                    return 'Ingresa el nombre del producto';
                   }
                   if (value.trim().length < 2) {
-                    return 'Minimum 2 characters';
+                    return 'Mínimo 2 caracteres';
                   }
                   return null;
                 },
@@ -178,14 +177,14 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
               TextFormField(
                 controller: _codigoPersonalizadoController,
                 decoration: InputDecoration(
-                  labelText: 'Custom code',
-                  hintText: 'Client/supplier code',
-                  helperText: 'Ex. ZAP-001, PAP-045 (optional)',
+                  labelText: 'Código personalizado',
+                  hintText: 'Código de cliente/proveedor',
+                  helperText: 'Ej. ZAP-001, PAP-045 (opcional)',
                   suffixIcon: _codigoPersonalizadoController.text.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.link, size: 20),
                           onPressed: _vincularCodigoPersonalizado,
-                          tooltip: 'Link to barcode',
+                          tooltip: 'Vincular a código de barras',
                         )
                       : null,
                 ),
@@ -200,12 +199,12 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                     child: TextFormField(
                       controller: _codigoBarrasController,
                       decoration: InputDecoration(
-                        labelText: '${l10n.codigoBarras} (EAN-13)',
+                        labelText: 'Código de Barras (EAN-13)',
                         hintText: _vincularBarcode
-                            ? 'Linked to custom code'
-                            : 'Auto-generated',
+                            ? 'Vinculado a código personalizado'
+                            : 'Auto-generado',
                         helperText: _vincularBarcode
-                            ? 'Code: ${_codigoBarrasController.text}'
+                            ? 'Código: ${_codigoBarrasController.text}'
                             : null,
                         suffixIcon: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -230,7 +229,7 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                     FilledButton.icon(
                       onPressed: _generateBarcode,
                       icon: const Icon(Icons.qr_code),
-                      label: const Text('Generate'),
+                      label: const Text('Generar'),
                     ),
                   ],
                 ],
@@ -239,9 +238,9 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
               TextFormField(
                 controller: _cantidadController,
                 decoration: InputDecoration(
-                  labelText: l10n.cantidad,
+                  labelText: 'Cantidad',
                   hintText: '0 - 99',
-                  helperText: 'Maximum 99 units',
+                  helperText: 'Máximo 99 unidades',
                 ),
                 keyboardType: TextInputType.number,
                 inputFormatters: [
@@ -250,14 +249,14 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                 ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Enter quantity';
+                    return 'Ingresa la cantidad';
                   }
                   final cantidad = int.tryParse(value);
                   if (cantidad == null || cantidad < 0) {
-                    return 'Invalid quantity';
+                    return 'Cantidad inválida';
                   }
                   if (cantidad > 99) {
-                    return 'Maximum 99 units';
+                    return 'Máximo 99 unidades';
                   }
                   return null;
                 },
@@ -303,7 +302,7 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
               TextFormField(
                 controller: _precioCompraController,
                 decoration: InputDecoration(
-                  labelText: l10n.precioCompra,
+                  labelText: 'Precio de Compra',
                   hintText: '0.00',
                   prefixText: '\$ ',
                 ),
@@ -318,10 +317,10 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
               TextFormField(
                 controller: _precioVentaController,
                 decoration: InputDecoration(
-                  labelText: l10n.precioVenta,
+                  labelText: 'Precio de Venta',
                   hintText: '0.00',
                   prefixText: '\$ ',
-                  helperText: 'Maximum 9,999,999',
+                  helperText: 'Máximo 9,999,999',
                   suffixText: 'Ganancia: \$${(double.tryParse(_precioVentaController.text.replaceAll(',', '.')) ?? 0) - (double.tryParse(_precioCompraController.text.replaceAll(',', '.')) ?? 0)}',
                   suffixStyle: const TextStyle(
                     color: AppTheme.successColor,
@@ -336,14 +335,14 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                 ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Enter price';
+                    return 'Ingresa el precio';
                   }
                   final precio = double.tryParse(value.replaceAll(',', '.'));
                   if (precio == null || precio < 0) {
-                    return 'Invalid price';
+                    return 'Precio inválido';
                   }
                   if (precio > 999999999) {
-                    return 'Maximum 999,999,999';
+                    return 'Máximo 999,999,999';
                   }
                   return null;
                 },
@@ -356,9 +355,9 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                     initialValue: categories.contains(_categoria)
                         ? _categoria
                         : (categories.isNotEmpty ? null : null),
-                    decoration: InputDecoration(
-                      labelText: l10n.categoria,
-                      hintText: 'Select a category',
+                    decoration: const InputDecoration(
+                      labelText: 'Categoría',
+                      hintText: 'Selecciona una categoría',
                     ),
                     isExpanded: true,
                     items: [
@@ -367,7 +366,11 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                       ),
                       const DropdownMenuItem(
                         value: _kNewCategoryValue,
-                        child: Text('+ New category'),
+                        child: Text('+ Nueva categoría'),
+                      ),
+                      const DropdownMenuItem(
+                        value: _kManageCategoriesValue,
+                        child: const Text('⚙ Gestionar categorías'),
                       ),
                     ],
                     onChanged: (value) async {
@@ -377,13 +380,22 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                           ivm.agregarCategoria(newCat);
                           setState(() => _categoria = newCat);
                         }
+                      } else if (value == _kManageCategoriesValue) {
+                        await showDialog(
+                          context: context,
+                          builder: (_) => const CategoryEditorDialog(
+                            title: 'Product categories',
+                            tipo: 'inventario',
+                          ),
+                        );
+                        ivm.refresh();
                       } else {
                         setState(() => _categoria = value);
                       }
                     },
                     validator: (value) {
                       if (_categoria == null || _categoria!.isEmpty) {
-                        return 'Select or create a category';
+                        return 'Selecciona o crea una categoría';
                       }
                       return null;
                     },
@@ -394,9 +406,9 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
               TextFormField(
                 controller: _stockMinimoController,
                 decoration: InputDecoration(
-                  labelText: l10n.stockMinimo,
+                  labelText: 'Stock Mínimo',
                   hintText: '5',
-                  helperText: 'Alert when quantity falls below this level',
+                  helperText: 'Alertar cuando la cantidad esté por debajo de este nivel',
                 ),
                 keyboardType: TextInputType.number,
                 inputFormatters: [
@@ -405,14 +417,14 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                 ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Enter minimum stock';
+                    return 'Ingresa el stock mínimo';
                   }
                   final stock = int.tryParse(value);
                   if (stock == null || stock < 0) {
-                    return 'Invalid minimum stock';
+                    return 'Stock mínimo inválido';
                   }
                   if (stock > 9999) {
-                    return 'Maximum 9999';
+                    return 'Máximo 9999';
                   }
                   return null;
                 },
@@ -423,7 +435,7 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                   final items = <DropdownMenuItem<String>>[
                     const DropdownMenuItem(
                       value: null,
-                      child: Text('Select supplier'),
+                      child: Text('Seleccionar proveedor'),
                     ),
                     ...pvm.proveedores.map(
                       (p) =>
@@ -431,12 +443,12 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                     ),
                     const DropdownMenuItem(
                       value: _kCustomProveedorValue,
-                      child: Text('Write supplier name'),
+                      child: Text('Escribir nombre del proveedor'),
                     ),
                   ];
                   return DropdownButtonFormField<String>(
                     initialValue: _proveedorId,
-                    decoration: InputDecoration(labelText: l10n.proveedor),
+                    decoration: const InputDecoration(labelText: 'Proveedor'),
                     isExpanded: true,
                     items: items,
                     onChanged: (value) {
@@ -449,11 +461,11 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                     },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Select a supplier or use "Write name"';
+                        return 'Selecciona un proveedor o usa "Escribir nombre"';
                       }
                       if (value == _kCustomProveedorValue &&
                           _proveedorNombreController.text.trim().isEmpty) {
-                        return 'Write the supplier name';
+                        return 'Escribe el nombre del proveedor';
                       }
                       return null;
                     },
@@ -464,9 +476,9 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _proveedorNombreController,
-                  decoration: InputDecoration(
-                    labelText: '${l10n.proveedor} name',
-                    hintText: 'Ex. Distributor XYZ',
+                  decoration: const InputDecoration(
+                    labelText: 'Nombre del proveedor',
+                    hintText: 'Ej. Distribuidora XYZ',
                   ),
                   textCapitalization: TextCapitalization.words,
                   inputFormatters: [InputFormatters.textOnly],
@@ -474,7 +486,7 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                   validator: (value) {
                     if (_useCustomProveedor &&
                         (value == null || value.trim().isEmpty)) {
-                      return 'Enter the supplier name';
+                      return 'Escribe el nombre del proveedor';
                     }
                     return null;
                   },
@@ -487,8 +499,8 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                   onPressed: _saveProducto,
                   child: Text(
                     widget.producto == null
-                        ? l10n.guardar
-                        : l10n.guardarActualizar,
+                        ? 'Guardar'
+                        : 'Actualizar',
                   ),
                 ),
               ),
@@ -504,20 +516,20 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('New Category'),
+        title: const Text('Nueva Categoría'),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(hintText: 'Category name'),
+          decoration: const InputDecoration(hintText: 'Nombre de la categoría'),
           autofocus: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text('Cancelar'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text('Add'),
+            child: const Text('Agregar'),
           ),
         ],
       ),
@@ -571,8 +583,8 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
           SnackBar(
             content: Text(
               widget.producto == null
-                  ? 'Product created successfully'
-                  : 'Product updated successfully',
+                  ? 'Producto creado exitosamente'
+                  : 'Producto actualizado exitosamente',
             ),
             backgroundColor: AppTheme.successColor,
           ),
@@ -586,7 +598,7 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error saving: $e'),
+              content: Text('Error al guardar: $e'),
               backgroundColor: AppTheme.errorColor,
             ),
           );
@@ -604,16 +616,16 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Product already exists'),
+        title: const Text('El producto ya existe'),
         content: Text(
           productoExistente != null
-              ? 'A product with this barcode already exists:\n\n${productoExistente.nombre}\nStock: ${productoExistente.cantidad}\nPrice: \$${productoExistente.precioVenta.toStringAsFixed(2)}'
-              : 'A product with this barcode already exists.',
+              ? 'Ya existe un producto con este código de barras:\n\n${productoExistente.nombre}\nStock: ${productoExistente.cantidad}\nPrecio: \$${productoExistente.precioVenta.toStringAsFixed(2)}'
+              : 'Ya existe un producto con este código de barras.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: const Text('Cancelar'),
           ),
           if (productoExistente != null)
             FilledButton(
@@ -621,7 +633,7 @@ class _ProductoFormPageState extends State<ProductoFormPage> {
                 Navigator.pop(ctx);
                 Navigator.pop(context, productoExistente);
               },
-              child: const Text('View product'),
+              child: const Text('Ver producto'),
             ),
         ],
       ),

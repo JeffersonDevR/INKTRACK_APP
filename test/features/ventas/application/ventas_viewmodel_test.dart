@@ -1,14 +1,34 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:InkTrack/features/ventas/presentation/viewmodels/ventas_viewmodel.dart';
 import 'package:InkTrack/features/ventas/data/models/venta.dart';
-
 import 'package:InkTrack/features/ventas/data/repositories/ventas_repository.dart';
+import 'package:InkTrack/features/ventas/domain/use_cases/registrar_venta_use_case.dart';
+import 'package:InkTrack/features/clientes/data/repositories/clientes_repository.dart';
+import 'package:InkTrack/features/clientes/domain/use_cases/auto_crear_cliente_use_case.dart';
+import 'package:InkTrack/features/inventario/data/repositories/productos_repository.dart';
+import 'package:InkTrack/features/inventario/domain/use_cases/actualizar_stock_use_case.dart';
+import 'package:InkTrack/features/movimientos/data/repositories/movimientos_repository.dart';
+import 'package:InkTrack/features/movimientos/domain/use_cases/crear_movimiento_use_case.dart';
 
 void main() {
   late VentasViewModel viewModel;
 
   setUp(() {
-    viewModel = VentasViewModel(InMemoryVentasRepository());
+    final movimientosRepo = InMemoryMovimientosRepository();
+    viewModel = VentasViewModel(
+      InMemoryVentasRepository(),
+      RegistrarVentaUseCase(
+        ventasRepo: InMemoryVentasRepository(),
+        productosRepo: InMemoryProductosRepository(),
+        clientesRepo: InMemoryClientesRepository(),
+        crearMovimiento: CrearMovimientoUseCase(movimientosRepo),
+        actualizarStock: ActualizarStockUseCase(InMemoryProductosRepository()),
+        autoCrearCliente: AutoCrearClienteUseCase(
+          InMemoryClientesRepository(),
+          CrearMovimientoUseCase(movimientosRepo),
+        ),
+      ),
+    );
   });
 
   group('VentasViewModel Business Logic Requirements', () {

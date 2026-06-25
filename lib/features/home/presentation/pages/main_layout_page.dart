@@ -1,12 +1,7 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:printing/printing.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
-import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:InkTrack/features/clientes/presentation/pages/clientes_page.dart';
 import 'package:InkTrack/features/proveedores/presentation/pages/proveedores_page.dart';
 import 'package:InkTrack/features/proveedores/presentation/pages/pedidos_proveedor_page.dart';
@@ -27,13 +22,15 @@ import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_view
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/pedidos_viewmodel.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
 import 'package:InkTrack/features/ventas/presentation/viewmodels/ventas_viewmodel.dart';
-import 'package:InkTrack/core/services/pdf_export_service.dart';
-import 'package:InkTrack/core/services/excel_export_service.dart';
 import 'package:InkTrack/core/services/auth_service.dart';
 import 'package:InkTrack/core/services/notification_service.dart';
 import 'package:InkTrack/features/auth/presentation/pages/profile_page.dart';
 import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmodel.dart';
 import 'package:InkTrack/features/locales/presentation/pages/locales_page.dart';
+import 'package:InkTrack/features/inventario/data/repositories/drift_productos_repository.dart';
+import 'package:InkTrack/features/clientes/data/repositories/drift_clientes_repository.dart';
+import 'package:InkTrack/features/proveedores/data/repositories/drift_proveedores_repository.dart';
+import 'package:InkTrack/features/movimientos/data/repositories/drift_movimientos_repository.dart';
 
 class MainLayoutPage extends StatefulWidget {
   final AuthService? authService;
@@ -85,12 +82,64 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (!mounted) return;
               final locVM = context.read<LocalesViewModel>();
+              final prodRepo = context.read<DriftProductosRepository>();
+              final cliRepo = context.read<DriftClientesRepository>();
+              final provRepo = context.read<DriftProveedoresRepository>();
+              final movRepo = context.read<DriftMovimientosRepository>();
+
+              final productosSinLocal = invVM.items
+                  .where((p) => p.localId == null)
+                  .map((p) => MigracionItem(
+                        id: p.id,
+                        apply: (localId) {
+                          final actualizado = p.copyWith(localId: localId);
+                          prodRepo.update(p.id, actualizado);
+                          invVM.update(p.id, actualizado);
+                        },
+                      ))
+                  .toList();
+
+              final clientesSinLocal = cliVM.items
+                  .where((c) => c.localId == null)
+                  .map((c) => MigracionItem(
+                        id: c.id,
+                        apply: (localId) {
+                          final actualizado = c.copyWith(localId: localId);
+                          cliRepo.update(c.id, actualizado);
+                          cliVM.update(c.id, actualizado);
+                        },
+                      ))
+                  .toList();
+
+              final proveedoresSinLocal = provVM.items
+                  .where((p) => p.localId == null)
+                  .map((p) => MigracionItem(
+                        id: p.id,
+                        apply: (localId) {
+                          final actualizado = p.copyWith(localId: localId);
+                          provRepo.update(p.id, actualizado);
+                          provVM.update(p.id, actualizado);
+                        },
+                      ))
+                  .toList();
+
+              final movimientosSinLocal = movVM.items
+                  .where((m) => m.localId == null)
+                  .map((m) => MigracionItem(
+                        id: m.id,
+                        apply: (localId) {
+                          final actualizado = m.copyWith(localId: localId);
+                          movRepo.update(m.id, actualizado);
+                          movVM.update(m.id, actualizado);
+                        },
+                      ))
+                  .toList();
+
               locVM.migrarDatosExistentes(
-                invVM: invVM,
-                cliVM: cliVM,
-                provVM: provVM,
-                movVM: movVM,
-                context: context,
+                productosSinLocal: productosSinLocal,
+                clientesSinLocal: clientesSinLocal,
+                proveedoresSinLocal: proveedoresSinLocal,
+                movimientosSinLocal: movimientosSinLocal,
               );
             });
           }
@@ -149,185 +198,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
     }
   }
 
-  void _navigateToReports() {
-    setState(() {
-      _currentIndex = 0; // Go to Home where reports are now
-    });
-  }
-
-  Future<void> _exportPdf(String type) async {
-    try {
-      final movVM = context.read<MovimientosViewModel>();
-      final invVM = context.read<InventarioViewModel>();
-      final cliVM = context.read<ClientesViewModel>();
-
-      Uint8List pdfData;
-      String filename;
-
-      switch (type) {
-        case 'movimientos':
-          pdfData = await PdfExportService.generateMovementsReport(movVM.items);
-          filename =
-              'reporte_movimientos_${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf';
-          break;
-        case 'inventario':
-          pdfData = await PdfExportService.generateInventoryReport(
-            invVM.productos,
-          );
-          filename =
-              'reporte_inventario_${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf';
-          break;
-        case 'clientes':
-          pdfData = await PdfExportService.generateClientDebtReport(
-            cliVM.clientes,
-          );
-          filename =
-              'reporte_clientes_${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf';
-          break;
-        default:
-          return;
-      }
-
-      await Printing.sharePdf(bytes: pdfData, filename: filename);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.pdfExportado(filename)),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)!.errorAlExportarPdf(e.toString()),
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _exportExcel(String type) async {
-    try {
-      final movVM = context.read<MovimientosViewModel>();
-      final invVM = context.read<InventarioViewModel>();
-      final cliVM = context.read<ClientesViewModel>();
-
-      Uint8List excelData;
-      String filename;
-
-      switch (type) {
-        case 'movimientos':
-          excelData = await ExcelExportService.generateMovementsReport(
-            movVM.items,
-          );
-          filename =
-              'reporte_movimientos_${DateFormat('yyyyMMdd').format(DateTime.now())}.xlsx';
-          break;
-        case 'inventario':
-          excelData = await ExcelExportService.generateInventoryReport(
-            invVM.productos,
-          );
-          filename =
-              'reporte_inventario_${DateFormat('yyyyMMdd').format(DateTime.now())}.xlsx';
-          break;
-        case 'clientes':
-          excelData = await ExcelExportService.generateClientDebtReport(
-            cliVM.clientes,
-          );
-          filename =
-              'reporte_clientes_${DateFormat('yyyyMMdd').format(DateTime.now())}.xlsx';
-          break;
-        default:
-          return;
-      }
-
-      await Share.shareXFiles([
-        XFile.fromData(
-          excelData,
-          name: filename,
-          mimeType:
-              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        ),
-      ], text: 'InkTrack Report');
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)!.excelExportado(filename),
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)!.errorAlExportarExcel(e.toString()),
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  void _showExportOptions(String format) {
-    final l10n = AppLocalizations.of(context)!;
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.receipt_long),
-              title: Text(l10n.movimientos),
-              onTap: () {
-                Navigator.pop(ctx);
-                if (format == 'pdf') {
-                  _exportPdf('movimientos');
-                } else {
-                  _exportExcel('movimientos');
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.inventory_2),
-              title: Text(l10n.inventario),
-              onTap: () {
-                Navigator.pop(ctx);
-                if (format == 'pdf') {
-                  _exportPdf('inventario');
-                } else {
-                  _exportExcel('inventario');
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.people),
-              title: Text(l10n.clientes),
-              onTap: () {
-                Navigator.pop(ctx);
-                if (format == 'pdf') {
-                  _exportPdf('clientes');
-                } else {
-                  _exportExcel('clientes');
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildAlertasBanner(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -339,9 +210,11 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
             return _buildBannerItem(
               context,
               icon: Icons.local_shipping_rounded,
-              title: l10n.entregasPendientes(alertas.length),
+              title: alertas.length == 1
+                  ? '1 entrega pendiente'
+                  : '${alertas.length} entregas pendientes',
               subtitle: alertas
-                  .map((p) => p.proveedorNombre ?? l10n.proveedor)
+                  .map((p) => p.proveedorNombre ?? 'Proveedor')
                   .join(', '),
               onTap: () {
                 Navigator.push(
@@ -431,11 +304,11 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     final authService = widget.authService;
     final user = authService?.currentUser;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context)!;
 
     return Consumer<LocalesViewModel>(
       builder: (context, localesVM, child) {
@@ -515,11 +388,11 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                           ),
                           child: Text(
                             [
-                              l10n.panelDeInicio,
-                              l10n.gestionDeClientes,
-                              l10n.proveedoresHeader,
-                              l10n.controlDeInventario,
-                              l10n.reportesDeNegocio,
+                              'Panel de Inicio',
+                              'Gestión de Clientes',
+                              'Proveedores',
+                              'Control de Inventario',
+                              'Reportes de Negocio',
                             ][_currentIndex].toUpperCase(),
                             style: GoogleFonts.plusJakartaSans(
                               color: AppTheme.primaryColor,
@@ -631,7 +504,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    l10n.misLocales,
+                                    'Mis Locales',
                                     style: GoogleFonts.plusJakartaSans(
                                       color: AppTheme.secondaryColor,
                                       fontWeight: FontWeight.w600,
@@ -640,7 +513,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    localActual?.nombre ?? l10n.sinLocal,
+                                    localActual?.nombre ?? 'Sin local',
                                     style: GoogleFonts.plusJakartaSans(
                                       color: isDark
                                           ? Colors.white
@@ -701,12 +574,12 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                     NavigationDestination(
                       icon: Icon(Icons.grid_view_outlined),
                       selectedIcon: Icon(Icons.grid_view_rounded),
-                      label: l10n.home,
+                      label: 'Inicio',
                     ),
                     NavigationDestination(
                       icon: Icon(Icons.people_outline_rounded),
                       selectedIcon: Icon(Icons.people_rounded),
-                      label: l10n.clientes,
+                      label: 'Clientes',
                     ),
                     NavigationDestination(
                       icon: Consumer<PedidosProveedorViewModel>(
@@ -729,12 +602,12 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                           );
                         },
                       ),
-                      label: l10n.proveedor,
+                      label: 'Proveedor',
                     ),
                     NavigationDestination(
                       icon: Icon(Icons.inventory_2_outlined),
                       selectedIcon: Icon(Icons.inventory_2_rounded),
-                      label: l10n.stock,
+                      label: 'Stock',
                     ),
                   ],
                 ),

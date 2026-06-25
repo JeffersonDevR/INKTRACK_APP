@@ -1,9 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:InkTrack/core/utils/id_utils.dart';
 import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
@@ -16,8 +14,10 @@ import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmo
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/input_formatters.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
+import 'package:InkTrack/features/categorias/presentation/widgets/category_editor_dialog.dart';
 
 const String _kNewCategoryValue = '__new_category__';
+const String _kManageCategoriesValue = '__manage_categories__';
 
 class MovimientoFormPage extends StatefulWidget {
   final MovimientoType initialType;
@@ -44,6 +44,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
   final List<_MovimientoProductoState> _productos = [];
   bool _esFiado = false;
   DateTime _fecha = DateTime.now();
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -209,13 +210,17 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
     );
   }
 
-  void _save() {
+  Future<void> _save() async {
+    if (_isSaving) return;
     if (!_formKey.currentState!.validate()) return;
 
-    final monto = NumberFormatter.parseAmount(_montoController.text);
-    final ivm = context.read<InventarioViewModel>();
+    _isSaving = true;
 
-    if (_tipo == MovimientoType.ingreso) {
+    try {
+      final monto = NumberFormatter.parseAmount(_montoController.text);
+      final ivm = context.read<InventarioViewModel>();
+
+      if (_tipo == MovimientoType.ingreso) {
       for (final prod in _productos) {
         final product = ivm.getById(prod.productoId);
         if (product != null && product.cantidad < prod.cantidad) {
@@ -278,7 +283,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
         productosJson: mov.productosJson,
         localId: localesVM.localIdSeleccionado,
       );
-      viewModel.guardar(movConLocal);
+      await viewModel.guardar(movConLocal);
 
       for (final prod in _productos) {
         final delta = _tipo == MovimientoType.ingreso
@@ -314,15 +319,20 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
         ivm.actualizarStock(prod.productoId, deltaApply);
       }
 
-      viewModel.editar(old.id, mov);
+      await viewModel.editar(old.id, mov);
     }
 
-    Navigator.pop(context);
+    if (mounted) {
+      Navigator.pop(context);
+    }
+    } finally {
+      _isSaving = false;
+    }
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final currencyFormat = NumberFormat.currency(
       symbol: '\$',
       decimalDigits: 2,
@@ -332,8 +342,8 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
       appBar: AppBar(
         title: Text(
           _tipo == MovimientoType.ingreso
-              ? l10n.nuevoIngreso
-              : l10n.nuevoEgreso,
+              ? 'Nuevo Ingreso'
+              : 'Nuevo Egreso',
         ),
       ),
       body: SingleChildScrollView(
@@ -345,15 +355,15 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
             children: [
               SegmentedButton<MovimientoType>(
                 segments: [
-                  ButtonSegment(
+                  const ButtonSegment(
                     value: MovimientoType.ingreso,
-                    label: Text(l10n.ingreso),
-                    icon: const Icon(Icons.add_circle_outline),
+                    label: Text('Ingreso'),
+                    icon: Icon(Icons.add_circle_outline),
                   ),
-                  ButtonSegment(
+                  const ButtonSegment(
                     value: MovimientoType.egreso,
-                    label: Text(l10n.egreso),
-                    icon: const Icon(Icons.remove_circle_outline),
+                    label: Text('Egreso'),
+                    icon: Icon(Icons.remove_circle_outline),
                   ),
                 ],
                 selected: {_tipo},
@@ -372,11 +382,11 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                     child: TextFormField(
                       controller: _montoController,
                       decoration: InputDecoration(
-                        labelText: l10n.montoTotal,
+                        labelText: 'Monto Total',
                         prefixText: '\$ ',
                         hintText: '0.00',
                         helperText: _productos.isNotEmpty
-                            ? l10n.calculadoAutomaticamente
+                            ? 'Calculado automáticamente'
                             : null,
                       ),
                       readOnly: _productos.isNotEmpty,
@@ -387,10 +397,10 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                       onChanged: (_) => setState(() {}),
                       validator: (value) {
                         if (value == null || value.isEmpty)
-                          return l10n.ingreseMonto;
+                          return 'Ingrese un monto';
                         final num = NumberFormatter.parseAmount(value);
-                        if (num <= 0) return l10n.montoInvalido;
-                        if (num > 999999999) return l10n.maximoMonto;
+                        if (num <= 0) return 'Monto inválido';
+                        if (num > 999999999) return 'Máximo 999,999,999';
                         return null;
                       },
                     ),
@@ -400,15 +410,15 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _conceptoController,
-                decoration: InputDecoration(
-                  labelText: l10n.concepto,
-                  hintText: l10n.ingreseConceptoVenta,
+                decoration: const InputDecoration(
+                  labelText: 'Concepto',
+                  hintText: 'Ingrese el concepto',
                 ),
                 textCapitalization: TextCapitalization.sentences,
                 inputFormatters: [InputFormatters.textOnly],
                 validator: (value) {
                   if (value == null || value.isEmpty)
-                    return l10n.ingreseConcepto;
+                    return 'Ingrese un concepto';
                   return null;
                 },
               ),
@@ -418,19 +428,23 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                   final categories = mvm.categorias;
                   return DropdownButtonFormField<String>(
                     isExpanded: true,
-                    value: categories.contains(_categoria) ? _categoria : null,
-                    decoration: InputDecoration(
-                      labelText: l10n.categoria,
-                      prefixIcon: const Icon(Icons.category_outlined),
-                      hintText: l10n.seleccioneCategoria,
+                    initialValue: categories.contains(_categoria) ? _categoria : null,
+                    decoration: const InputDecoration(
+                      labelText: 'Categoría',
+                      prefixIcon: Icon(Icons.category_outlined),
+                      hintText: 'Seleccione una categoría',
                     ),
                     items: [
                       ...categories.map(
                         (c) => DropdownMenuItem(value: c, child: Text(c)),
                       ),
-                      DropdownMenuItem(
+                      const DropdownMenuItem(
                         value: _kNewCategoryValue,
-                        child: Text('+ ${l10n.nuevaCategoria}'),
+                        child: Text('+ Nueva Categoría'),
+                      ),
+                      const DropdownMenuItem(
+                        value: _kManageCategoriesValue,
+                        child: Text('⚙ Gestionar categorías'),
                       ),
                     ],
                     onChanged: (value) async {
@@ -440,13 +454,22 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                           mvm.agregarCategoria(newCat);
                           setState(() => _categoria = newCat);
                         }
+                      } else if (value == _kManageCategoriesValue) {
+                        await showDialog(
+                          context: context,
+                          builder: (_) => const CategoryEditorDialog(
+                            title: 'Movement categories',
+                            tipo: 'movimiento',
+                          ),
+                        );
+                        mvm.refresh();
                       } else {
                         setState(() => _categoria = value);
                       }
                     },
                     validator: (value) {
                       if (_categoria == null || _categoria!.isEmpty) {
-                        return l10n.seleccioneOCreeCategoria;
+                        return 'Seleccione o cree una categoría';
                       }
                       return null;
                     },
@@ -459,14 +482,14 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                   final clientes = cvm.items;
                   return DropdownButtonFormField<String?>(
                     isExpanded: true,
-                    value: _clienteId,
-                    decoration: InputDecoration(
-                      labelText: l10n.clienteOpcionalLabel,
-                      prefixIcon: const Icon(Icons.person_outline),
-                      hintText: l10n.seleccionarLocal,
+                    initialValue: _clienteId,
+                    decoration: const InputDecoration(
+                      labelText: 'Cliente (Opcional)',
+                      prefixIcon: Icon(Icons.person_outline),
+                      hintText: 'Seleccionar Local',
                     ),
                     items: [
-                      DropdownMenuItem(value: null, child: Text(l10n.ninguno)),
+                      const DropdownMenuItem(value: null, child: Text('Ninguno')),
                       ...clientes.map(
                         (c) => DropdownMenuItem(
                           value: c.id,
@@ -490,14 +513,14 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                   final proveedores = pvm.proveedores;
                   return DropdownButtonFormField<String?>(
                     isExpanded: true,
-                    value: _proveedorId,
-                    decoration: InputDecoration(
-                      labelText: l10n.proveedorOpcional,
-                      prefixIcon: const Icon(Icons.local_shipping_outlined),
-                      hintText: l10n.seleccionarLocal,
+                    initialValue: _proveedorId,
+                    decoration: const InputDecoration(
+                      labelText: 'Proveedor (Opcional)',
+                      prefixIcon: Icon(Icons.local_shipping_outlined),
+                      hintText: 'Seleccionar Local',
                     ),
                     items: [
-                      DropdownMenuItem(value: null, child: Text(l10n.ninguno)),
+                      const DropdownMenuItem(value: null, child: Text('Ninguno')),
                       ...proveedores.map(
                         (p) => DropdownMenuItem(
                           value: p.id,
@@ -512,8 +535,8 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
               if (_tipo == MovimientoType.ingreso && _clienteId != null) ...[
                 const SizedBox(height: 8),
                 SwitchListTile(
-                  title: Text(l10n.ventaFiada),
-                  subtitle: Text(l10n.anadirSaldoPendiente),
+                  title: const Text('Venta Fiada'),
+                  subtitle: const Text('Añadir al saldo pendiente del cliente'),
                   value: _esFiado,
                   onChanged: (value) => setState(() => _esFiado = value),
                   contentPadding: EdgeInsets.zero,
@@ -525,7 +548,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    l10n.productos,
+                    'Productos',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   Row(
@@ -533,12 +556,12 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                       TextButton.icon(
                         onPressed: _escanearProducto,
                         icon: const Icon(Icons.qr_code_scanner, size: 18),
-                        label: Text(l10n.escanear),
+                        label: const Text('Escanear'),
                       ),
                       TextButton.icon(
                         onPressed: _agregarProducto,
                         icon: const Icon(Icons.add, size: 18),
-                        label: Text(l10n.agregar),
+                        label: const Text('Agregar'),
                       ),
                     ],
                   ),
@@ -557,10 +580,10 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                           color: AppTheme.textSecondary.withValues(alpha: 0.5),
                         ),
                         const SizedBox(height: 8),
-                        Text(l10n.noHayProductos),
+                        const Text('No hay productos'),
                         const SizedBox(height: 4),
                         Text(
-                          l10n.escaneeOAgregueProductos,
+                          'Escanee o agregue productos del inventario',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
@@ -610,9 +633,9 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          l10n.totalProductos,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        const Text(
+                          'Total Productos',
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         Text(
                           currencyFormat.format(_montoTotal),
@@ -630,7 +653,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.calendar_today),
-                title: Text(l10n.fecha),
+                title: const Text('Fecha'),
                 subtitle: Text('${_fecha.day}/${_fecha.month}/${_fecha.year}'),
                 onTap: () async {
                   final picked = await showDatePicker(
@@ -647,7 +670,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
               ),
               const SizedBox(height: 40),
               ElevatedButton(
-                onPressed: _save,
+                onPressed: _isSaving ? null : _save,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   backgroundColor: _tipo == MovimientoType.ingreso
@@ -655,10 +678,19 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                       : AppTheme.errorColor,
                   foregroundColor: Colors.white,
                 ),
-                child: Text(
-                  l10n.guardar.toUpperCase(),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
+                child: _isSaving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(
+                        'GUARDAR',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
               ),
             ],
           ),

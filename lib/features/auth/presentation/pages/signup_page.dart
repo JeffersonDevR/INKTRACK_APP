@@ -55,7 +55,7 @@ class _SignupPageState extends State<SignupPage> {
       widget.onSignupSuccess();
     } else if (mounted) {
       setState(() {
-        _errorMessage = result.error ?? 'Signup failed';
+        _errorMessage = result.error ?? 'Error al registrarse';
       });
     }
   }
@@ -81,7 +81,7 @@ class _SignupPageState extends State<SignupPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Create Account',
+                  'Crear Cuenta',
                   style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppTheme.textPrimary,
@@ -89,7 +89,7 @@ class _SignupPageState extends State<SignupPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'First user will be admin',
+                  'El primer usuario será administrador',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: AppTheme.textSecondary,
                   ),
@@ -115,7 +115,7 @@ class _SignupPageState extends State<SignupPage> {
                   textInputAction: TextInputAction.next,
                   textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(
-                    labelText: 'Full Name',
+                    labelText: 'Nombre Completo',
                     prefixIcon: const Icon(Icons.person_outlined),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -125,7 +125,7 @@ class _SignupPageState extends State<SignupPage> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Enter your name';
+                      return 'Ingresa tu nombre';
                     }
                     return null;
                   },
@@ -146,10 +146,10 @@ class _SignupPageState extends State<SignupPage> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Enter your email';
+                      return 'Ingresa tu email';
                     }
                     if (!value.contains('@')) {
-                      return 'Enter a valid email';
+                      return 'Ingresa un email válido';
                     }
                     return null;
                   },
@@ -160,7 +160,7 @@ class _SignupPageState extends State<SignupPage> {
                   obscureText: _obscurePassword,
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
-                    labelText: 'Password',
+                    labelText: 'Contraseña',
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -180,12 +180,12 @@ class _SignupPageState extends State<SignupPage> {
                     filled: true,
                     fillColor: Colors.white,
                     helperText:
-                        'Min 8 chars, 1 capital, 3 numbers, no special chars',
+                        'Mín 8 caracteres, 1 mayúscula, 3 números, sin especiales',
                     helperMaxLines: 2,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Enter a password';
+                      return 'Ingresa una contraseña';
                     }
                     final error = AuthService.validatePassword(value);
                     if (error != null) {
@@ -201,7 +201,7 @@ class _SignupPageState extends State<SignupPage> {
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _signUp(),
                   decoration: InputDecoration(
-                    labelText: 'Confirm Password',
+                    labelText: 'Confirmar Contraseña',
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -223,10 +223,10 @@ class _SignupPageState extends State<SignupPage> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Confirm your password';
+                      return 'Confirma tu contraseña';
                     }
                     if (value != _passwordController.text) {
-                      return 'Passwords do not match';
+                      return 'Las contraseñas no coinciden';
                     }
                     return null;
                   },
@@ -253,7 +253,7 @@ class _SignupPageState extends State<SignupPage> {
                             ),
                           )
                         : const Text(
-                            'Create Account',
+                            'Crear Cuenta',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -265,10 +265,10 @@ class _SignupPageState extends State<SignupPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Already have an account?'),
+                    const Text('¿Ya tienes una cuenta?'),
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Sign In'),
+                      child: const Text('Iniciar Sesión'),
                     ),
                   ],
                 ),

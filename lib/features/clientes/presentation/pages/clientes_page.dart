@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:InkTrack/core/data/local/database.dart';
+import 'package:InkTrack/core/utils/import_flow.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/clientes/data/models/cliente.dart';
+import 'package:InkTrack/features/clientes/data/importers/clientes_import_validator.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
 import 'package:InkTrack/core/widgets/app_card.dart';
-import 'package:InkTrack/l10n/app_localizations.dart';
 import 'cliente_form_page.dart';
 import 'historial_acreedores_page.dart';
 import '../widgets/pago_dialog.dart';
@@ -29,7 +31,6 @@ class ClientesPage extends StatelessWidget {
     ClientesViewModel viewModel,
     bool showInactive,
   ) {
-    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return CustomScrollView(
       slivers: [
@@ -37,7 +38,7 @@ class ClientesPage extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
           sliver: SliverToBoxAdapter(
             child: FinancialSummaryHeader(
-              title: l10n.resumenClientes,
+              title: 'Resumen Clientes',
               actions: [
                 _HeaderAction(
                   onTap: () => Navigator.push(
@@ -58,13 +59,19 @@ class ClientesPage extends StatelessWidget {
                       ? AppTheme.warningColor
                       : AppTheme.textSecondary,
                 ),
+                _HeaderAction(
+                  onTap: () => _importClientes(context),
+                  icon: Icons.upload_file_rounded,
+                  label: 'Importar',
+                  color: AppTheme.infoColor,
+                ),
               ],
               totalIngresos: viewModel.totalClientes.toDouble(),
               totalEgresos: viewModel.clientesConDeuda.toDouble(),
               balance: viewModel.totalDeuda,
-              label1: l10n.clientes,
-              label2: 'With Debt',
-              label3: l10n.deudaTotal,
+              label1: 'Clientes',
+              label2: 'Con Deuda',
+              label3: 'Deuda Total',
               icon1: Icons.people_rounded,
               icon2: Icons.assignment_late_rounded,
               icon3: Icons.account_balance_wallet_rounded,
@@ -89,7 +96,7 @@ class ClientesPage extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  l10n.listadoClientes,
+                  'Listado de Clientes',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
@@ -179,7 +186,7 @@ class ClientesPage extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  'INACTIVE',
+                                  'INACTIVO',
                                   style: TextStyle(
                                     fontSize: 9,
                                     fontWeight: FontWeight.w900,
@@ -282,7 +289,7 @@ class ClientesPage extends StatelessWidget {
                                   size: 20,
                                 ),
                                 const SizedBox(width: 12),
-                                Text(l10n.abonos),
+                                const Text('Abonos'),
                               ],
                             ),
                           ),
@@ -292,7 +299,7 @@ class ClientesPage extends StatelessWidget {
                             children: [
                               Icon(Icons.edit_outlined, size: 20),
                               const SizedBox(width: 12),
-                              Text(l10n.editar),
+                              const Text('Editar'),
                             ],
                           ),
                         ),
@@ -307,8 +314,8 @@ class ClientesPage extends StatelessWidget {
                                   color: AppTheme.successColor,
                                 ),
                                 const SizedBox(width: 12),
-                                Text(
-                                  'Reactivate',
+                                const Text(
+                                  'Reactivar',
                                   style: TextStyle(
                                     color: AppTheme.successColor,
                                   ),
@@ -327,8 +334,8 @@ class ClientesPage extends StatelessWidget {
                                   size: 20,
                                 ),
                                 const SizedBox(width: 12),
-                                Text(
-                                  'Deactivate',
+                                const Text(
+                                  'Desactivar',
                                   style: TextStyle(color: AppTheme.errorColor),
                                 ),
                               ],
@@ -365,20 +372,35 @@ class ClientesPage extends StatelessWidget {
     }
   }
 
+  Future<void> _importClientes(BuildContext context) async {
+    final db = context.read<AppDatabase>();
+    await runImportFlow<Cliente>(
+      context: context,
+      moduleName: 'Clientes',
+      requiredColumns: ClientesImportValidator.requiredColumns,
+      validate: ClientesImportValidator.validate,
+      batchImport: ClientesImportValidator.batchImport,
+      db: db,
+      title: 'Importar Clientes',
+    );
+    if (context.mounted) {
+      context.read<ClientesViewModel>().refresh();
+    }
+  }
+
   void _showDeleteDialog(BuildContext context, Cliente cliente) {
-    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: Text('Deactivate ${l10n.cliente}'),
+        title: const Text('Desactivar Cliente'),
         content: Text(
-          'Deactivate ${cliente.nombre}?\n\nIt will still appear in reports but will not be available for new sales.',
+          '¿Desactivar ${cliente.nombre}?\n\nSeguirá apareciendo en reportes pero no estará disponible para nuevas ventas.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(l10n.cancelar),
+            child: const Text('Cancelar'),
           ),
           ElevatedButton(
             onPressed: () {
@@ -389,7 +411,7 @@ class ClientesPage extends StatelessWidget {
               backgroundColor: AppTheme.errorColor,
               foregroundColor: Colors.white,
             ),
-            child: Text('Deactivate'),
+            child: const Text('Desactivar'),
           ),
         ],
       ),
@@ -440,7 +462,6 @@ class _EmptyClientes extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -461,14 +482,14 @@ class _EmptyClientes extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              l10n.noDataAvailable,
+              'No hay datos disponibles',
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 12),
             Text(
-              'Start by adding your first client to manage their purchases and debts.',
+              'Comienza agregando tu primer cliente para gestionar sus compras y deudas.',
               textAlign: TextAlign.center,
               style: Theme.of(
                 context,

@@ -3,13 +3,17 @@ import 'package:InkTrack/core/utils/id_utils.dart';
 import 'package:InkTrack/features/inventario/data/models/producto.dart';
 import 'package:InkTrack/features/inventario/data/repositories/productos_repository.dart';
 import 'package:InkTrack/features/inventario/data/repositories/drift_productos_repository.dart';
+import 'package:InkTrack/features/categorias/data/repositories/categorias_repository.dart';
 
 class InventarioViewModel extends BaseCrudViewModel<Producto> {
   final ProductosRepository _repository;
+  final CategoriasRepository _categoriasRepo;
   String? _localId;
+  List<String> _categorias = [];
 
-  InventarioViewModel(this._repository) {
+  InventarioViewModel(this._repository, this._categoriasRepo) {
     _loadProductos();
+    _loadCategorias();
   }
 
   void setLocalId(String? localId) {
@@ -40,13 +44,20 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
     notifyListeners();
   }
 
-  final List<String> _categorias = [
-    'Papeleria',
-    'Comestibles',
-    'Bebidas',
-    'Otros',
-  ];
   List<String> get categorias => List.unmodifiable(_categorias);
+
+  Future<void> _loadCategorias() async {
+    final cats = await _categoriasRepo.getAll('inventario');
+    _categorias = cats.map((c) => c.nombre).toList();
+    notifyListeners();
+  }
+
+  Future<void> agregarCategoria(String nombre) async {
+    final trimmed = nombre.trim();
+    if (trimmed.isEmpty || _categorias.contains(trimmed)) return;
+    await _categoriasRepo.save(trimmed, 'inventario');
+    await _loadCategorias();
+  }
 
   Future<void> _loadProductos() async {
     clearAll();
@@ -59,15 +70,21 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
   @override
   Future<void> refresh() async {
     await _loadProductos();
+    await _loadCategorias();
     notifyListeners();
   }
 
-  void agregarCategoria(String nombre) {
-    if (nombre.trim().isNotEmpty && !_categorias.contains(nombre.trim())) {
-      _categorias.add(nombre.trim());
-      notifyListeners();
-    }
-  }
+  double get valorTotalInventario => _itemsFiltrados.fold(
+    0.0,
+    (sum, producto) => sum + (producto.precioVenta * producto.cantidad),
+  );
+
+  double get totalProductos =>
+      _itemsFiltrados.fold(0.0, (sum, producto) => sum + producto.cantidad);
+
+  int get totalInactivos => _itemsFiltrados.where((p) => !p.isActivo).length;
+
+  // below methods unchanged from original
 
   Future<void> guardar(Producto producto) async {
     String finalId = producto.id;
@@ -159,14 +176,6 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
     return items.where((p) => p.localId == _localId).toList();
   }
 
-  double get valorTotalInventario => _itemsFiltrados.fold(
-    0.0,
-    (sum, producto) => sum + (producto.precioVenta * producto.cantidad),
-  );
-
-  double get totalProductos =>
-      _itemsFiltrados.fold(0.0, (sum, producto) => sum + producto.cantidad);
-
   List<Producto> getProductosPorCategoria(String categoria) => _itemsFiltrados
       .where((producto) => producto.categoria == categoria)
       .toList();
@@ -179,8 +188,6 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
       _itemsFiltrados.where((p) => p.stockBajo).toList();
 
   bool get hayStockBajo => _itemsFiltrados.any((p) => p.stockBajo);
-
-  int get totalInactivos => _itemsFiltrados.where((p) => !p.isActivo).length;
 
   Producto? findProductoByCodigo(String codigo) {
     try {

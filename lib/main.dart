@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -10,11 +11,12 @@ import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/data/local/database.dart';
 import 'package:InkTrack/core/services/auth_service.dart';
 import 'package:InkTrack/core/services/supabase_sync_service.dart';
+import 'package:InkTrack/core/services/log_service.dart';
+import 'package:InkTrack/core/services/analytics_service.dart';
 import 'package:InkTrack/core/services/theme_provider.dart';
 import 'package:InkTrack/core/services/locale_provider.dart';
 import 'package:InkTrack/core/services/notification_service.dart';
 import 'package:InkTrack/core/services/scanner_service.dart';
-import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:InkTrack/features/clientes/data/repositories/drift_clientes_repository.dart';
 import 'package:InkTrack/features/proveedores/data/repositories/drift_proveedores_repository.dart';
 import 'package:InkTrack/features/inventario/data/repositories/drift_productos_repository.dart';
@@ -33,12 +35,19 @@ import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmo
 import 'package:InkTrack/features/home/presentation/pages/main_layout_page.dart';
 import 'package:InkTrack/features/auth/presentation/pages/login_page.dart';
 import 'package:InkTrack/features/locales/presentation/pages/onboarding_local_page.dart';
+import 'package:InkTrack/features/categorias/data/repositories/categorias_repository.dart';
+import 'package:InkTrack/features/ventas/domain/use_cases/registrar_venta_use_case.dart';
+import 'package:InkTrack/features/movimientos/domain/use_cases/crear_movimiento_use_case.dart';
+import 'package:InkTrack/features/inventario/domain/use_cases/actualizar_stock_use_case.dart';
+import 'package:InkTrack/features/clientes/domain/use_cases/auto_crear_cliente_use_case.dart';
+import 'package:InkTrack/features/clientes/domain/use_cases/registrar_pago_cliente_use_case.dart';
+import 'package:InkTrack/features/proveedores/domain/use_cases/marcar_pedido_entregado_use_case.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('es', null);
   debugRepaintRainbowEnabled = false;
   try {
+    await initializeDateFormatting('es', null);
     // Load environment variables from .env file
     await dotenv.load(fileName: ".env", isOptional: false);
 
@@ -55,6 +64,11 @@ Future<void> main() async {
     }
 
     await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
+
+    await LogService.instance.init();
+    AnalyticsService.instance.init();
+    AnalyticsService.instance.track('app_start');
+    LogService.instance.info('App', 'InkTrack starting');
 
     await NotificationService().initialize();
 
@@ -123,6 +137,13 @@ class _InkTrackAppState extends State<InkTrackApp> {
   late final DriftVentasRepository _ventasRepo;
   late final DriftPedidosProveedorRepository _pedidosRepo;
   late final DriftLocalesRepository _localesRepo;
+  late final CategoriasRepository _categoriasRepo;
+  late final RegistrarVentaUseCase _registrarVenta;
+  late final CrearMovimientoUseCase _crearMovimiento;
+  late final ActualizarStockUseCase _actualizarStock;
+  late final AutoCrearClienteUseCase _autoCrearCliente;
+  late final RegistrarPagoClienteUseCase _registrarPagoCliente;
+  late final MarcarPedidoEntregadoUseCase _marcarPedidoEntregado;
 
   @override
   void initState() {
@@ -136,6 +157,32 @@ class _InkTrackAppState extends State<InkTrackApp> {
     _ventasRepo = DriftVentasRepository(widget.database);
     _pedidosRepo = DriftPedidosProveedorRepository(widget.database);
     _localesRepo = DriftLocalesRepository(widget.database);
+    _categoriasRepo = CategoriasRepository(widget.database);
+
+    _crearMovimiento = CrearMovimientoUseCase(_movimientosRepo);
+    _actualizarStock = ActualizarStockUseCase(_productosRepo);
+    _autoCrearCliente = AutoCrearClienteUseCase(
+      _clientesRepo,
+      _crearMovimiento,
+    );
+    _registrarPagoCliente = RegistrarPagoClienteUseCase(
+      _clientesRepo,
+      _crearMovimiento,
+    );
+    _marcarPedidoEntregado = MarcarPedidoEntregadoUseCase(
+      pedidosRepo: _pedidosRepo,
+      proveedoresRepo: _proveedoresRepo,
+      actualizarStock: _actualizarStock,
+      crearMovimiento: _crearMovimiento,
+    );
+    _registrarVenta = RegistrarVentaUseCase(
+      ventasRepo: _ventasRepo,
+      productosRepo: _productosRepo,
+      clientesRepo: _clientesRepo,
+      crearMovimiento: _crearMovimiento,
+      actualizarStock: _actualizarStock,
+      autoCrearCliente: _autoCrearCliente,
+    );
 
     try {
       _authSubscription = widget.authService.authStateChanges.listen(
@@ -162,6 +209,7 @@ class _InkTrackAppState extends State<InkTrackApp> {
   }
 
   void _handleLoginSuccess() async {
+    AnalyticsService.instance.track('login_success');
     final hasLocales = await widget.authService.hasUserLocales(
       localDb: widget.database,
     );
@@ -196,32 +244,38 @@ class _InkTrackAppState extends State<InkTrackApp> {
             Provider.value(value: _ventasRepo),
             Provider.value(value: _pedidosRepo),
             Provider.value(value: _localesRepo),
+            Provider.value(value: _categoriasRepo),
             ChangeNotifierProvider(
-              create: (_) => LocalesViewModel(
-                _localesRepo,
-                productosRepo: _productosRepo,
-                clientesRepo: _clientesRepo,
-                proveedoresRepo: _proveedoresRepo,
-                movimientosRepo: _movimientosRepo,
+              create: (_) => LocalesViewModel(_localesRepo),
+            ),
+            ChangeNotifierProvider(
+              create: (_) => ClientesViewModel(
+                _clientesRepo,
+                _registrarPagoCliente,
+                _crearMovimiento,
               ),
             ),
             ChangeNotifierProvider(
-              create: (_) => ClientesViewModel(_clientesRepo),
+              create: (_) => ProveedoresViewModel(
+                _proveedoresRepo,
+                _crearMovimiento,
+              ),
             ),
             ChangeNotifierProvider(
-              create: (_) => ProveedoresViewModel(_proveedoresRepo),
+              create: (_) => InventarioViewModel(_productosRepo, _categoriasRepo),
             ),
             ChangeNotifierProvider(
-              create: (_) => InventarioViewModel(_productosRepo),
+              create: (_) => MovimientosViewModel(_movimientosRepo, _categoriasRepo),
             ),
             ChangeNotifierProvider(
-              create: (_) => MovimientosViewModel(_movimientosRepo),
+              create: (_) => VentasViewModel(_ventasRepo, _registrarVenta, ScannerService()),
             ),
             ChangeNotifierProvider(
-              create: (_) => VentasViewModel(_ventasRepo, ScannerService()),
-            ),
-            ChangeNotifierProvider(
-              create: (_) => PedidosProveedorViewModel(_pedidosRepo),
+              create: (_) => PedidosProveedorViewModel(
+                _pedidosRepo,
+                _marcarPedidoEntregado,
+                _crearMovimiento,
+              ),
             ),
           ],
           child: _OnboardingWrapper(
@@ -252,38 +306,45 @@ class _InkTrackAppState extends State<InkTrackApp> {
         Provider.value(value: _pedidosRepo),
         Provider.value(value: _localesRepo),
         Provider(create: (_) => ScannerService()),
+        Provider(create: (_) => _categoriasRepo),
         Provider(
           create: (_) => SupabaseSyncService(
             widget.database,
-            widget.supabaseUrl,
-            widget.supabaseKey,
+            widget.supabaseClient,
           ),
         ),
         ChangeNotifierProvider(
           create: (context) =>
-              VentasViewModel(_ventasRepo, context.read<ScannerService>()),
-        ),
-        ChangeNotifierProvider(create: (_) => ClientesViewModel(_clientesRepo)),
-        ChangeNotifierProvider(
-          create: (_) => ProveedoresViewModel(_proveedoresRepo),
+              VentasViewModel(_ventasRepo, _registrarVenta, context.read<ScannerService>()),
         ),
         ChangeNotifierProvider(
-          create: (_) => LocalesViewModel(
-            _localesRepo,
-            productosRepo: _productosRepo,
-            clientesRepo: _clientesRepo,
-            proveedoresRepo: _proveedoresRepo,
-            movimientosRepo: _movimientosRepo,
+          create: (_) => ClientesViewModel(
+            _clientesRepo,
+            _registrarPagoCliente,
+            _crearMovimiento,
           ),
         ),
         ChangeNotifierProvider(
-          create: (_) => PedidosProveedorViewModel(_pedidosRepo),
+          create: (_) => ProveedoresViewModel(
+            _proveedoresRepo,
+            _crearMovimiento,
+          ),
         ),
         ChangeNotifierProvider(
-          create: (_) => InventarioViewModel(_productosRepo),
+          create: (_) => LocalesViewModel(_localesRepo),
         ),
         ChangeNotifierProvider(
-          create: (_) => MovimientosViewModel(_movimientosRepo),
+          create: (_) => PedidosProveedorViewModel(
+            _pedidosRepo,
+            _marcarPedidoEntregado,
+            _crearMovimiento,
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => InventarioViewModel(_productosRepo, _categoriasRepo),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => MovimientosViewModel(_movimientosRepo, _categoriasRepo),
         ),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
@@ -297,8 +358,11 @@ class _InkTrackAppState extends State<InkTrackApp> {
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,
             locale: localeProvider.locale,
-            supportedLocales: AppLocalizations.supportedLocales,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: const [Locale('es')],
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+            ],
             home: _isLoggedIn
                 ? MainLayoutPage(authService: widget.authService)
                 : LoginPage(onLoginSuccess: _handleLoginSuccess),

@@ -4,14 +4,14 @@ import 'package:InkTrack/core/base_crud_viewmodel.dart';
 import 'package:InkTrack/core/utils/id_utils.dart';
 import 'package:InkTrack/features/proveedores/data/models/proveedor.dart';
 import 'package:InkTrack/features/proveedores/data/repositories/proveedores_repository.dart';
-import '../../../movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
-import '../../../movimientos/data/models/movimiento.dart';
+import 'package:InkTrack/features/movimientos/domain/use_cases/crear_movimiento_use_case.dart';
 
 class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
   final ProveedoresRepository _repository;
+  final CrearMovimientoUseCase _crearMovimiento;
   String? _localId;
 
-  ProveedoresViewModel(this._repository) {
+  ProveedoresViewModel(this._repository, this._crearMovimiento) {
     _loadProveedores();
   }
 
@@ -44,29 +44,15 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
   List<Proveedor> get proveedoresQueVisitanManana {
     final tomorrow = DateTime.now().add(const Duration(days: 1));
     final dayNames = [
-      'Lunes',
-      'Martes',
-      'Miércoles',
-      'Jueves',
-      'Viernes',
-      'Sábado',
-      'Domingo',
+      'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo',
     ];
     final tomorrowDayName = dayNames[tomorrow.weekday - 1];
-    
-    // Also check for English names if needed, but for now we assume Spanish
     final tomorrowDayNameEn = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
+      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
     ][tomorrow.weekday - 1];
 
-    return proveedores.where((p) => 
-      p.diasVisita.contains(tomorrowDayName) || 
+    return proveedores.where((p) =>
+      p.diasVisita.contains(tomorrowDayName) ||
       p.diasVisita.contains(tomorrowDayNameEn)
     ).toList();
   }
@@ -98,7 +84,6 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
     required String telefono,
     required List<String> diasVisita,
     int? periodoVisita,
-    MovimientosViewModel? movimientosVM,
     String? localId,
   }) async {
     if (checkDuplicado(nombre, telefono)) {
@@ -117,17 +102,10 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
     await _repository.save(nuevoProveedor);
     add(nuevoProveedor);
 
-    if (movimientosVM != null) {
-      final movimiento = Movimiento(
-        id: IdUtils.generateId(),
-        monto: 0,
-        fecha: DateTime.now(),
-        tipo: MovimientoType.actividad,
-        concepto: 'Nuevo proveedor: $nombre',
-        categoria: 'Proveedores',
-      );
-      movimientosVM.guardar(movimiento);
-    }
+    await _crearMovimiento.registrarActividad(
+      concepto: 'Nuevo proveedor: $nombre',
+      categoria: 'Proveedores',
+    );
   }
 
   Future<void> editar({

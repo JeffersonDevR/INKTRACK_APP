@@ -35,7 +35,7 @@ class DriftPedidosProveedorRepository implements PedidosProveedorRepository {
                 ? Value(item.localId)
                 : const Value.absent(),
             fechaPedido: item.fechaPedido,
-            fechaEntrega: item.fechaEntrega,
+            fechaEntrega: Value<DateTime?>(item.fechaEntrega),
             productos: item.productosJson,
             montoTotal: item.montoTotal,
             isEntregado: Value(item.isEntregado),
@@ -57,7 +57,7 @@ class DriftPedidosProveedorRepository implements PedidosProveedorRepository {
             ? Value(item.localId)
             : const Value.absent(),
         fechaPedido: Value(item.fechaPedido),
-        fechaEntrega: Value(item.fechaEntrega),
+        fechaEntrega: Value<DateTime?>(item.fechaEntrega),
         productos: Value(item.productosJson),
         montoTotal: Value(item.montoTotal),
         isEntregado: Value(item.isEntregado),
@@ -117,7 +117,7 @@ class DriftPedidosProveedorRepository implements PedidosProveedorRepository {
       proveedorNombre: data.proveedorNombre,
       localId: data.localId,
       fechaPedido: data.fechaPedido,
-      fechaEntrega: data.fechaEntrega,
+      fechaEntrega: data.fechaEntrega ?? DateTime.now(),
       productos: PedidoProveedor.productosFromJson(data.productos),
       montoTotal: data.montoTotal,
       isEntregado: data.isEntregado,

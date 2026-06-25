@@ -2,14 +2,20 @@ import 'package:InkTrack/core/base_crud_viewmodel.dart';
 import 'package:InkTrack/core/utils/id_utils.dart';
 import 'package:InkTrack/features/clientes/data/models/cliente.dart';
 import 'package:InkTrack/features/clientes/data/repositories/clientes_repository.dart';
-import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
-import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
+import 'package:InkTrack/features/clientes/domain/use_cases/registrar_pago_cliente_use_case.dart';
+import 'package:InkTrack/features/movimientos/domain/use_cases/crear_movimiento_use_case.dart';
 
 class ClientesViewModel extends BaseCrudViewModel<Cliente> {
   final ClientesRepository _repository;
+  final RegistrarPagoClienteUseCase _registrarPago;
+  final CrearMovimientoUseCase _crearMovimiento;
   String? _localId;
 
-  ClientesViewModel(this._repository) {
+  ClientesViewModel(
+    this._repository,
+    this._registrarPago,
+    this._crearMovimiento,
+  ) {
     _loadClientes();
   }
 
@@ -91,7 +97,6 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
     required String telefono,
     required String email,
     bool esFiado = false,
-    MovimientosViewModel? movimientosVM,
     String? localId,
   }) async {
     if (checkDuplicado(nombre, telefono)) {
@@ -110,17 +115,10 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
     await _repository.save(nuevoCliente);
     add(nuevoCliente);
 
-    if (movimientosVM != null) {
-      final movimiento = Movimiento(
-        id: IdUtils.generateId(),
-        monto: 0,
-        fecha: DateTime.now(),
-        tipo: MovimientoType.actividad,
-        concepto: 'Nuevo cliente: $nombre',
-        categoria: 'Clientes',
-      );
-      movimientosVM.guardar(movimiento);
-    }
+    await _crearMovimiento.registrarActividad(
+      concepto: 'Nuevo cliente: $nombre',
+      categoria: 'Clientes',
+    );
 
     return nuevoCliente.id;
   }
@@ -162,6 +160,30 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
     }
   }
 
+  Future<void> registrarPago(
+    String clienteId,
+    double monto, {
+    String? conceptoDetalle,
+  }) async {
+    await _registrarPago(
+      clienteId,
+      monto,
+      conceptoDetalle: conceptoDetalle,
+    );
+
+    final cliente = getById(clienteId);
+    if (cliente != null) {
+      final newSaldo = (cliente.saldoPendiente - monto).clamp(0.0, double.infinity);
+      update(
+        clienteId,
+        cliente.copyWith(
+          saldoPendiente: newSaldo,
+          esFiado: newSaldo > 0,
+        ),
+      );
+    }
+  }
+
   Future<void> eliminar(String id) async {
     await _repository.softDelete(id);
     final cliente = getById(id);
@@ -189,28 +211,5 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
     } catch (_) {
       return null;
     }
-  }
-
-  Future<void> registrarPago(
-    String clienteId,
-    double monto,
-    MovimientosViewModel movimientosVM, {
-    String? conceptoDetalle,
-  }) async {
-    final cliente = getById(clienteId);
-    if (cliente == null || monto <= 0) return;
-
-    await actualizarSaldo(clienteId, -monto);
-
-    final movimiento = Movimiento(
-      id: IdUtils.generateId(),
-      monto: monto,
-      fecha: DateTime.now(),
-      tipo: MovimientoType.ingreso,
-      concepto: conceptoDetalle ?? 'Pago de deuda: ${cliente.nombre}',
-      categoria: 'Cobros',
-      clienteId: clienteId,
-    );
-    await movimientosVM.guardar(movimiento);
   }
 }

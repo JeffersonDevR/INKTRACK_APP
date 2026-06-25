@@ -29,7 +29,7 @@ class Locales extends Table {
 class Clientes extends Table {
   TextColumn get id => text()();
   TextColumn get nombre => text()();
-  TextColumn get telefono => text()();
+  TextColumn get telefono => text().nullable()();
   TextColumn get email => text().nullable()();
   TextColumn get localId => text().nullable()();
   BoolColumn get esFiado => boolean().withDefault(const Constant(false))();
@@ -46,7 +46,7 @@ class Clientes extends Table {
 class Proveedores extends Table {
   TextColumn get id => text()();
   TextColumn get nombre => text()();
-  TextColumn get telefono => text()();
+  TextColumn get telefono => text().nullable()();
   TextColumn get diasVisita => text().map(const StringListConverter())();
   IntColumn get periodoVisita => integer().nullable()();
   DateTimeColumn get ultimaVisita => dateTime().nullable()();
@@ -133,11 +133,23 @@ class PedidosProveedor extends Table {
   TextColumn get proveedorNombre => text().nullable()();
   TextColumn get localId => text().nullable()();
   DateTimeColumn get fechaPedido => dateTime()();
-  DateTimeColumn get fechaEntrega => dateTime()();
+  DateTimeColumn get fechaEntrega => dateTime().nullable()();
   TextColumn get productos => text()();
   RealColumn get montoTotal => real()();
   BoolColumn get isEntregado => boolean().withDefault(const Constant(false))();
   TextColumn get notas => text().nullable()();
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
+  DateTimeColumn get lastSyncedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('CategoriaData')
+class Categorias extends Table {
+  TextColumn get id => text()();
+  TextColumn get nombre => text()();
+  TextColumn get tipo => text()(); // 'inventario' | 'movimiento'
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
   DateTimeColumn get lastSyncedAt => dateTime().nullable()();
 
@@ -168,13 +180,16 @@ class StringListConverter extends TypeConverter<List<String>, String> {
     Movimientos,
     Ventas,
     PedidosProveedor,
+    Categorias,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
+  AppDatabase.withExecutor(QueryExecutor executor) : super(executor);
+
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -268,34 +283,26 @@ class AppDatabase extends _$AppDatabase {
       } catch (e) {
         debugPrint("Migration v11 skip: $e");
       }
-      // Note: Migration v12 temporarily disabled - build_runner needs to regenerate
-      // try {
-      //   if (from < 12) {
-      //     await m.addColumn(productos, productos.precioCompra);
-      //     await m.addColumn(productos, productos.unidadesPorPaquete);
-      //     await m.addColumn(productos, productos.esPaquete);
-      //     await m.addColumn(proveedores, proveedores.periodoVisita);
-      //     await m.addColumn(proveedores, proveedores.ultimaVisita);
-      //     await m.addColumn(proveedores, proveedores.proximaVisita);
-      //   }
-      // } catch (e) {
-      //   debugPrint("Migration v12 skip: $e");
-      // }
       try {
         if (from < 13) {
-          // Temporarily commented out to allow build_runner to run
-          /*
           await m.addColumn(productos, productos.precioCompra);
           await m.addColumn(productos, productos.unidadesPorPaquete);
           await m.addColumn(productos, productos.esPaquete);
           await m.addColumn(proveedores, proveedores.periodoVisita);
           await m.addColumn(proveedores, proveedores.ultimaVisita);
           await m.addColumn(proveedores, proveedores.proximaVisita);
-          */
         }
       } catch (e) {
         debugPrint("Migration v13 skip: $e");
       }
+      try {
+        if (from < 14) {
+          await m.createTable(categorias);
+        }
+      } catch (e) {
+        debugPrint("Migration v14 skip: $e");
+      }
+
     },
     beforeOpen: (details) async {
       debugPrint(

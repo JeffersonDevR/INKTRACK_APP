@@ -1,0 +1,72 @@
+# openspec/config.yaml
+schema: spec-driven
+
+context: |
+  Tech stack: Flutter 3+ (SDK ^3.10.7) + Dart
+  Architecture: Feature-first folders (lib/features/{domain}/) with hybrid Clean Architecture / MVVM.
+    Presentation: Provider + ChangeNotifier ViewModels. Widgets, Pages under presentation/.
+    Data: Drift (SQLite) repositories under data/repositories/. Supabase remote via supabase_flutter.
+    Domain: Emerging use-case layer (domain/use_cases/) — RegistrarVentaUseCase, CrearMovimientoUseCase, etc.
+    Core: Shared services, base classes (BaseCrudViewModel, BaseRepository), utils, widgets, theme.
+    L10n: flutter_localizations + intl with .arb files (app_es.arb, app_en.arb).
+    Build: build_runner + drift_dev for code generation.
+  Testing: flutter_test + mockito (build_runner generated mocks) + custom fake repos.
+    25 test files (3561 lines), including unit, widget, and some integration tests.
+    CI: GitHub Actions runs flutter analyze + flutter test + flutter build apk --debug on push/PR to main.
+  Style: analysis_options.yaml with flutter default lints (flutter_lints package commented out, basic linter rules active).
+  Git: Remote origin https://github.com/JeffersonDevR/INKTRACK_APP.git.
+    Current branch: improved-ui-8921959522769011419.
+  Package name: InkTrack (uppercase — noted as non-standard Dart convention).
+
+strict_tdd: true     # Test runner detected (flutter_test) → default enabled
+
+testing:
+  runner:
+    command: flutter test
+    framework: flutter_test
+  layers:
+    unit: { available: true, tool: flutter_test + mockito }
+    integration: { available: false, tool: null }
+    e2e: { available: false, tool: null }
+  coverage:
+    available: false
+    command: null
+  quality:
+    linter: { available: true, command: flutter analyze }
+    type_checker: { available: true, command: flutter analyze }
+    formatter: { available: true, command: dart format }
+
+# Session preflight (2026-06-25)
+execution_mode: auto
+pr_strategy: chained       # stacked-to-main
+review_budget: 800
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Scope must state what is IN and OUT
+    - Map affected areas with file paths
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+    - Number requirements hierarchically (RQ-{domain}-{nnn})
+  design:
+    - Include architecture decisions with tradeoffs table
+    - Document data flow for new services
+    - State testing strategy per layer
+  tasks:
+    - Group by PR slice
+    - Use hierarchical numbering (e.g., 1.1, 1.2)
+    - Keep tasks completable in one session
+    - Estimate lines for review budget (800-line max per PR)
+  apply:
+    - Follow existing code patterns (Provider DI, ChangeNotifier VMs, Drift repos)
+    tdd: true
+    test_command: flutter test
+  verify:
+    test_command: flutter test
+    build_command: flutter analyze
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas
+    - Preserve old spec content in archive-report when replacing

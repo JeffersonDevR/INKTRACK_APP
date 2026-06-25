@@ -28,7 +28,7 @@ class FinancialSummaryHeader extends StatelessWidget {
     required this.totalIngresos,
     required this.totalEgresos,
     required this.balance,
-    this.title = 'Resumen\nFinanciero',
+    this.title = 'Resumen Financiero',
     this.onDateTap,
     this.startDate,
     this.endDate,
@@ -105,18 +105,9 @@ class FinancialSummaryHeader extends StatelessWidget {
                               : AppTheme.textPrimary,
                           letterSpacing: -1,
                         ),
+                        softWrap: true,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      balance >= 0
-                          ? Icons.trending_up_rounded
-                          : Icons.trending_down_rounded,
-                      size: 20,
-                      color: balance >= 0
-                          ? AppTheme.successColor
-                          : AppTheme.errorColor,
                     ),
                   ],
                 ),
@@ -240,7 +231,6 @@ class FinancialSummaryHeader extends StatelessWidget {
                                 ? AppTheme.successColor
                                 : AppTheme.errorColor,
                           ),
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -293,21 +283,22 @@ class _StatItem extends StatelessWidget {
                   fontWeight: FontWeight.w900,
                   letterSpacing: 0.5,
                 ),
-                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
         const SizedBox(height: 8),
-        Text(
-          value,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.5,
-            color: isDark ? AppTheme.darkTextPrimary : null,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            value,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.5,
+              color: isDark ? AppTheme.darkTextPrimary : null,
+            ),
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
         ),
       ],
     );

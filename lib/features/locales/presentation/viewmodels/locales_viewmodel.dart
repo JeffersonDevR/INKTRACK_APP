@@ -1,42 +1,23 @@
-import 'package:flutter/material.dart';
 import 'package:InkTrack/core/base_crud_viewmodel.dart';
 import 'package:InkTrack/core/utils/id_utils.dart';
 import 'package:InkTrack/features/locales/data/models/local.dart';
 import 'package:InkTrack/features/locales/data/repositories/locales_repository.dart';
-import 'package:InkTrack/features/inventario/data/repositories/drift_productos_repository.dart';
-import 'package:InkTrack/features/clientes/data/repositories/drift_clientes_repository.dart';
-import 'package:InkTrack/features/proveedores/data/repositories/drift_proveedores_repository.dart';
-import 'package:InkTrack/features/inventario/data/models/producto.dart';
-import 'package:InkTrack/features/clientes/data/models/cliente.dart';
-import 'package:InkTrack/features/proveedores/data/models/proveedor.dart';
-import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
-import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
-import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
 
-import 'package:InkTrack/features/movimientos/data/repositories/drift_movimientos_repository.dart';
-import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
-import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
+class MigracionItem {
+  final String id;
+  final void Function(String newLocalId) apply;
+
+  MigracionItem({required this.id, required this.apply});
+}
 
 class LocalesViewModel extends BaseCrudViewModel<Local> {
   final LocalesRepository _repository;
-  final DriftProductosRepository? _productosRepo;
-  final DriftClientesRepository? _clientesRepo;
-  final DriftProveedoresRepository? _proveedoresRepo;
-  final DriftMovimientosRepository? _movimientosRepo;
 
   String? _localIdSeleccionado;
   bool _migracionRealizada = false;
+  List<MigracionItem>? _pendientes;
 
-  LocalesViewModel(
-    this._repository, {
-    DriftProductosRepository? productosRepo,
-    DriftClientesRepository? clientesRepo,
-    DriftProveedoresRepository? proveedoresRepo,
-    DriftMovimientosRepository? movimientosRepo,
-  }) : _productosRepo = productosRepo,
-       _clientesRepo = clientesRepo,
-       _proveedoresRepo = proveedoresRepo,
-       _movimientosRepo = movimientosRepo {
+  LocalesViewModel(this._repository) {
     _loadLocales();
   }
 
@@ -55,9 +36,8 @@ class LocalesViewModel extends BaseCrudViewModel<Local> {
     return items.where((l) => l.isActivo).toList();
   }
 
-  bool get tieneDatosSinLocal {
-    return _migracionRealizada == false && localActual != null;
-  }
+  bool get tieneDatosSinLocal =>
+      _migracionRealizada == false && localActual != null;
 
   bool get hayLocalesCargados => items.isNotEmpty;
 
@@ -67,27 +47,13 @@ class LocalesViewModel extends BaseCrudViewModel<Local> {
   }
 
   Future<void> migrarDatosExistentes({
-    required InventarioViewModel invVM,
-    required ClientesViewModel cliVM,
-    required ProveedoresViewModel provVM,
-    required MovimientosViewModel movVM,
-    required BuildContext context,
+    required List<MigracionItem> productosSinLocal,
+    required List<MigracionItem> clientesSinLocal,
+    required List<MigracionItem> proveedoresSinLocal,
+    required List<MigracionItem> movimientosSinLocal,
   }) async {
     if (_localIdSeleccionado == null) return;
     if (_migracionRealizada) return;
-
-    final productosSinLocal = invVM.items
-        .where((p) => p.localId == null)
-        .toList();
-    final clientesSinLocal = cliVM.items
-        .where((c) => c.localId == null)
-        .toList();
-    final proveedoresSinLocal = provVM.items
-        .where((p) => p.localId == null)
-        .toList();
-    final movimientosSinLocal = movVM.items
-        .where((m) => m.localId == null)
-        .toList();
 
     if (productosSinLocal.isEmpty &&
         clientesSinLocal.isEmpty &&
@@ -97,64 +63,22 @@ class LocalesViewModel extends BaseCrudViewModel<Local> {
       return;
     }
 
-    final debeMigrar = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Migrar datos al local'),
-        content: Text(
-          '¿Quieres asignar los ${productosSinLocal.length} productos, '
-          '${clientesSinLocal.length} clientes, '
-          '${proveedoresSinLocal.length} proveedores y '
-          '${movimientosSinLocal.length} transacciones al local "${localActual?.nombre}"?\n\n'
-          'Si no migras, los datos existentes no aparecerán en este local.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('No migrate'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Sí, migrate'),
-          ),
-        ],
-      ),
-    );
-
-    if (debeMigrar != true) {
-      _migracionRealizada = true;
-      return;
-    }
-
-    // Migrate products
-    for (final p in productosSinLocal) {
-      final actualizado = p.copyWith(localId: _localIdSeleccionado);
-      await _productosRepo?.update(p.id, actualizado);
-      invVM.update(p.id, actualizado);
-    }
-
-    // Migrate clients
-    for (final c in clientesSinLocal) {
-      final actualizado = c.copyWith(localId: _localIdSeleccionado);
-      await _clientesRepo?.update(c.id, actualizado);
-      cliVM.update(c.id, actualizado);
-    }
-
-    // Migrate suppliers
-    for (final p in proveedoresSinLocal) {
-      final actualizado = p.copyWith(localId: _localIdSeleccionado);
-      await _proveedoresRepo?.update(p.id, actualizado);
-      provVM.update(p.id, actualizado);
-    }
-
-    // Migrate movements
-    for (final m in movimientosSinLocal) {
-      final actualizado = m.copyWith(localId: _localIdSeleccionado);
-      await _movimientosRepo?.update(m.id, actualizado);
-      movVM.update(m.id, actualizado);
-    }
+    _pendientes = [
+      ...productosSinLocal,
+      ...clientesSinLocal,
+      ...proveedoresSinLocal,
+      ...movimientosSinLocal,
+    ];
 
     _migracionRealizada = true;
+  }
+
+  void aplicarMigracionPendiente() {
+    if (_localIdSeleccionado == null || _pendientes == null) return;
+    for (final item in _pendientes!) {
+      item.apply(_localIdSeleccionado!);
+    }
+    _pendientes = null;
     notifyListeners();
   }
 

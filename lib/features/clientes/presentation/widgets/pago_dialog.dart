@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:InkTrack/features/clientes/data/models/cliente.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
-import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/input_formatters.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
@@ -59,7 +58,6 @@ class _PagoDialogState extends State<PagoDialog> {
     context.read<ClientesViewModel>().registrarPago(
       widget.cliente.id,
       monto,
-      context.read<MovimientosViewModel>(),
       conceptoDetalle: widget.conceptDetail,
     );
 

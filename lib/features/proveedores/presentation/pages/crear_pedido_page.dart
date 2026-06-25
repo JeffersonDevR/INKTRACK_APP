@@ -10,7 +10,6 @@ import 'package:InkTrack/features/proveedores/data/models/pedido_proveedor.dart'
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/inventario/data/models/producto.dart';
 import 'package:InkTrack/features/inventario/presentation/pages/barcode_scanner_page.dart';
-import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 
 class CrearPedidoPage extends StatefulWidget {
   final String? initialProveedorId;
@@ -193,7 +192,6 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
       notas: _notasController.text.trim().isEmpty
           ? null
           : _notasController.text.trim(),
-      movimientosVM: context.read<MovimientosViewModel>(),
     );
 
     if (mounted) {
@@ -232,7 +230,7 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
                     .toList();
 
                 return DropdownButtonFormField<String>(
-                  value: _proveedorId,
+                  initialValue: _proveedorId,
                   decoration: const InputDecoration(
                     labelText: 'Proveedor',
                     prefixIcon: Icon(Icons.local_shipping_outlined),
@@ -419,7 +417,7 @@ class _ProductoPedido {
 }
 
 class _AgregarProductoSheet extends StatefulWidget {
-  const _AgregarProductoSheet({super.key});
+  const _AgregarProductoSheet();
 
   @override
   State<_AgregarProductoSheet> createState() => _AgregarProductoSheetState();

@@ -43,7 +43,7 @@ class DriftProveedoresRepository implements ProveedoresRepository {
           ProveedoresCompanion.insert(
             id: item.id,
             nombre: item.nombre,
-            telefono: item.telefono,
+            telefono: Value<String?>(item.telefono),
             diasVisita: item.diasVisita,
             periodoVisita: Value(item.periodoVisita),
             ultimaVisita: Value(item.ultimaVisita),
@@ -62,7 +62,7 @@ class DriftProveedoresRepository implements ProveedoresRepository {
     await (_db.update(_db.proveedores)..where((t) => t.id.equals(id))).write(
       ProveedoresCompanion(
         nombre: Value(item.nombre),
-        telefono: Value(item.telefono),
+        telefono: Value<String?>(item.telefono),
         diasVisita: Value(item.diasVisita),
         periodoVisita: Value(item.periodoVisita),
         ultimaVisita: Value(item.ultimaVisita),
@@ -94,7 +94,7 @@ class DriftProveedoresRepository implements ProveedoresRepository {
     return Proveedor(
       id: data.id,
       nombre: data.nombre,
-      telefono: data.telefono,
+      telefono: data.telefono ?? '',
       diasVisita: data.diasVisita,
       periodoVisita: data.periodoVisita,
       ultimaVisita: data.ultimaVisita,

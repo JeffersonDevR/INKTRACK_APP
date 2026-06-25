@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'movimiento_form_page.dart';
+import 'package:InkTrack/core/data/local/database.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
+import 'package:InkTrack/core/utils/import_flow.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
+import 'package:InkTrack/features/movimientos/data/importers/movimientos_import_validator.dart';
 
 class MovimientosPage extends StatelessWidget {
   const MovimientosPage({super.key});
@@ -56,14 +58,18 @@ class MovimientosPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.movementHistoryTitle),
+        title: const Text('Historial de Movimientos'),
         actions: [
           IconButton(
             onPressed: () => _selectDateRange(context),
             icon: const Icon(Icons.date_range_rounded),
+          ),
+          IconButton(
+            onPressed: () => _importMovimientos(context),
+            icon: const Icon(Icons.file_upload_outlined),
+            tooltip: 'Importar movimientos',
           ),
         ],
       ),
@@ -111,7 +117,7 @@ class MovimientosPage extends StatelessWidget {
                               return OutlinedButton.icon(
                                 onPressed: () => viewModel.clearDateFilter(),
                                 icon: const Icon(Icons.clear_rounded, size: 18),
-                                label: Text(l10n.clearFilterBtn),
+                                label: const Text('Limpiar Filtro'),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: isDark
                                       ? AppTheme.darkTextSecondary
@@ -141,14 +147,14 @@ class MovimientosPage extends StatelessWidget {
                     children: [
                       Text(
                         viewModel.startDateFilter == null
-                            ? l10n.recentRecords
-                            : l10n.resultadosFiltroTitle,
+                            ? 'Registros Recientes'
+                            : 'Resultados Filtrados',
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       if (viewModel.startDateFilter == null)
                         Text(
-                          l10n.totalItems(items.length),
+                          'Total: ${items.length}',
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: AppTheme.textSecondary),
                         ),
@@ -171,6 +177,22 @@ class MovimientosPage extends StatelessWidget {
       ),
     );
   }
+
+  Future<void> _importMovimientos(BuildContext context) async {
+    final db = context.read<AppDatabase>();
+    await runImportFlow<Movimiento>(
+      context: context,
+      moduleName: 'Movimientos',
+      requiredColumns: MovimientosImportValidator.requiredColumns,
+      validate: MovimientosImportValidator.validate,
+      batchImport: MovimientosImportValidator.batchImport,
+      db: db,
+      title: 'Importar Movimientos',
+    );
+    if (context.mounted) {
+      context.read<MovimientosViewModel>().refresh();
+    }
+  }
 }
 
 class _MovimientoItem extends StatelessWidget {
@@ -179,8 +201,8 @@ class _MovimientoItem extends StatelessWidget {
   const _MovimientoItem({required this.movimiento});
 
   @override
+  @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final isIngreso = movimiento.tipo == MovimientoType.ingreso;
     final isEgreso = movimiento.tipo == MovimientoType.egreso;
 
@@ -256,7 +278,7 @@ class _MovimientoItem extends StatelessWidget {
                     children: [
                       const Icon(Icons.edit_outlined, size: 20),
                       const SizedBox(width: 8),
-                      Text(l10n.editarRegistro),
+                      const Text('Editar'),
                     ],
                   ),
                 ),
@@ -271,7 +293,7 @@ class _MovimientoItem extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        l10n.eliminar,
+                        'Eliminar',
                         style: TextStyle(color: AppTheme.errorColor),
                       ),
                     ],
@@ -286,16 +308,15 @@ class _MovimientoItem extends StatelessWidget {
   }
 
   void _confirmDelete(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l10n.eliminarRegistro),
-        content: Text(l10n.confirmarEliminarRegistro),
+        title: const Text('Eliminar Registro'),
+        content: const Text('¿Estás seguro de que deseas eliminar este registro permanentemente?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancelar),
+            child: const Text('Cancelar'),
           ),
           TextButton(
             onPressed: () {
@@ -303,7 +324,7 @@ class _MovimientoItem extends StatelessWidget {
               Navigator.pop(context);
             },
             style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
-            child: Text(l10n.eliminar),
+            child: const Text('Eliminar'),
           ),
         ],
       ),
@@ -314,7 +335,6 @@ class _MovimientoItem extends StatelessWidget {
 class _EmptyMovimientos extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
@@ -331,12 +351,12 @@ class _EmptyMovimientos extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              l10n.historialVacio,
+              'Historial vacío',
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              l10n.noHayRegistros,
+              'No hay registros de ingresos o egresos todavía.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium,
             ),

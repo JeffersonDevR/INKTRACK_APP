@@ -59,6 +59,7 @@ dependencies:
   flutter_local_notifications: ^18.0.0
   shimmer: ^3.0.0
   shared_preferences: ^2.3.3
+  file_picker: ^8.0.0
 
 dev_dependencies:
   flutter_test:
@@ -87,13 +88,10 @@ flutter_launcher_icons:
 
 # The following section is specific to Flutter packages.
 flutter:
-  generate: true
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
-  # assets:
-  #   - shorebird.yaml
   assets:
       - assets/icon/
       - .env

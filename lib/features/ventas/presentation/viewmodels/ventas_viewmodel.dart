@@ -1,16 +1,13 @@
 import 'package:InkTrack/core/base_crud_viewmodel.dart';
-import 'package:InkTrack/core/utils/id_utils.dart';
 import 'package:InkTrack/features/ventas/data/models/venta.dart';
 import 'package:InkTrack/features/ventas/data/repositories/ventas_repository.dart';
-import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
-import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
-import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
-import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
+import 'package:InkTrack/features/ventas/domain/use_cases/registrar_venta_use_case.dart';
 import 'package:InkTrack/core/services/scanner_service.dart';
 import 'package:image_picker/image_picker.dart';
 
 class VentasViewModel extends BaseCrudViewModel<Venta> {
   final VentasRepository _repository;
+  final RegistrarVentaUseCase _registrarVenta;
   final ScannerService? _scannerService;
   String? _localId;
 
@@ -23,7 +20,7 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
   String? _lastScannedClientName;
   String? get lastScannedClientName => _lastScannedClientName;
 
-  VentasViewModel(this._repository, [this._scannerService]) {
+  VentasViewModel(this._repository, this._registrarVenta, [this._scannerService]) {
     _loadVentas();
   }
 
@@ -65,85 +62,15 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
         .fold(0.0, (sum, item) => sum + item.monto);
   }
 
-  Future<void> guardar(
-    Venta venta, {
-    MovimientosViewModel? movimientosVM,
-    ClientesViewModel? clientesVM,
-    InventarioViewModel? inventarioVM,
-  }) async {
+  Future<void> guardar(Venta venta) async {
     if (venta.monto <= 0) return;
 
-    final bool isNew = venta.id.isEmpty;
-    final id = isNew ? IdUtils.generateTimestampId() : venta.id;
-
-    String? finalClienteId = venta.clienteId;
-
-    // Auto-create client if name is provided but ID is missing
-    if (isNew &&
-        finalClienteId == null &&
-        venta.clienteNombre != null &&
-        venta.clienteNombre!.isNotEmpty &&
-        clientesVM != null) {
-      finalClienteId = await clientesVM.agregar(
-        nombre: venta.clienteNombre!,
-        telefono: '',
-        email: '',
-        movimientosVM: movimientosVM,
-      );
-    }
-
-    final ventaAGuardar = venta.copyWith(id: id, clienteId: finalClienteId);
-
-    if (isNew) {
-      await _repository.save(ventaAGuardar);
-      add(ventaAGuardar);
-
-      // side effects for new sales
-      if (movimientosVM != null) {
-        final rawConcepto = venta.concepto ?? 'Venta general';
-        final finalConcepto = rawConcepto.toLowerCase().startsWith('venta:')
-            ? rawConcepto
-            : 'Venta: $rawConcepto';
-        final movimiento = Movimiento(
-          id: IdUtils.generateId(),
-          monto: venta.monto,
-          fecha: venta.fecha,
-          tipo: MovimientoType.ingreso,
-          concepto: finalConcepto,
-          categoria: 'Ventas',
-          localId: ventaAGuardar.localId,
-        );
-        await movimientosVM.guardar(movimiento);
-      }
-
-      // auto-update stock
-      if (inventarioVM != null) {
-        if (venta.isMultiProducto) {
-          for (final item in venta.productos) {
-            final producto = inventarioVM.getById(item.productoId);
-            if (producto != null) {
-              double decrement = item.cantidad.toDouble();
-              if (item.isUnidad && producto.esPaquete && producto.unidadesPorPaquete > 0) {
-                decrement = item.cantidad / producto.unidadesPorPaquete;
-              }
-              await inventarioVM.actualizarStock(item.productoId, -decrement);
-            }
-          }
-        } else if (venta.productoId != null && venta.cantidad > 0) {
-          await inventarioVM.actualizarStock(
-            venta.productoId!,
-            -venta.cantidad,
-          );
-        }
-      }
-
-      // auto-update client debt
-      if (clientesVM != null && finalClienteId != null && venta.esFiado) {
-        await clientesVM.actualizarSaldo(finalClienteId, venta.monto);
-      }
+    if (venta.id.isEmpty) {
+      final result = await _registrarVenta(venta);
+      add(result.venta);
     } else {
-      await _repository.update(id, ventaAGuardar);
-      update(id, ventaAGuardar);
+      await _repository.update(venta.id, venta);
+      update(venta.id, venta);
     }
   }
 

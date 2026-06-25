@@ -43,14 +43,14 @@ class DriftProductosRepository implements ProductosRepository {
           ProductosCompanion.insert(
             id: item.id,
             nombre: item.nombre,
-            cantidad: item.cantidad.toInt(),
+            cantidad: item.cantidad,
             precio: item.precioVenta,
-            // precioCompra: Value(item.precioCompra),
-            // unidadesPorPaquete: Value(item.unidadesPorPaquete),
-            // esPaquete: Value(item.esPaquete),
+            precioCompra: Value(item.precioCompra),
+            unidadesPorPaquete: Value(item.unidadesPorPaquete),
+            esPaquete: Value(item.esPaquete),
             categoria: item.categoria,
             proveedorId: item.proveedorId,
-            stockMinimo: Value(item.stockMinimo.toInt()),
+            stockMinimo: Value(item.stockMinimo),
             localId: item.localId != null
                 ? Value(item.localId)
                 : const Value.absent(),
@@ -68,14 +68,14 @@ class DriftProductosRepository implements ProductosRepository {
     await (_db.update(_db.productos)..where((t) => t.id.equals(id))).write(
       ProductosCompanion(
         nombre: Value(item.nombre),
-        cantidad: Value(item.cantidad.toInt()),
+        cantidad: Value(item.cantidad),
         precio: Value(item.precioVenta),
-        // precioCompra: Value(item.precioCompra),
-        // unidadesPorPaquete: Value(item.unidadesPorPaquete),
-        // esPaquete: Value(item.esPaquete),
+        precioCompra: Value(item.precioCompra),
+        unidadesPorPaquete: Value(item.unidadesPorPaquete),
+        esPaquete: Value(item.esPaquete),
         categoria: Value(item.categoria),
         proveedorId: Value(item.proveedorId),
-        stockMinimo: Value(item.stockMinimo.toInt()),
+        stockMinimo: Value(item.stockMinimo),
         localId: item.localId != null
             ? Value(item.localId)
             : const Value.absent(),
@@ -149,9 +149,9 @@ class DriftProductosRepository implements ProductosRepository {
       nombre: data.nombre,
       cantidad: data.cantidad,
       precioVenta: data.precio,
-      // precioCompra: data.precioCompra,
-      // unidadesPorPaquete: data.unidadesPorPaquete,
-      // esPaquete: data.esPaquete,
+      precioCompra: data.precioCompra,
+      unidadesPorPaquete: data.unidadesPorPaquete,
+      esPaquete: data.esPaquete,
       categoria: data.categoria,
       proveedorId: data.proveedorId,
       stockMinimo: data.stockMinimo,

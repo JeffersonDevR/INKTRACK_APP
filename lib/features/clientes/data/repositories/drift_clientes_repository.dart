@@ -43,7 +43,7 @@ class DriftClientesRepository implements ClientesRepository {
           ClientesCompanion.insert(
             id: item.id,
             nombre: item.nombre,
-            telefono: item.telefono,
+            telefono: Value<String?>(item.telefono),
             email: item.email != null
                 ? Value(item.email)
                 : const Value.absent(),
@@ -63,7 +63,7 @@ class DriftClientesRepository implements ClientesRepository {
     await (_db.update(_db.clientes)..where((t) => t.id.equals(id))).write(
       ClientesCompanion(
         nombre: Value(item.nombre),
-        telefono: Value(item.telefono),
+        telefono: Value<String?>(item.telefono),
         email: item.email != null ? Value(item.email) : const Value.absent(),
         localId: item.localId != null
             ? Value(item.localId)
@@ -94,7 +94,7 @@ class DriftClientesRepository implements ClientesRepository {
     return Cliente(
       id: data.id,
       nombre: data.nombre,
-      telefono: data.telefono,
+      telefono: data.telefono ?? '',
       email: data.email == null || data.email!.isEmpty ? null : data.email,
       localId: data.localId,
       esFiado: data.esFiado,

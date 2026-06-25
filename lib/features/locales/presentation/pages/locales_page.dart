@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:InkTrack/core/data/local/database.dart';
+import 'package:InkTrack/core/utils/import_flow.dart';
 import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmodel.dart';
 import 'package:InkTrack/features/locales/data/models/local.dart';
+import 'package:InkTrack/features/locales/data/importers/locales_import_validator.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
@@ -25,6 +27,8 @@ class LocalesPage extends StatelessWidget {
               final viewModel = context.read<LocalesViewModel>();
               if (value == 'add') {
                 _showLocalDialog(context);
+              } else if (value == 'import') {
+                _importLocales(context);
               } else if (value == 'delete_all') {
                 _confirmDeleteAllData(context, viewModel);
               }
@@ -37,6 +41,23 @@ class LocalesPage extends StatelessWidget {
                     Icon(Icons.add, size: 20),
                     SizedBox(width: 8),
                     Text('Agregar Local'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'import',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.upload_file_rounded,
+                      size: 20,
+                      color: AppTheme.infoColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Importar',
+                      style: TextStyle(color: AppTheme.infoColor),
+                    ),
                   ],
                 ),
               ),
@@ -205,6 +226,22 @@ class LocalesPage extends StatelessWidget {
     );
   }
 
+  Future<void> _importLocales(BuildContext context) async {
+    final db = context.read<AppDatabase>();
+    await runImportFlow<Local>(
+      context: context,
+      moduleName: 'Locales',
+      requiredColumns: LocalesImportValidator.requiredColumns,
+      validate: LocalesImportValidator.validate,
+      batchImport: LocalesImportValidator.batchImport,
+      db: db,
+      title: 'Importar Locales',
+    );
+    if (context.mounted) {
+      context.read<LocalesViewModel>().refresh();
+    }
+  }
+
   void _showLocalDialog(BuildContext context, {Local? local}) {
     final nombreController = TextEditingController(text: local?.nombre);
     final direccionController = TextEditingController(text: local?.direccion);
@@ -246,7 +283,7 @@ class LocalesPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: tipo,
+                  initialValue: tipo,
                   decoration: const InputDecoration(labelText: 'Tipo'),
                   items: const [
                     DropdownMenuItem(value: 'tienda', child: Text('Tienda')),

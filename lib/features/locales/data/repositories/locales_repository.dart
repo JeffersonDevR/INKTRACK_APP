@@ -1,6 +1,7 @@
+import 'package:InkTrack/core/data/base_repository.dart';
 import 'package:InkTrack/features/locales/data/models/local.dart';
 
-abstract class LocalesRepository {
+abstract class LocalesRepository implements BaseRepository<Local> {
   Future<List<Local>> getAll();
   Future<Local?> getById(String id);
   Future<void> save(Local local);

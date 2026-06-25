@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/clientes/data/models/cliente.dart';
 import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmodel.dart';
-import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/core/input_formatters.dart';
 
 class ClienteFormPage extends StatefulWidget {
@@ -42,12 +40,12 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.cliente == null ? l10n.nuevoCliente : l10n.editarCliente,
+          widget.cliente == null ? 'Nuevo Cliente' : 'Editar Cliente',
         ),
       ),
       body: SingleChildScrollView(
@@ -59,10 +57,10 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
             children: [
               TextFormField(
                 controller: _nombreController,
-                decoration: InputDecoration(
-                  labelText: l10n.nombre,
-                  border: const OutlineInputBorder(),
-                  hintText: l10n.ejemploNombre,
+                decoration: const InputDecoration(
+                  labelText: 'Nombre',
+                  border: OutlineInputBorder(),
+                  hintText: 'Ej. Juan Pérez',
                   counterText: '',
                 ),
                 maxLength: 30,
@@ -70,10 +68,10 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
                 inputFormatters: [InputFormatters.textOnly],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return l10n.ingreseNombre;
+                    return 'Por favor ingrese el nombre';
                   }
                   if (value.length < 2) {
-                    return l10n.minimo2Caracteres;
+                    return 'Mínimo 2 caracteres';
                   }
                   return null;
                 },
@@ -81,11 +79,11 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _telefonoController,
-                decoration: InputDecoration(
-                  labelText: l10n.telefono,
-                  border: const OutlineInputBorder(),
-                  hintText: l10n.ejemploTelefono,
-                  helperText: l10n.digitos10SinEspacios,
+                decoration: const InputDecoration(
+                  labelText: 'Teléfono',
+                  border: OutlineInputBorder(),
+                  hintText: 'Ej. 3001234567',
+                  helperText: '10 dígitos sin espacios',
                 ),
                 keyboardType: TextInputType.phone,
                 inputFormatters: [
@@ -94,10 +92,10 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
                 ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return l10n.ingreseTelefono;
+                    return 'Por favor ingrese el teléfono';
                   }
                   if (value.length != 10) {
-                    return l10n.telefono10Digitos;
+                    return 'El teléfono debe tener exactamente 10 dígitos';
                   }
                   return null;
                 },
@@ -105,18 +103,18 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: l10n.email,
-                  border: const OutlineInputBorder(),
-                  hintText: l10n.ejemploEmail,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                  hintText: 'ejemplo@correo.com',
                 ),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return l10n.ingreseEmail;
+                    return 'Por favor ingrese el email';
                   }
                   if (!value.contains('@')) {
-                    return l10n.ingreseEmailValido;
+                    return 'Por favor ingrese un email válido';
                   }
                   return null;
                 },
@@ -125,7 +123,7 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
               ElevatedButton(
                 onPressed: _saveCliente,
                 child: Text(
-                  widget.cliente == null ? l10n.guardar : l10n.actualizar,
+                  widget.cliente == null ? 'Guardar' : 'Actualizar',
                 ),
               ),
             ],
@@ -148,7 +146,6 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
             email: _emailController.text,
             esFiado: false,
             localId: localesVM.localIdSeleccionado,
-            movimientosVM: context.read<MovimientosViewModel>(),
           );
         } else {
           await viewModel.editar(

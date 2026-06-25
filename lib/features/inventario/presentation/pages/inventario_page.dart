@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:InkTrack/core/data/local/database.dart';
+import 'package:InkTrack/core/utils/import_flow.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/inventario/data/models/producto.dart';
+import 'package:InkTrack/features/inventario/data/importers/inventario_import_validator.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
 import 'package:InkTrack/features/ventas/presentation/viewmodels/ventas_viewmodel.dart';
@@ -11,7 +14,6 @@ import 'package:InkTrack/core/widgets/financial_summary_header.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
 import 'package:InkTrack/core/services/supabase_sync_service.dart';
 import 'package:InkTrack/core/widgets/app_card.dart';
-import 'package:InkTrack/l10n/app_localizations.dart';
 import 'producto_form_page.dart';
 
 class InventarioPage extends StatelessWidget {
@@ -22,7 +24,6 @@ class InventarioPage extends StatelessWidget {
     return Consumer<InventarioViewModel>(
       builder: (context, viewModel, child) {
         final showInactive = viewModel.showInactive;
-        final l10n = AppLocalizations.of(context)!;
 
         return Scaffold(
           body: CustomScrollView(
@@ -31,7 +32,7 @@ class InventarioPage extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
                 sliver: SliverToBoxAdapter(
                   child: FinancialSummaryHeader(
-                    title: l10n.controlDeInventarioTitle,
+                    title: 'Control de Inventario',
                     actions: [
                       _HeaderAction(
                         icon: showInactive
@@ -49,11 +50,17 @@ class InventarioPage extends StatelessWidget {
                         onTap: () => _showSyncOptions(context, viewModel),
                         color: AppTheme.primaryColor,
                       ),
+                      _HeaderAction(
+                        icon: Icons.upload_file_rounded,
+                        label: 'Importar',
+                        onTap: () => _importProductos(context),
+                        color: AppTheme.infoColor,
+                      ),
                     ],
                     totalIngresos: viewModel.totalProductos,
                     totalEgresos: viewModel.productosConStockBajo.length.toDouble(),
                     balance: viewModel.valorTotalInventario,
-                    label1: l10n.total,
+                    label1: 'Total',
                     label2: 'Stock Bajo',
                     label3: 'Valor',
                     icon1: Icons.inventory_2_rounded,
@@ -99,6 +106,22 @@ class InventarioPage extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<void> _importProductos(BuildContext context) async {
+    final db = context.read<AppDatabase>();
+    await runImportFlow<Producto>(
+      context: context,
+      moduleName: 'Productos',
+      requiredColumns: InventarioImportValidator.requiredColumns,
+      validate: InventarioImportValidator.validate,
+      batchImport: InventarioImportValidator.batchImport,
+      db: db,
+      title: 'Importar Inventario',
+    );
+    if (context.mounted) {
+      context.read<InventarioViewModel>().refresh();
+    }
   }
 
   void _showSyncOptions(BuildContext context, InventarioViewModel viewModel) {
@@ -206,19 +229,18 @@ class InventarioPage extends StatelessWidget {
   }
 
   void _showDeleteDialog(BuildContext context, Producto producto) {
-    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: Text('Desactivar ${l10n.producto}'),
+        title: const Text('Desactivar Producto'),
         content: Text(
           '¿Desactivar "${producto.nombre}"?\n\nNo aparecerá en listados o nuevas ventas, pero se conservarán sus registros históricos.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(l10n.cancelar),
+            child: const Text('Cancelar'),
           ),
           ElevatedButton(
             onPressed: () {
@@ -237,17 +259,16 @@ class InventarioPage extends StatelessWidget {
   }
 
   void _showReactivateDialog(BuildContext context, Producto producto) {
-    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: Text('Reactivar ${l10n.producto}'),
+        title: const Text('Reactivar Producto'),
         content: Text('¿Reactivar "${producto.nombre}" en el catálogo?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(l10n.cancelar),
+            child: const Text('Cancelar'),
           ),
           ElevatedButton(
             onPressed: () {
@@ -320,8 +341,8 @@ class _ProductoCard extends StatelessWidget {
   });
 
   @override
+  @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final isInactive = !producto.isActivo;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final stockColor = producto.stockBajo
@@ -432,7 +453,7 @@ class _ProductoCard extends StatelessWidget {
                           children: [
                             Icon(Icons.edit_outlined, size: 20),
                             const SizedBox(width: 12),
-                            Text('Editar ${l10n.producto}'),
+                            const Text('Editar Producto'),
                           ],
                         ),
                       ),
@@ -484,7 +505,7 @@ class _ProductoCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      l10n.precioVenta.toUpperCase(),
+                      'PRECIO DE VENTA',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         letterSpacing: 1,
                         fontSize: 9,
@@ -529,7 +550,7 @@ class _ProductoCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'STOCK: ${producto.cantidad % 1 == 0 ? producto.cantidad.toInt() : producto.cantidad.toStringAsFixed(2)}',
+                        'Stock: ${producto.cantidad % 1 == 0 ? producto.cantidad.toInt() : producto.cantidad.toStringAsFixed(2)}',
                         style: Theme.of(context).textTheme.labelMedium
                             ?.copyWith(
                               color: isInactive

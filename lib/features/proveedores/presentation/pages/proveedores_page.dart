@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:InkTrack/core/data/local/database.dart';
+import 'package:InkTrack/core/utils/import_flow.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
 import 'package:InkTrack/features/proveedores/data/models/proveedor.dart';
+import 'package:InkTrack/features/proveedores/data/importers/proveedores_import_validator.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
-import 'package:InkTrack/l10n/app_localizations.dart';
 import 'proveedor_form_page.dart';
 import 'pedidos_proveedor_page.dart';
 import 'historial_visitas_page.dart';
@@ -27,14 +29,13 @@ class ProveedoresPage extends StatelessWidget {
     ProveedoresViewModel viewModel,
     bool showInactive,
   ) {
-    final l10n = AppLocalizations.of(context)!;
     return CustomScrollView(
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
           sliver: SliverToBoxAdapter(
             child: FinancialSummaryHeader(
-              title: l10n.resumenProveedores,
+              title: 'Resumen Proveedores',
               actions: [
                 _HeaderAction(
                   onTap: () => Navigator.push(
@@ -55,6 +56,12 @@ class ProveedoresPage extends StatelessWidget {
                       ? AppTheme.warningColor
                       : AppTheme.textSecondary,
                 ),
+                _HeaderAction(
+                  onTap: () => _importProveedores(context),
+                  icon: Icons.upload_file_rounded,
+                  label: 'Importar',
+                  color: AppTheme.infoColor,
+                ),
               ],
               totalIngresos: viewModel.proveedores.length.toDouble(),
               totalEgresos: viewModel.proveedores
@@ -62,9 +69,9 @@ class ProveedoresPage extends StatelessWidget {
                   .length
                   .toDouble(),
               balance: 0,
-              label1: l10n.total,
-              label2: 'With Route',
-              label3: 'Statistics',
+              label1: 'Total',
+              label2: 'Con Ruta',
+              label3: 'Estadísticas',
               icon1: Icons.local_shipping_rounded,
               icon2: Icons.route_rounded,
               icon3: Icons.bar_chart_rounded,
@@ -78,7 +85,7 @@ class ProveedoresPage extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           sliver: SliverToBoxAdapter(
             child: Text(
-              l10n.listadoProveedores,
+              'Listado de Proveedores',
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
@@ -131,7 +138,7 @@ class ProveedoresPage extends StatelessWidget {
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: const Text(
-                              'INACTIVE',
+                              'INACTIVO',
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w900,
@@ -163,8 +170,8 @@ class ProveedoresPage extends StatelessWidget {
                                 child: FittedBox(
                                   fit: BoxFit.scaleDown,
                                   alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    'Visit: ${proveedor.diasVisitaShort}',
+                                    child: Text(
+                                      'Visita: ${proveedor.diasVisitaShort}',
                                     style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
                                           color: AppTheme.infoColor,
@@ -217,7 +224,7 @@ class ProveedoresPage extends StatelessWidget {
                                 color: AppTheme.primaryColor,
                               ),
                               const SizedBox(width: 8),
-                              Text(l10n.verPedidos),
+                              const Text('Ver Pedidos'),
                             ],
                           ),
                         ),
@@ -227,7 +234,7 @@ class ProveedoresPage extends StatelessWidget {
                             children: [
                               Icon(Icons.edit_outlined, size: 20),
                               const SizedBox(width: 8),
-                              Text(l10n.editar),
+                              const Text('Editar'),
                             ],
                           ),
                         ),
@@ -242,8 +249,8 @@ class ProveedoresPage extends StatelessWidget {
                                   color: AppTheme.successColor,
                                 ),
                                 const SizedBox(width: 8),
-                                Text(
-                                  'Reactivate',
+                                const Text(
+                                  'Reactivar',
                                   style: TextStyle(
                                     color: AppTheme.successColor,
                                   ),
@@ -262,8 +269,8 @@ class ProveedoresPage extends StatelessWidget {
                                   size: 20,
                                 ),
                                 const SizedBox(width: 8),
-                                Text(
-                                  l10n.eliminar,
+                                const Text(
+                                  'Eliminar',
                                   style: TextStyle(color: AppTheme.errorColor),
                                 ),
                               ],
@@ -280,19 +287,34 @@ class ProveedoresPage extends StatelessWidget {
     );
   }
 
+  Future<void> _importProveedores(BuildContext context) async {
+    final db = context.read<AppDatabase>();
+    await runImportFlow<Proveedor>(
+      context: context,
+      moduleName: 'Proveedores',
+      requiredColumns: ProveedoresImportValidator.requiredColumns,
+      validate: ProveedoresImportValidator.validate,
+      batchImport: ProveedoresImportValidator.batchImport,
+      db: db,
+      title: 'Importar Proveedores',
+    );
+    if (context.mounted) {
+      context.read<ProveedoresViewModel>().refresh();
+    }
+  }
+
   void _showDeleteDialog(BuildContext context, Proveedor proveedor) {
-    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Delete ${l10n.proveedor}'),
+        title: const Text('Eliminar Proveedor'),
         content: Text(
-          'Delete ${proveedor.nombre}?\n(It will be marked as inactive for traceability)',
+          '¿Eliminar ${proveedor.nombre}?\n(Se marcará como inactivo para trazabilidad)',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(l10n.cancelar),
+            child: const Text('Cancelar'),
           ),
           TextButton(
             onPressed: () {
@@ -300,7 +322,7 @@ class ProveedoresPage extends StatelessWidget {
               Navigator.pop(ctx);
             },
             style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
-            child: Text(l10n.eliminar),
+            child: const Text('Eliminar'),
           ),
         ],
       ),
@@ -351,7 +373,6 @@ class _EmptyProveedores extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -367,12 +388,12 @@ class _EmptyProveedores extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              l10n.noDataAvailable,
+              'No hay datos disponibles',
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              'Register suppliers to associate them with inventory products.',
+              'Registra proveedores para asociarlos con productos del inventario.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium,
             ),

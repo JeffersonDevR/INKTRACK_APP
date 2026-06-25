@@ -2,16 +2,20 @@ import 'package:InkTrack/core/base_crud_viewmodel.dart';
 import 'package:InkTrack/core/utils/id_utils.dart';
 import 'package:InkTrack/features/proveedores/data/models/pedido_proveedor.dart';
 import 'package:InkTrack/features/proveedores/data/repositories/pedidos_repository.dart';
-import '../../../inventario/presentation/viewmodels/inventario_viewmodel.dart';
-import '../../../movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
-import '../../../movimientos/data/models/movimiento.dart';
-import 'proveedores_viewmodel.dart';
+import 'package:InkTrack/features/proveedores/domain/use_cases/marcar_pedido_entregado_use_case.dart';
+import 'package:InkTrack/features/movimientos/domain/use_cases/crear_movimiento_use_case.dart';
 
 class PedidosProveedorViewModel extends BaseCrudViewModel<PedidoProveedor> {
   final PedidosProveedorRepository _repository;
+  final MarcarPedidoEntregadoUseCase _marcarEntregado;
+  final CrearMovimientoUseCase _crearMovimiento;
   String? _localId;
 
-  PedidosProveedorViewModel(this._repository) {
+  PedidosProveedorViewModel(
+    this._repository,
+    this._marcarEntregado,
+    this._crearMovimiento,
+  ) {
     _loadPedidos();
   }
 
@@ -70,7 +74,6 @@ class PedidosProveedorViewModel extends BaseCrudViewModel<PedidoProveedor> {
     required DateTime fechaEntrega,
     required List<PedidoProducto> productos,
     String? notas,
-    MovimientosViewModel? movimientosVM,
   }) async {
     final montoTotal = productos.fold(0.0, (sum, p) => sum + p.subtotal);
 
@@ -89,65 +92,20 @@ class PedidosProveedorViewModel extends BaseCrudViewModel<PedidoProveedor> {
     await _repository.save(pedido);
     add(pedido);
 
-    if (movimientosVM != null) {
-      final movimiento = Movimiento(
-        id: IdUtils.generateId(),
-        monto: montoTotal,
-        fecha: DateTime.now(),
-        tipo: MovimientoType.actividad,
-        concepto:
-            'Pedido a proveedor: ${proveedorNombre ?? "Proveedor #$proveedorId"}',
-        categoria: 'Pedidos',
-      );
-      await movimientosVM.guardar(movimiento);
-    }
+    await _crearMovimiento.registrarActividad(
+      monto: montoTotal,
+      concepto:
+          'Pedido a proveedor: ${proveedorNombre ?? "Proveedor #$proveedorId"}',
+      categoria: 'Pedidos',
+    );
   }
 
-  Future<void> marcarEntregado(
-    String id,
-    InventarioViewModel? inventarioVM, {
-    MovimientosViewModel? movimientosVM,
-    ProveedoresViewModel? proveedoresVM,
-  }) async {
+  Future<void> marcarEntregado(String id) async {
+    await _marcarEntregado(id);
+
     final pedido = getById(id);
-    if (pedido == null) return;
-
-    if (inventarioVM != null) {
-      for (final producto in pedido.productos) {
-        final existing = inventarioVM.getById(producto.productoId);
-        if (existing != null) {
-          if (!existing.isActivo) {
-            await inventarioVM.reactivar(producto.productoId);
-          }
-          await inventarioVM.actualizarStock(
-            producto.productoId,
-            producto.cantidad,
-          );
-        }
-      }
-    }
-
-    await _repository.marcarEntregado(id);
-    final actualizado = pedido.copyWith(isEntregado: true);
-    update(id, actualizado);
-
-    if (movimientosVM != null) {
-      final movimiento = Movimiento(
-        id: IdUtils.generateId(),
-        monto: pedido.montoTotal,
-        fecha: DateTime.now(),
-        tipo: MovimientoType.egreso,
-        concepto: 'Entrega pedido: ${pedido.proveedorNombre ?? "Proveedor"}',
-        categoria: 'Pedidos',
-      );
-      await movimientosVM.guardar(movimiento);
-    }
-
-    if (proveedoresVM != null) {
-      await proveedoresVM.actualizarVisita(
-        pedido.proveedorId,
-        DateTime.now(),
-      );
+    if (pedido != null) {
+      update(id, pedido.copyWith(isEntregado: true));
     }
   }
 

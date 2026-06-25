@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
-import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:InkTrack/features/inventario/presentation/pages/producto_form_page.dart';
 import 'package:InkTrack/features/movimientos/presentation/pages/movimiento_form_page.dart';
 import 'package:InkTrack/features/movimientos/data/models/movimiento.dart'
@@ -55,8 +54,8 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
     } else {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.productoNoEncontrado),
+        const SnackBar(
+          content: Text('Producto no encontrado en el inventario'),
           backgroundColor: AppTheme.errorColor,
         ),
       );
@@ -101,9 +100,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
                       monto: 0,
                       fecha: DateTime.now(),
                       tipo: mov_model.MovimientoType.egreso,
-                      concepto: AppLocalizations.of(
-                        context,
-                      )!.restockLabel(productoExistente.nombre),
+                      concepto: 'Restock: ${productoExistente.nombre}',
                       productoId: productoExistente.id,
                       categoria: productoExistente.categoria,
                     ),
@@ -119,11 +116,11 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.escanearCodigoTitulo),
+        title: const Text('Escanear Código'),
         actions: [
           IconButton(
             icon: ValueListenableBuilder(
