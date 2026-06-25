@@ -157,20 +157,6 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
       update(id, actualizado);
     }
   }
-
-  Future<void> restockWithReactivation(String codigo, num cantidad) async {
-    Producto? producto = findProductoByCodigoIncludingInactive(codigo);
-
-    if (producto != null && !producto.isActivo) {
-      await reactivar(producto.id);
-      producto = findProductoByCodigo(codigo);
-    }
-
-    if (producto != null) {
-      await actualizarStock(producto.id, cantidad);
-    }
-  }
-
   List<Producto> get _itemsFiltrados {
     if (_localId == null) return items;
     return items.where((p) => p.localId == _localId).toList();
