@@ -6,7 +6,6 @@ import 'package:InkTrack/features/movimientos/presentation/pages/movimiento_form
 import 'package:InkTrack/features/movimientos/data/models/movimiento.dart'
     as mov_model;
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
-import 'package:InkTrack/core/theme/app_theme.dart';
 
 class BarcodeScannerPage extends StatefulWidget {
   final bool returnMode;
@@ -52,13 +51,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
         ),
       );
     } else {
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Producto no encontrado en el inventario'),
-          backgroundColor: AppTheme.errorColor,
-        ),
-      );
+      Navigator.of(context).pop(code);
     }
   }
 

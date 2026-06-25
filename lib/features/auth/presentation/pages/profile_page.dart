@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:InkTrack/core/services/auth_service.dart';
 import 'package:InkTrack/core/services/theme_provider.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
+import 'package:InkTrack/features/auth/presentation/pages/login_page.dart';
+import 'package:InkTrack/features/home/presentation/pages/main_layout_page.dart';
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
@@ -161,9 +163,25 @@ class ProfilePage extends StatelessWidget {
                   if (confirmed == true && context.mounted) {
                     await authService.signOut();
                     if (context.mounted) {
-                      Navigator.of(
+                      Navigator.pushAndRemoveUntil(
                         context,
-                      ).pushNamedAndRemoveUntil('/login', (route) => false);
+                        MaterialPageRoute(
+                          builder: (context) => LoginPage(
+                            onLoginSuccess: () {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => MainLayoutPage(
+                                    authService: context.read<AuthService>(),
+                                  ),
+                                ),
+                                (route) => false,
+                              );
+                            },
+                          ),
+                        ),
+                        (route) => false,
+                      );
                     }
                   }
                 },

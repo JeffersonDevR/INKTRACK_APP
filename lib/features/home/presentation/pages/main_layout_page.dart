@@ -15,6 +15,7 @@ import 'package:InkTrack/features/clientes/presentation/pages/cliente_form_page.
 import 'package:InkTrack/features/proveedores/presentation/pages/proveedor_form_page.dart';
 import 'package:InkTrack/features/inventario/presentation/pages/barcode_scanner_page.dart';
 import 'package:InkTrack/features/inventario/presentation/pages/producto_form_page.dart';
+import 'package:InkTrack/features/proveedores/presentation/pages/crear_pedido_page.dart';
 import 'package:InkTrack/features/home/presentation/widgets/speed_dial_fab.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
@@ -649,7 +650,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                   onRestockPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const BarcodeScannerPage(),
+                      builder: (context) => const CrearPedidoPage(),
                     ),
                   ),
                   onClientePressed: () => Navigator.push(

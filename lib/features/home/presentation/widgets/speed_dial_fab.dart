@@ -111,6 +111,16 @@ class _SpeedDialFabState extends State<SpeedDialFab>
             delay: 0,
           ),
         );
+        options.add(const SizedBox(height: 12));
+        options.add(
+          _buildOption(
+            icon: Icons.shopping_cart_rounded,
+            label: 'Pedido a Proveedor',
+            color: AppTheme.secondaryColor,
+            onTap: widget.onRestockPressed,
+            delay: 1,
+          ),
+        );
         break;
       case FabTab.home:
         break;
