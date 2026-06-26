@@ -7,7 +7,8 @@ idea/
 docs/
 build/
 specs/
-test/
+test/*
+!test/scripts/
 android
 android/
 macos

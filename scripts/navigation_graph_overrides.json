@@ -1,0 +1,106 @@
+{
+  "description": "Manual overrides for the InkTrack navigation graph generator.",
+  "nodes": [
+    {
+      "id": "app:root",
+      "class": "app:root",
+      "file": "lib/main.dart",
+      "group": "root",
+      "notes": "Synthetic node representing the MaterialApp root routing decision"
+    }
+  ],
+  "edges": [
+    {
+      "source": "app:root",
+      "target": "LoginPage",
+      "kind": "root",
+      "label": "state:loggedOut"
+    },
+    {
+      "source": "app:root",
+      "target": "OnboardingLocalPage",
+      "kind": "root",
+      "label": "state:noLocals"
+    },
+    {
+      "source": "app:root",
+      "target": "MainLayoutPage",
+      "kind": "root",
+      "label": "state:loggedIn"
+    },
+    {
+      "source": "MainLayoutPage",
+      "target": "LocalesPage",
+      "kind": "push",
+      "label": "autoPush"
+    },
+    {
+      "source": "BarcodeScannerPage",
+      "target": "ProductoFormPage",
+      "kind": "conditional",
+      "label": "forProductoNuevo"
+    },
+    {
+      "source": "BarcodeScannerPage",
+      "target": "CrearPedidoPage",
+      "kind": "conditional",
+      "label": "forPedido"
+    },
+    {
+      "source": "HomePage",
+      "target": "ImportPreviewPage",
+      "kind": "helper"
+    },
+    {
+      "source": "InventarioPage",
+      "target": "ImportPreviewPage",
+      "kind": "helper"
+    },
+    {
+      "source": "ClientesPage",
+      "target": "ImportPreviewPage",
+      "kind": "helper"
+    },
+    {
+      "source": "ProveedoresPage",
+      "target": "ImportPreviewPage",
+      "kind": "helper"
+    },
+    {
+      "source": "MovimientosPage",
+      "target": "ImportPreviewPage",
+      "kind": "helper"
+    },
+    {
+      "source": "LocalesPage",
+      "target": "ImportPreviewPage",
+      "kind": "helper"
+    },
+    {
+      "source": "MainLayoutPage",
+      "target": "HomePage",
+      "kind": "tab"
+    },
+    {
+      "source": "MainLayoutPage",
+      "target": "ClientesPage",
+      "kind": "tab"
+    },
+    {
+      "source": "MainLayoutPage",
+      "target": "ProveedoresPage",
+      "kind": "tab"
+    },
+    {
+      "source": "MainLayoutPage",
+      "target": "InventarioPage",
+      "kind": "tab"
+    },
+    {
+      "source": "MovimientosPage",
+      "target": "",
+      "kind": "note",
+      "label": "orphan: no incoming push found"
+    }
+  ]
+}
