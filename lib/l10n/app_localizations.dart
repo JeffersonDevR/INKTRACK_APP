@@ -5,7 +5,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
-import 'app_localizations_en.dart';
 import 'app_localizations_es.dart';
 
 // ignore_for_file: type=lint
@@ -91,7 +90,6 @@ abstract class AppLocalizations {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
-    Locale('en'),
     Locale('es')
   ];
 
@@ -1331,6 +1329,12 @@ abstract class AppLocalizations {
   /// **'No Category'**
   String get sinCategoria;
 
+  /// Default category fallback label
+  ///
+  /// In en, this message translates to:
+  /// **'Others'**
+  String get otros;
+
   /// Week label
   ///
   /// In en, this message translates to:
@@ -2200,6 +2204,270 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Trend (last {days} days)'**
   String tendenciaUltimos(int days);
+
+  /// Title of the dialog shown when a scanned barcode already exists
+  ///
+  /// In en, this message translates to:
+  /// **'Product already exists'**
+  String get productoYaExiste;
+
+  /// Message of the dialog shown when a scanned barcode already exists
+  ///
+  /// In en, this message translates to:
+  /// **'The barcode "{codigo}" belongs to the product "{nombre}". What do you want to do?'**
+  String productoYaExisteMensaje(String codigo, String nombre);
+
+  /// Button label to create a movement from the scanner restock dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Create movement'**
+  String get crearMovimiento;
+
+  /// Profit margin label in product form
+  ///
+  /// In en, this message translates to:
+  /// **'Profit Margin'**
+  String get margenGanancia;
+
+  /// Profit percentage label in product form
+  ///
+  /// In en, this message translates to:
+  /// **'Profit Percentage'**
+  String get porcentajeGanancia;
+
+  /// Net profit label in product form
+  ///
+  /// In en, this message translates to:
+  /// **'Net Profit'**
+  String get gananciaNeta;
+
+  /// Cost label in product form
+  ///
+  /// In en, this message translates to:
+  /// **'Cost'**
+  String get costo;
+
+  /// Product name hint in product form
+  ///
+  /// In en, this message translates to:
+  /// **'Ej. Tinta negra 50ml'**
+  String get ejemploNombreProducto;
+
+  /// Validator message for empty product name
+  ///
+  /// In en, this message translates to:
+  /// **'Ingrese el nombre del producto'**
+  String get ingreseNombreProducto;
+
+  /// Custom code label in product form
+  ///
+  /// In en, this message translates to:
+  /// **'Código personalizado'**
+  String get codigoPersonalizado;
+
+  /// Custom code hint in product form
+  ///
+  /// In en, this message translates to:
+  /// **'Código de cliente/proveedor'**
+  String get ejemploCodigoPersonalizado;
+
+  /// Custom code helper text in product form
+  ///
+  /// In en, this message translates to:
+  /// **'Ej. ZAP-001, PAP-045 (opcional)'**
+  String get ayudaCodigoPersonalizado;
+
+  /// Tooltip to link custom code to barcode
+  ///
+  /// In en, this message translates to:
+  /// **'Vincular a código de barras'**
+  String get vincularCodigoBarras;
+
+  /// Hint shown when barcode is linked to custom code
+  ///
+  /// In en, this message translates to:
+  /// **'Vinculado a código personalizado'**
+  String get vinculadoACodigoPersonalizado;
+
+  /// Hint shown when barcode is auto-generated
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-generado'**
+  String get autoGenerado;
+
+  /// Generate barcode button label
+  ///
+  /// In en, this message translates to:
+  /// **'Generar'**
+  String get generar;
+
+  /// Quantity helper and validator in product form
+  ///
+  /// In en, this message translates to:
+  /// **'Máximo 99 unidades'**
+  String get maximo99Unidades;
+
+  /// Validator message for empty quantity
+  ///
+  /// In en, this message translates to:
+  /// **'Ingrese la cantidad'**
+  String get ingreseCantidad;
+
+  /// Validator message for invalid quantity
+  ///
+  /// In en, this message translates to:
+  /// **'Cantidad inválida'**
+  String get cantidadInvalida;
+
+  /// Package/box switch title in product form
+  ///
+  /// In en, this message translates to:
+  /// **'Es Paquete/Caja'**
+  String get esPaqueteCaja;
+
+  /// Package/box switch subtitle in product form
+  ///
+  /// In en, this message translates to:
+  /// **'Venta por unidades dentro de un empaque'**
+  String get ventaPorUnidadesEmpaque;
+
+  /// Units per package label in product form
+  ///
+  /// In en, this message translates to:
+  /// **'Unidades por Paquete'**
+  String get unidadesPorPaquete;
+
+  /// Validator message for empty units per package
+  ///
+  /// In en, this message translates to:
+  /// **'Ingrese unidades'**
+  String get ingreseUnidades;
+
+  /// Validator message for non-positive units
+  ///
+  /// In en, this message translates to:
+  /// **'Debe ser mayor a 0'**
+  String get debeSerMayorACero;
+
+  /// Validator message for empty price
+  ///
+  /// In en, this message translates to:
+  /// **'Ingrese el precio'**
+  String get ingresePrecio;
+
+  /// Validator message for invalid price
+  ///
+  /// In en, this message translates to:
+  /// **'Precio inválido'**
+  String get precioInvalido;
+
+  /// Minimum stock helper text
+  ///
+  /// In en, this message translates to:
+  /// **'Alerta cuando el stock caiga por debajo de este nivel'**
+  String get alertaStockBajo;
+
+  /// Validator message for empty minimum stock
+  ///
+  /// In en, this message translates to:
+  /// **'Ingrese el stock mínimo'**
+  String get ingreseStockMinimo;
+
+  /// Validator message for invalid minimum stock
+  ///
+  /// In en, this message translates to:
+  /// **'Stock mínimo inválido'**
+  String get stockMinimoInvalido;
+
+  /// Maximum 9999 validator/helper
+  ///
+  /// In en, this message translates to:
+  /// **'Máximo 9999'**
+  String get maximo9999;
+
+  /// Dropdown item to write supplier name manually
+  ///
+  /// In en, this message translates to:
+  /// **'Escribir nombre del proveedor'**
+  String get escribirNombreProveedor;
+
+  /// Validator message for unselected supplier
+  ///
+  /// In en, this message translates to:
+  /// **'Seleccione un proveedor o use "Escribir nombre"'**
+  String get seleccioneProveedorOEscribaNombre;
+
+  /// Validator message for empty custom supplier name
+  ///
+  /// In en, this message translates to:
+  /// **'Escriba el nombre del proveedor'**
+  String get escribaNombreProveedor;
+
+  /// Validator message when no supplier is selected
+  ///
+  /// In en, this message translates to:
+  /// **'Seleccione un proveedor'**
+  String get seleccioneUnProveedor;
+
+  /// Custom supplier name label
+  ///
+  /// In en, this message translates to:
+  /// **'Nombre del proveedor'**
+  String get nombreProveedor;
+
+  /// Custom supplier name hint
+  ///
+  /// In en, this message translates to:
+  /// **'Ej. Distribuidora XYZ'**
+  String get ejemploProveedor;
+
+  /// Validator message for empty supplier name
+  ///
+  /// In en, this message translates to:
+  /// **'Ingrese el nombre del proveedor'**
+  String get ingreseNombreProveedor;
+
+  /// Message shown when a product is updated
+  ///
+  /// In en, this message translates to:
+  /// **'Producto actualizado'**
+  String get productoActualizado;
+
+  /// Message shown when linking without custom code
+  ///
+  /// In en, this message translates to:
+  /// **'Ingrese un código personalizado primero'**
+  String get ingreseCodigoPersonalizadoPrimero;
+
+  /// Message shown when a barcode already exists without details
+  ///
+  /// In en, this message translates to:
+  /// **'Ya existe un producto con este código de barras.'**
+  String get productoYaExisteSimple;
+
+  /// Button label to view existing product from dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Ver producto'**
+  String get verProducto;
+
+  /// Error shown when trying to create a supplier order without products
+  ///
+  /// In en, this message translates to:
+  /// **'Agregue al menos un producto'**
+  String get agregueAlMenosUnProducto;
+
+  /// Success message after creating a supplier order
+  ///
+  /// In en, this message translates to:
+  /// **'Pedido creado correctamente'**
+  String get pedidoCreadoCorrectamente;
+
+  /// Button label to create supplier order from scanner
+  ///
+  /// In en, this message translates to:
+  /// **'Crear pedido'**
+  String get crearPedido;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
@@ -2211,7 +2479,7 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['en', 'es'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['es'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -2222,7 +2490,6 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
 
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en': return AppLocalizationsEn();
     case 'es': return AppLocalizationsEs();
   }
 

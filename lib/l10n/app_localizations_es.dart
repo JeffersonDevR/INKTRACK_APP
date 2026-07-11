@@ -647,6 +647,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sinCategoria => 'Sin Categoría';
 
   @override
+  String get otros => 'Otros';
+
+  @override
   String semana(int number) {
     return 'SEM $number';
   }
@@ -1098,4 +1101,138 @@ class AppLocalizationsEs extends AppLocalizations {
   String tendenciaUltimos(int days) {
     return 'Tendencia (últimos $days días)';
   }
+
+  @override
+  String get productoYaExiste => 'Producto ya existe';
+
+  @override
+  String productoYaExisteMensaje(String codigo, String nombre) {
+    return 'El código de barras "$codigo" pertenece al producto "$nombre". ¿Qué deseas hacer?';
+  }
+
+  @override
+  String get crearMovimiento => 'Crear movimiento';
+
+  @override
+  String get margenGanancia => 'Margen de Ganancia';
+
+  @override
+  String get porcentajeGanancia => 'Porcentaje de Ganancia';
+
+  @override
+  String get gananciaNeta => 'Ganancia Neta';
+
+  @override
+  String get costo => 'Costo';
+
+  @override
+  String get ejemploNombreProducto => 'Ej. Tinta negra 50ml';
+
+  @override
+  String get ingreseNombreProducto => 'Ingrese el nombre del producto';
+
+  @override
+  String get codigoPersonalizado => 'Código personalizado';
+
+  @override
+  String get ejemploCodigoPersonalizado => 'Código de cliente/proveedor';
+
+  @override
+  String get ayudaCodigoPersonalizado => 'Ej. ZAP-001, PAP-045 (opcional)';
+
+  @override
+  String get vincularCodigoBarras => 'Vincular a código de barras';
+
+  @override
+  String get vinculadoACodigoPersonalizado => 'Vinculado a código personalizado';
+
+  @override
+  String get autoGenerado => 'Auto-generado';
+
+  @override
+  String get generar => 'Generar';
+
+  @override
+  String get maximo99Unidades => 'Máximo 99 unidades';
+
+  @override
+  String get ingreseCantidad => 'Ingrese la cantidad';
+
+  @override
+  String get cantidadInvalida => 'Cantidad inválida';
+
+  @override
+  String get esPaqueteCaja => 'Es Paquete/Caja';
+
+  @override
+  String get ventaPorUnidadesEmpaque => 'Venta por unidades dentro de un empaque';
+
+  @override
+  String get unidadesPorPaquete => 'Unidades por Paquete';
+
+  @override
+  String get ingreseUnidades => 'Ingrese unidades';
+
+  @override
+  String get debeSerMayorACero => 'Debe ser mayor a 0';
+
+  @override
+  String get ingresePrecio => 'Ingrese el precio';
+
+  @override
+  String get precioInvalido => 'Precio inválido';
+
+  @override
+  String get alertaStockBajo => 'Alerta cuando el stock caiga por debajo de este nivel';
+
+  @override
+  String get ingreseStockMinimo => 'Ingrese el stock mínimo';
+
+  @override
+  String get stockMinimoInvalido => 'Stock mínimo inválido';
+
+  @override
+  String get maximo9999 => 'Máximo 9999';
+
+  @override
+  String get escribirNombreProveedor => 'Escribir nombre del proveedor';
+
+  @override
+  String get seleccioneProveedorOEscribaNombre => 'Seleccione un proveedor o use "Escribir nombre"';
+
+  @override
+  String get escribaNombreProveedor => 'Escriba el nombre del proveedor';
+
+  @override
+  String get seleccioneUnProveedor => 'Seleccione un proveedor';
+
+  @override
+  String get nombreProveedor => 'Nombre del proveedor';
+
+  @override
+  String get ejemploProveedor => 'Ej. Distribuidora XYZ';
+
+  @override
+  String get ingreseNombreProveedor => 'Ingrese el nombre del proveedor';
+
+  @override
+  String get productoActualizado => 'Producto actualizado';
+
+  @override
+  String get ingreseCodigoPersonalizadoPrimero => 'Ingrese un código personalizado primero';
+
+  @override
+  String get productoYaExisteSimple => 'Ya existe un producto con este código de barras.';
+
+  @override
+  String get verProducto => 'Ver producto';
+
+  @override
+  String get agregueAlMenosUnProducto => 'Agregue al menos un producto';
+
+  @override
+  String get pedidoCreadoCorrectamente => 'Pedido creado correctamente';
+
+  @override
+  String get crearPedido => 'Crear pedido';
 }

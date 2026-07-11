@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:InkTrack/core/data/local/database.dart';
 import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmodel.dart';
 import 'package:InkTrack/features/locales/data/models/local.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
-import 'package:InkTrack/core/services/import_service.dart';
 import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
@@ -29,8 +27,6 @@ class LocalesPage extends StatelessWidget {
               final viewModel = context.read<LocalesViewModel>();
               if (value == 'add') {
                 _showLocalDialog(context);
-              } else if (value == 'import') {
-                _performImport(context);
               } else if (value == 'delete_all') {
                 _confirmDeleteAllData(context, viewModel);
               }
@@ -43,23 +39,6 @@ class LocalesPage extends StatelessWidget {
                     Icon(Icons.add, size: 20),
                     SizedBox(width: 8),
                     Text(l10n.agregarLocal),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'import',
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.file_upload_rounded,
-                      size: 20,
-                      color: AppTheme.primaryColor,
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      l10n.importData,
-                      style: TextStyle(color: AppTheme.primaryColor),
-                    ),
                   ],
                 ),
               ),
@@ -470,83 +449,4 @@ class LocalesPage extends StatelessWidget {
       ),
     );
   }
-}
-
-// ---------------------------------------------------------------------------
-// Import helpers
-// ---------------------------------------------------------------------------
-
-Future<void> _performImport(BuildContext context) async {
-  final result = await FilePicker.platform.pickFiles(
-    type: FileType.custom,
-    allowedExtensions: ['xlsx', 'csv'],
-  );
-
-  if (result == null || result.files.single.path == null) return;
-
-  final filePath = result.files.single.path!;
-  final db = context.read<AppDatabase>();
-  final importService = ImportService(db);
-  final scaffoldMessenger = ScaffoldMessenger.of(context);
-
-  final l10n = AppLocalizations.of(context)!;
-  scaffoldMessenger.showSnackBar(
-    SnackBar(
-      content: Text(l10n.importando),
-      duration: const Duration(seconds: 1),
-    ),
-  );
-
-  final importResult = await importService.importFile(filePath, 'locales');
-  if (context.mounted) {
-    await context.read<LocalesViewModel>().refresh();
-    _showImportResultDialog(context, importResult, 'locales');
-  }
-}
-
-void _showImportResultDialog(
-  BuildContext context,
-  ImportResult result,
-  String moduleLabel,
-) {
-  final l10n = AppLocalizations.of(context)!;
-  showDialog(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-      title: Text(
-        result.success ? l10n.importSuccess : l10n.importError,
-      ),
-      content: result.success
-          ? Text(l10n.importSuccess)
-          : SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.importError),
-                  const SizedBox(height: 12),
-                  ...?result.errors?.map(
-                    (e) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Text(
-                        e.toString(),
-                        style: const TextStyle(
-                          color: AppTheme.errorColor,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx),
-          child: Text(l10n.cancelar),
-        ),
-      ],
-    ),
-  );
 }

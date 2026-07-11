@@ -11,11 +11,17 @@ import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_
 import 'package:InkTrack/features/inventario/data/models/producto.dart';
 import 'package:InkTrack/features/inventario/presentation/pages/barcode_scanner_page.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
 
 class CrearPedidoPage extends StatefulWidget {
   final String? initialProveedorId;
+  final Producto? initialProducto;
 
-  const CrearPedidoPage({super.key, this.initialProveedorId});
+  const CrearPedidoPage({
+    super.key,
+    this.initialProveedorId,
+    this.initialProducto,
+  });
 
   @override
   State<CrearPedidoPage> createState() => _CrearPedidoPageState();
@@ -35,6 +41,18 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
   void initState() {
     super.initState();
     _proveedorId = widget.initialProveedorId;
+    if (widget.initialProducto != null) {
+      final producto = widget.initialProducto!;
+      _productos.add(
+        _ProductoPedido(
+          productoId: producto.id,
+          nombre: producto.nombre,
+          cantidad: 1,
+          precioUnitario: producto.precioCompra ?? producto.precioVenta,
+        ),
+      );
+      _actualizarMonto();
+    }
   }
 
   @override
@@ -71,7 +89,9 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
     final producto = await Navigator.push<Producto>(
       context,
       MaterialPageRoute(
-        builder: (context) => const BarcodeScannerPage(returnMode: true),
+        builder: (context) => const BarcodeScannerPage(
+          mode: BarcodeScannerMode.selectProduct,
+        ),
       ),
     );
 
@@ -94,6 +114,7 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
   }
 
   Future<int?> _showCantidadDialog(Producto producto) async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: '1');
     return showDialog<int>(
       context: context,
@@ -102,13 +123,13 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Precio unitario: \$${producto.precioVenta.toStringAsFixed(2)}'),
+            Text('${l10n.precioUnitario}: \$${producto.precioVenta.toStringAsFixed(2)}'),
             const SizedBox(height: 16),
             TextField(
               controller: controller,
-              decoration: const InputDecoration(
-                labelText: 'Cantidad',
-                helperText: 'Máximo 9999',
+              decoration: InputDecoration(
+                labelText: l10n.cantidad,
+                helperText: l10n.maximo9999,
               ),
               keyboardType: TextInputType.number,
               inputFormatters: [
@@ -122,7 +143,7 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: Text(l10n.cancelar),
           ),
           FilledButton(
             onPressed: () {
@@ -131,11 +152,11 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
                 Navigator.pop(ctx, cantidad);
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Cantidad inválida (máx 9999)')),
+                  SnackBar(content: Text(l10n.cantidadInvalida)),
                 );
               }
             },
-            child: const Text('Agregar'),
+            child: Text(l10n.agregar),
           ),
         ],
       ),
@@ -157,11 +178,12 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
   }
 
   void _guardar() async {
+    final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
     if (_productos.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Agregue al menos un producto'),
+        SnackBar(
+          content: Text(l10n.agregueAlMenosUnProducto),
           backgroundColor: AppTheme.errorColor,
         ),
       );
@@ -198,8 +220,8 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Pedido creado correctamente'),
+        SnackBar(
+          content: Text(l10n.pedidoCreadoCorrectamente),
           backgroundColor: AppTheme.successColor,
         ),
       );
@@ -209,6 +231,7 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final currencyFormat = NumberFormat.currency(
       symbol: '\$',
       decimalDigits: 2,
@@ -216,7 +239,7 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
     final dateFormat = DateFormat('dd MMM yyyy');
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Nuevo Pedido')),
+      appBar: AppBar(title: Text(l10n.nuevoPedido)),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -233,9 +256,9 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
 
                 return DropdownButtonFormField<String>(
                   initialValue: _proveedorId,
-                    decoration: const InputDecoration(
-                      labelText: 'Proveedor',
-                    prefixIcon: Icon(Icons.local_shipping_outlined),
+                    decoration: InputDecoration(
+                      labelText: l10n.proveedor,
+                    prefixIcon: const Icon(Icons.local_shipping_outlined),
                   ),
                   items: items,
                   onChanged: (value) {
@@ -245,7 +268,7 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
                   },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Seleccione un proveedor';
+                      return l10n.seleccioneUnProveedor;
                     }
                     return null;
                   },
@@ -256,9 +279,9 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
             InkWell(
               onTap: _selectFecha,
               child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'Fecha de entrega',
-                  prefixIcon: Icon(Icons.calendar_today_outlined),
+                decoration: InputDecoration(
+                  labelText: l10n.fechaEntrega,
+                  prefixIcon: const Icon(Icons.calendar_today_outlined),
                 ),
                 child: Text(dateFormat.format(_fechaEntrega)),
               ),
@@ -268,7 +291,7 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Productos',
+                  l10n.productos,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Row(
@@ -276,12 +299,12 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
                     TextButton.icon(
                       onPressed: _escanearProducto,
                       icon: const Icon(Icons.qr_code_scanner, size: 18),
-                      label: const Text('Escanear'),
+                      label: Text(l10n.escanear),
                     ),
                     TextButton.icon(
                       onPressed: _agregarProducto,
                       icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Agregar'),
+                      label: Text(l10n.agregar),
                     ),
                   ],
                 ),
@@ -300,10 +323,10 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
                         color: AppTheme.textSecondary.withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 8),
-                      const Text('No hay productos agregados'),
+                      Text(l10n.noHayProductos),
                       const SizedBox(height: 4),
                       Text(
-                        'Escanee o seleccione productos del inventario',
+                        l10n.escaneeOAgregueProductos,
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -348,9 +371,9 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _notasController,
-              decoration: const InputDecoration(
-                labelText: 'Notas (opcional)',
-                prefixIcon: Icon(Icons.note_outlined),
+              decoration: InputDecoration(
+                labelText: l10n.notas,
+                prefixIcon: const Icon(Icons.note_outlined),
               ),
               maxLines: 2,
             ),
@@ -363,7 +386,7 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Total',
+                      l10n.total,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -390,7 +413,7 @@ class _CrearPedidoPageState extends State<CrearPedidoPage> {
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Crear Pedido'),
+                    : Text(l10n.crearPedido),
               ),
             ),
           ],
@@ -443,6 +466,7 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
       maxChildSize: 0.9,
@@ -457,7 +481,7 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
               children: [
                 Expanded(
                   child: Text(
-                    'Agregar Producto',
+                    l10n.agregarProductoTitle,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
@@ -470,9 +494,9 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
             const SizedBox(height: 16),
             TextField(
               controller: _busquedaController,
-              decoration: const InputDecoration(
-                labelText: 'Buscar producto',
-                prefixIcon: Icon(Icons.search),
+              decoration: InputDecoration(
+                labelText: l10n.buscarProductoPlaceholder,
+                prefixIcon: const Icon(Icons.search),
               ),
               onChanged: (_) => setState(() {}),
             ),
@@ -502,7 +526,7 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
                         return ListTile(
                           title: Text(producto.nombre),
                           subtitle: Text(
-                            'Stock: ${producto.cantidad} • \$${producto.precioVenta.toStringAsFixed(2)}',
+                            '${l10n.stockLabel(producto.cantidad)} • \$${producto.precioVenta.toStringAsFixed(2)}',
                           ),
                           onTap: () {
                             setState(() {
@@ -540,15 +564,15 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
                   const SizedBox(height: 16),
                   TextField(
                     controller: _cantidadController,
-                    decoration: const InputDecoration(labelText: 'Cantidad'),
+                    decoration: InputDecoration(labelText: l10n.cantidad),
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _precioController,
-                    decoration: const InputDecoration(
-                      labelText: 'Precio Unitario',
+                    decoration: InputDecoration(
+                      labelText: l10n.precioUnitario,
                       prefixText: '\$ ',
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
@@ -579,7 +603,7 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
                           );
                         }
                       },
-                      child: const Text('Agregar'),
+                      child: Text(l10n.agregar),
                     ),
                   ),
                 ],

@@ -3,9 +3,8 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:drift/native.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
+import 'package:InkTrack/core/data/local/database_path_resolver.dart';
 
 part 'database.g.dart';
 
@@ -31,7 +30,7 @@ class Clientes extends Table {
   TextColumn get nombre => text()();
   TextColumn get telefono => text()();
   TextColumn get email => text().nullable()();
-  TextColumn get localId => text().nullable()();
+  TextColumn get localId => text().nullable().references(Locales, #id)();
   BoolColumn get esFiado => boolean().withDefault(const Constant(false))();
   RealColumn get saldoPendiente => real().withDefault(const Constant(0.0))();
   BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
@@ -51,7 +50,7 @@ class Proveedores extends Table {
   IntColumn get periodoVisita => integer().nullable()();
   DateTimeColumn get ultimaVisita => dateTime().nullable()();
   DateTimeColumn get proximaVisita => dateTime().nullable()();
-  TextColumn get localId => text().nullable()();
+  TextColumn get localId => text().nullable().references(Locales, #id)();
   BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
   DateTimeColumn get lastSyncedAt => dateTime().nullable()();
@@ -67,11 +66,12 @@ class Productos extends Table {
   IntColumn get cantidad => integer()();
   RealColumn get precio => real()();
   RealColumn get precioCompra => real().nullable()();
-  IntColumn get unidadesPorPaquete => integer().withDefault(const Constant(1))();
+  IntColumn get unidadesPorPaquete =>
+      integer().withDefault(const Constant(1))();
   BoolColumn get esPaquete => boolean().withDefault(const Constant(false))();
   TextColumn get categoria => text()();
-  TextColumn get proveedorId => text()();
-  TextColumn get localId => text().nullable()();
+  TextColumn get proveedorId => text().references(Proveedores, #id)();
+  TextColumn get localId => text().nullable().references(Locales, #id)();
   IntColumn get stockMinimo => integer().withDefault(const Constant(5))();
   TextColumn get codigoBarras => text().nullable()();
   TextColumn get codigoPersonalizado => text().nullable()();
@@ -92,10 +92,11 @@ class Movimientos extends Table {
   IntColumn get tipo => intEnum<MovimientoType>()();
   TextColumn get concepto => text()();
   TextColumn get categoria => text().nullable()();
-  TextColumn get productoId => text().nullable()();
-  TextColumn get clienteId => text().nullable()();
-  TextColumn get proveedorId => text().nullable()();
-  TextColumn get localId => text().nullable()();
+  TextColumn get productoId => text().nullable().references(Productos, #id)();
+  TextColumn get clienteId => text().nullable().references(Clientes, #id)();
+  TextColumn get proveedorId =>
+      text().nullable().references(Proveedores, #id)();
+  TextColumn get localId => text().nullable().references(Locales, #id)();
   IntColumn get cantidad => integer().nullable()();
   BoolColumn get esFiado => boolean().withDefault(const Constant(false))();
   TextColumn get productosJson => text().nullable()();
@@ -114,9 +115,9 @@ class Ventas extends Table {
   TextColumn get id => text()();
   RealColumn get monto => real()();
   DateTimeColumn get fecha => dateTime()();
-  TextColumn get clienteId => text().nullable()();
+  TextColumn get clienteId => text().nullable().references(Clientes, #id)();
   TextColumn get clienteNombre => text().nullable()();
-  TextColumn get localId => text().nullable()();
+  TextColumn get localId => text().nullable().references(Locales, #id)();
   TextColumn get concepto => text().nullable()();
   TextColumn get productosJson => text().nullable()();
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
@@ -129,9 +130,9 @@ class Ventas extends Table {
 @DataClassName('PedidoProveedorData')
 class PedidosProveedor extends Table {
   TextColumn get id => text()();
-  TextColumn get proveedorId => text()();
+  TextColumn get proveedorId => text().references(Proveedores, #id)();
   TextColumn get proveedorNombre => text().nullable()();
-  TextColumn get localId => text().nullable()();
+  TextColumn get localId => text().nullable().references(Locales, #id)();
   DateTimeColumn get fechaPedido => dateTime()();
   DateTimeColumn get fechaEntrega => dateTime()();
   TextColumn get productos => text()();
@@ -189,7 +190,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.fromConnection(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 14;
+  int get schemaVersion => 15;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -318,6 +319,22 @@ class AppDatabase extends _$AppDatabase {
       } catch (e) {
         debugPrint("Migration v14 skip: $e");
       }
+      try {
+        if (from < 15) {
+          // Recreate tables to add foreign key constraints.
+          // Order matters: parents must exist before children.
+          await m.alterTable(TableMigration(locales));
+          await m.alterTable(TableMigration(localUsers));
+          await m.alterTable(TableMigration(clientes));
+          await m.alterTable(TableMigration(proveedores));
+          await m.alterTable(TableMigration(productos));
+          await m.alterTable(TableMigration(movimientos));
+          await m.alterTable(TableMigration(ventas));
+          await m.alterTable(TableMigration(pedidosProveedor));
+        }
+      } catch (e) {
+        debugPrint("Migration v15 skip: $e");
+      }
     },
     beforeOpen: (details) async {
       debugPrint(
@@ -329,8 +346,28 @@ class AppDatabase extends _$AppDatabase {
 
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'db.sqlite'));
-    return NativeDatabase(file);
+    final file = await DatabasePathResolver.resolve();
+    return NativeDatabase(
+      file,
+      setup: (rawDb) {
+        rawDb.execute('PRAGMA foreign_keys = ON;');
+      },
+    );
   });
+}
+
+/// Copies the SQLite database file to [targetPath].
+///
+/// Useful for inspecting the database with external tools such as DBeaver.
+/// The target directory is created if needed. Returns the copied [File].
+Future<File> exportDatabaseTo(String targetPath) async {
+  final currentFile = await DatabasePathResolver.resolve();
+  final targetFile = File(targetPath);
+  final targetDir = targetFile.parent;
+  if (!targetDir.existsSync()) {
+    targetDir.createSync(recursive: true);
+  }
+  await currentFile.copy(targetFile.path);
+  debugPrint('[AppDatabase] Exported SQLite to ${targetFile.absolute.path}');
+  return targetFile;
 }

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:InkTrack/core/data/local/database.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/inventario/data/models/producto.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
@@ -12,7 +10,6 @@ import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
 import 'package:InkTrack/core/services/supabase_sync_service.dart';
-import 'package:InkTrack/core/services/import_service.dart';
 import 'package:InkTrack/core/widgets/app_card.dart';
 import 'package:InkTrack/l10n/app_localizations.dart';
 import 'producto_form_page.dart';
@@ -52,15 +49,10 @@ class InventarioPage extends StatelessWidget {
                         onTap: () => _showSyncOptions(context, viewModel),
                         color: AppTheme.primaryColor,
                       ),
-                      _HeaderAction(
-                        icon: Icons.file_upload_rounded,
-                        label: l10n.import,
-                        onTap: () => _performImport(context),
-                        color: AppTheme.secondaryColor,
-                      ),
                     ],
                     totalIngresos: viewModel.totalProductos,
-                    totalEgresos: viewModel.productosConStockBajo.length.toDouble(),
+                    totalEgresos: viewModel.productosConStockBajo.length
+                        .toDouble(),
                     balance: viewModel.valorTotalInventario,
                     label1: l10n.total,
                     label2: l10n.stockBajo,
@@ -211,76 +203,9 @@ class InventarioPage extends StatelessWidget {
               ? l10n.sincronizarTodo
               : '${l10n.importError}: ${result.errors} errores',
         ),
-        backgroundColor: result.isSuccess ? AppTheme.successColor : AppTheme.errorColor,
-      ),
-    );
-  }
-
-  Future<void> _performImport(BuildContext context) async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['xlsx', 'csv'],
-    );
-
-    if (result == null || result.files.single.path == null) return;
-
-    final filePath = result.files.single.path!;
-    final db = context.read<AppDatabase>();
-    final importService = ImportService(db);
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-
-    final l10n = AppLocalizations.of(context)!;
-    scaffoldMessenger.showSnackBar(
-      SnackBar(
-        content: Text(l10n.importando),
-        duration: const Duration(seconds: 1),
-      ),
-    );
-
-    final importResult = await importService.importFile(filePath, 'productos');
-    if (context.mounted) {
-      await context.read<InventarioViewModel>().refresh();
-      _showImportResultDialog(context, importResult);
-    }
-  }
-
-  void _showImportResultDialog(BuildContext context, ImportResult result) {
-    final l10n = AppLocalizations.of(context)!;
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: Text(result.success ? l10n.importSuccess : l10n.importError),
-      content: result.success
-          ? Text(l10n.importSuccess)
-          : SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.importError),
-                  const SizedBox(height: 12),
-                  ...?result.errors?.map(
-                    (e) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Text(
-                        e.toString(),
-                        style: const TextStyle(
-                          color: AppTheme.errorColor,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(l10n.cancelar),
-          ),
-        ],
+        backgroundColor: result.isSuccess
+            ? AppTheme.successColor
+            : AppTheme.errorColor,
       ),
     );
   }
@@ -609,8 +534,8 @@ class _ProductoCard extends StatelessWidget {
                         color: isInactive ? AppTheme.textTertiary : stockColor,
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        'STOCK: ${producto.cantidad % 1 == 0 ? producto.cantidad.toInt() : producto.cantidad.toStringAsFixed(2)}',
+                        Text(
+                        '${l10n.stock}: ${producto.cantidad % 1 == 0 ? producto.cantidad.toInt() : producto.cantidad.toStringAsFixed(2)}',
                         style: Theme.of(context).textTheme.labelMedium
                             ?.copyWith(
                               color: isInactive

@@ -24,6 +24,12 @@ class SupabaseSyncService {
     int errors = 0;
 
     switch (tableName) {
+      case 'locales':
+        final result = await _syncLocales();
+        uploaded = result.uploaded;
+        downloaded = result.downloaded;
+        errors = result.errors;
+        break;
       case 'productos':
         final result = await _syncProductos();
         uploaded = result.uploaded;
@@ -71,6 +77,11 @@ class SupabaseSyncService {
     int errors = 0;
 
     switch (tableName) {
+      case 'locales':
+        final result = await _downloadLocales();
+        downloaded = result.downloaded;
+        errors = result.errors;
+        break;
       case 'productos':
         final result = await _downloadProductos();
         downloaded = result.downloaded;
@@ -112,8 +123,10 @@ class SupabaseSyncService {
     int totalDownloaded = 0;
     int totalErrors = 0;
 
-    // Sequential order: parents first, then children
+    // Sequential order: parents first, then children.
+    // Locales must come before any table referencing local_id.
     final tablesInOrder = [
+      'locales',
       'clientes',
       'proveedores',
       'productos',
@@ -139,8 +152,10 @@ class SupabaseSyncService {
     int totalDownloaded = 0;
     int totalErrors = 0;
 
-    // Sequential order: parents first, then children
+    // Sequential order: parents first, then children.
+    // Locales must come before any table referencing local_id.
     final tablesInOrder = [
+      'locales',
       'clientes',
       'proveedores',
       'productos',
@@ -159,6 +174,120 @@ class SupabaseSyncService {
       uploaded: totalUploaded,
       downloaded: totalDownloaded,
       errors: totalErrors,
+    );
+  }
+
+  Future<SyncResult> _syncLocales() async {
+    int uploaded = 0;
+    int downloaded = 0;
+    int errors = 0;
+
+    try {
+      final pending = await (_db.select(
+        _db.locales,
+      )..where((t) => t.syncStatus.equals('pending_upload'))).get();
+
+      for (final local in pending) {
+        try {
+          final data = {
+            'id': local.id,
+            'nombre': local.nombre,
+            'direccion': local.direccion,
+            'telefono': local.telefono,
+            'tipo': local.tipo,
+            'user_id': local.userId,
+            'is_activo': local.isActivo,
+          };
+
+          final response = await http.post(
+            Uri.parse('$_supabaseUrl/rest/v1/locales'),
+            headers: _headers,
+            body: jsonEncode(data),
+          );
+
+          if (response.statusCode == 200 || response.statusCode == 201) {
+            await (_db.update(
+              _db.locales,
+            )..where((t) => t.id.equals(local.id))).write(
+              LocalesCompanion(
+                syncStatus: const Value('synced'),
+                lastSyncedAt: Value(DateTime.now()),
+              ),
+            );
+            uploaded++;
+          } else {
+            errors++;
+          }
+        } catch (e) {
+          errors++;
+        }
+      }
+    } catch (e) {
+      errors++;
+    }
+
+    return SyncResult(
+      tableName: 'locales',
+      uploaded: uploaded,
+      downloaded: downloaded,
+      errors: errors,
+    );
+  }
+
+  Future<SyncResult> _downloadLocales() async {
+    int downloaded = 0;
+    int errors = 0;
+
+    try {
+      final response = await http.get(
+        Uri.parse('$_supabaseUrl/rest/v1/locales?select=*'),
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+
+        for (final item in data) {
+          try {
+            final id = item['id'] as String;
+            final existing = await (_db.select(
+              _db.locales,
+            )..where((t) => t.id.equals(id))).getSingleOrNull();
+
+            if (existing != null && existing.syncStatus == 'pending_upload') {
+              continue;
+            }
+
+            await (_db.into(_db.locales)).insertOnConflictUpdate(
+              LocalesCompanion(
+                id: Value(id),
+                nombre: Value(item['nombre'] as String? ?? ''),
+                direccion: Value(item['direccion'] as String?),
+                telefono: Value(item['telefono'] as String?),
+                tipo: Value(item['tipo'] as String? ?? 'tienda'),
+                userId: Value(item['user_id'] as String?),
+                isActivo: Value(item['is_activo'] as bool? ?? true),
+                syncStatus: const Value('synced'),
+                lastSyncedAt: Value(DateTime.now()),
+              ),
+            );
+            downloaded++;
+          } catch (e) {
+            errors++;
+          }
+        }
+      } else {
+        errors++;
+      }
+    } catch (e) {
+      errors++;
+    }
+
+    return SyncResult(
+      tableName: 'locales',
+      uploaded: 0,
+      downloaded: downloaded,
+      errors: errors,
     );
   }
 

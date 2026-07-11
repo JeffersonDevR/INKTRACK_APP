@@ -53,7 +53,7 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
       'Domingo',
     ];
     final tomorrowDayName = dayNames[tomorrow.weekday - 1];
-    
+
     // Also check for English names if needed, but for now we assume Spanish
     final tomorrowDayNameEn = [
       'Monday',
@@ -65,10 +65,13 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
       'Sunday',
     ][tomorrow.weekday - 1];
 
-    return proveedores.where((p) => 
-      p.diasVisita.contains(tomorrowDayName) || 
-      p.diasVisita.contains(tomorrowDayNameEn)
-    ).toList();
+    return proveedores
+        .where(
+          (p) =>
+              p.diasVisita.contains(tomorrowDayName) ||
+              p.diasVisita.contains(tomorrowDayNameEn),
+        )
+        .toList();
   }
 
   int get totalInactivos => _localId != null
@@ -106,7 +109,7 @@ class ProveedoresViewModel extends BaseCrudViewModel<Proveedor> {
     }
 
     final nuevoProveedor = Proveedor(
-      id: IdUtils.generateTimestampId(),
+      id: IdUtils.generateId(),
       nombre: nombre,
       telefono: telefono,
       diasVisita: diasVisita,

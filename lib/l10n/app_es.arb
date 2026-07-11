@@ -225,6 +225,7 @@
   "ventasVsGastos": "Ventas vs Gastos",
   "distribucionGastos": "Distribución de Gastos",
   "sinCategoria": "Sin Categoría",
+  "otros": "Otros",
   "semana": "SEM {number}",
   "sinGastosRegistrados": "Sin gastos registrados",
   "nuevoProveedor": "Nuevo Proveedor",
@@ -573,5 +574,189 @@
         "type": "int"
       }
     }
+  },
+  "productoYaExiste": "Producto ya existe",
+  "@productoYaExiste": {
+    "description": "Title of the dialog shown when a scanned barcode already exists"
+  },
+  "productoYaExisteMensaje": "El código de barras \"{codigo}\" pertenece al producto \"{nombre}\". ¿Qué deseas hacer?",
+  "@productoYaExisteMensaje": {
+    "description": "Message of the dialog shown when a scanned barcode already exists",
+    "placeholders": {
+      "codigo": {
+        "type": "String"
+      },
+      "nombre": {
+        "type": "String"
+      }
+    }
+  },
+  "crearMovimiento": "Crear movimiento",
+  "@crearMovimiento": {
+    "description": "Button label to create a movement from the scanner restock dialog"
+  },
+  "margenGanancia": "Margen de Ganancia",
+  "@margenGanancia": {
+    "description": "Profit margin label in product form"
+  },
+  "porcentajeGanancia": "Porcentaje de Ganancia",
+  "@porcentajeGanancia": {
+    "description": "Profit percentage label in product form"
+  },
+  "gananciaNeta": "Ganancia Neta",
+  "@gananciaNeta": {
+    "description": "Net profit label in product form"
+  },
+  "costo": "Costo",
+  "@costo": {
+    "description": "Cost label in product form"
+  },
+  "ejemploNombreProducto": "Ej. Tinta negra 50ml",
+  "@ejemploNombreProducto": {
+    "description": "Product name hint in product form"
+  },
+  "ingreseNombreProducto": "Ingrese el nombre del producto",
+  "@ingreseNombreProducto": {
+    "description": "Validator message for empty product name"
+  },
+  "codigoPersonalizado": "Código personalizado",
+  "@codigoPersonalizado": {
+    "description": "Custom code label in product form"
+  },
+  "ejemploCodigoPersonalizado": "Código de cliente/proveedor",
+  "@ejemploCodigoPersonalizado": {
+    "description": "Custom code hint in product form"
+  },
+  "ayudaCodigoPersonalizado": "Ej. ZAP-001, PAP-045 (opcional)",
+  "@ayudaCodigoPersonalizado": {
+    "description": "Custom code helper text in product form"
+  },
+  "vincularCodigoBarras": "Vincular a código de barras",
+  "@vincularCodigoBarras": {
+    "description": "Tooltip to link custom code to barcode"
+  },
+  "vinculadoACodigoPersonalizado": "Vinculado a código personalizado",
+  "@vinculadoACodigoPersonalizado": {
+    "description": "Hint shown when barcode is linked to custom code"
+  },
+  "autoGenerado": "Auto-generado",
+  "@autoGenerado": {
+    "description": "Hint shown when barcode is auto-generated"
+  },
+  "generar": "Generar",
+  "@generar": {
+    "description": "Generate barcode button label"
+  },
+  "maximo99Unidades": "Máximo 99 unidades",
+  "@maximo99Unidades": {
+    "description": "Quantity helper and validator in product form"
+  },
+  "ingreseCantidad": "Ingrese la cantidad",
+  "@ingreseCantidad": {
+    "description": "Validator message for empty quantity"
+  },
+  "cantidadInvalida": "Cantidad inválida",
+  "@cantidadInvalida": {
+    "description": "Validator message for invalid quantity"
+  },
+  "esPaqueteCaja": "Es Paquete/Caja",
+  "@esPaqueteCaja": {
+    "description": "Package/box switch title in product form"
+  },
+  "ventaPorUnidadesEmpaque": "Venta por unidades dentro de un empaque",
+  "@ventaPorUnidadesEmpaque": {
+    "description": "Package/box switch subtitle in product form"
+  },
+  "unidadesPorPaquete": "Unidades por Paquete",
+  "@unidadesPorPaquete": {
+    "description": "Units per package label in product form"
+  },
+  "ingreseUnidades": "Ingrese unidades",
+  "@ingreseUnidades": {
+    "description": "Validator message for empty units per package"
+  },
+  "debeSerMayorACero": "Debe ser mayor a 0",
+  "@debeSerMayorACero": {
+    "description": "Validator message for non-positive units"
+  },
+  "ingresePrecio": "Ingrese el precio",
+  "@ingresePrecio": {
+    "description": "Validator message for empty price"
+  },
+  "precioInvalido": "Precio inválido",
+  "@precioInvalido": {
+    "description": "Validator message for invalid price"
+  },
+  "alertaStockBajo": "Alerta cuando el stock caiga por debajo de este nivel",
+  "@alertaStockBajo": {
+    "description": "Minimum stock helper text"
+  },
+  "ingreseStockMinimo": "Ingrese el stock mínimo",
+  "@ingreseStockMinimo": {
+    "description": "Validator message for empty minimum stock"
+  },
+  "stockMinimoInvalido": "Stock mínimo inválido",
+  "@stockMinimoInvalido": {
+    "description": "Validator message for invalid minimum stock"
+  },
+  "maximo9999": "Máximo 9999",
+  "@maximo9999": {
+    "description": "Maximum 9999 validator/helper"
+  },
+  "escribirNombreProveedor": "Escribir nombre del proveedor",
+  "@escribirNombreProveedor": {
+    "description": "Dropdown item to write supplier name manually"
+  },
+  "seleccioneProveedorOEscribaNombre": "Seleccione un proveedor o use \"Escribir nombre\"",
+  "@seleccioneProveedorOEscribaNombre": {
+    "description": "Validator message for unselected supplier"
+  },
+  "escribaNombreProveedor": "Escriba el nombre del proveedor",
+  "@escribaNombreProveedor": {
+    "description": "Validator message for empty custom supplier name"
+  },
+  "seleccioneUnProveedor": "Seleccione un proveedor",
+  "@seleccioneUnProveedor": {
+    "description": "Validator message when no supplier is selected"
+  },
+  "nombreProveedor": "Nombre del proveedor",
+  "@nombreProveedor": {
+    "description": "Custom supplier name label"
+  },
+  "ejemploProveedor": "Ej. Distribuidora XYZ",
+  "@ejemploProveedor": {
+    "description": "Custom supplier name hint"
+  },
+  "ingreseNombreProveedor": "Ingrese el nombre del proveedor",
+  "@ingreseNombreProveedor": {
+    "description": "Validator message for empty supplier name"
+  },
+  "productoActualizado": "Producto actualizado",
+  "@productoActualizado": {
+    "description": "Message shown when a product is updated"
+  },
+  "ingreseCodigoPersonalizadoPrimero": "Ingrese un código personalizado primero",
+  "@ingreseCodigoPersonalizadoPrimero": {
+    "description": "Message shown when linking without custom code"
+  },
+  "productoYaExisteSimple": "Ya existe un producto con este código de barras.",
+  "@productoYaExisteSimple": {
+    "description": "Message shown when a barcode already exists without details"
+  },
+  "verProducto": "Ver producto",
+  "@verProducto": {
+    "description": "Button label to view existing product from dialog"
+  },
+  "agregueAlMenosUnProducto": "Agregue al menos un producto",
+  "@agregueAlMenosUnProducto": {
+    "description": "Error shown when trying to create a supplier order without products"
+  },
+  "pedidoCreadoCorrectamente": "Pedido creado correctamente",
+  "@pedidoCreadoCorrectamente": {
+    "description": "Success message after creating a supplier order"
+  },
+  "crearPedido": "Crear pedido",
+  "@crearPedido": {
+    "description": "Button label to create supplier order from scanner"
   }
 }

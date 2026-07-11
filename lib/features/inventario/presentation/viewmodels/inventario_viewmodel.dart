@@ -76,7 +76,7 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
     if (producto.codigoBarras != null && producto.codigoBarras!.isNotEmpty) {
       finalId = producto.codigoBarras!;
     } else if (isNew) {
-      finalId = IdUtils.generateTimestampId();
+      finalId = IdUtils.generateId();
     }
 
     final productoAGuardar = producto.copyWith(id: finalId);

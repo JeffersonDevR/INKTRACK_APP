@@ -3,16 +3,20 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
 import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:InkTrack/features/inventario/presentation/pages/producto_form_page.dart';
-import 'package:InkTrack/features/movimientos/presentation/pages/movimiento_form_page.dart';
-import 'package:InkTrack/features/movimientos/data/models/movimiento.dart'
-    as mov_model;
+import 'package:InkTrack/features/proveedores/presentation/pages/crear_pedido_page.dart';
+import 'package:InkTrack/features/inventario/data/models/producto.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 
-class BarcodeScannerPage extends StatefulWidget {
-  final bool returnMode;
+enum BarcodeScannerMode { restock, selectProduct, scanCode }
 
-  const BarcodeScannerPage({super.key, this.returnMode = false});
+class BarcodeScannerPage extends StatefulWidget {
+  final BarcodeScannerMode mode;
+
+  const BarcodeScannerPage({
+    super.key,
+    this.mode = BarcodeScannerMode.restock,
+  });
 
   @override
   State<BarcodeScannerPage> createState() => _BarcodeScannerPageState();
@@ -43,42 +47,43 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
     final viewModel = context.read<InventarioViewModel>();
     final productoExistente = viewModel.findProductoByCodigo(code);
 
-    if (productoExistente != null) {
-      _mostrarDialogoProductoExistente(code, productoExistente);
-    } else if (!widget.returnMode) {
-      Navigator.of(context).pop();
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => ProductoFormPage(initialCodigoBarras: code),
-        ),
-      );
-    } else {
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.productoNoEncontrado),
-          backgroundColor: AppTheme.errorColor,
-        ),
-      );
+    switch (widget.mode) {
+      case BarcodeScannerMode.restock:
+        if (productoExistente != null) {
+          _mostrarDialogoRestock(code, productoExistente);
+        } else {
+          Navigator.of(context).pop();
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => ProductoFormPage(initialCodigoBarras: code),
+            ),
+          );
+        }
+      case BarcodeScannerMode.selectProduct:
+        if (productoExistente != null) {
+          Navigator.of(context).pop(productoExistente);
+        } else {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.productoNoEncontrado),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+        }
+      case BarcodeScannerMode.scanCode:
+        Navigator.of(context).pop(code);
     }
   }
 
-  void _mostrarDialogoProductoExistente(
-    String codigo,
-    dynamic productoExistente,
-  ) {
-    if (widget.returnMode) {
-      Navigator.of(context).pop(productoExistente);
-      return;
-    }
-
+  void _mostrarDialogoRestock(String codigo, Producto productoExistente) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('El producto ya existe'),
+        title: Text(l10n.productoYaExiste),
         content: Text(
-          'El código de barras "$codigo" pertenece al producto "${productoExistente.nombre}".\n\n'
-          '¿Qué deseas hacer?',
+          l10n.productoYaExisteMensaje(codigo, productoExistente.nombre),
         ),
         actions: [
           TextButton(
@@ -86,7 +91,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
               Navigator.pop(ctx);
               _hasScanned = false;
             },
-            child: const Text('Cancelar'),
+            child: Text(l10n.cancelar),
           ),
           FilledButton(
             onPressed: () {
@@ -94,29 +99,21 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
               Navigator.of(context).pop();
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => MovimientoFormPage(
-                    initialType: mov_model.MovimientoType.egreso,
-                    movimiento: mov_model.Movimiento(
-                      id: '',
-                      monto: 0,
-                      fecha: DateTime.now(),
-                      tipo: mov_model.MovimientoType.egreso,
-                      concepto: AppLocalizations.of(
-                        context,
-                      )!.restockLabel(productoExistente.nombre),
-                      productoId: productoExistente.id,
-                      categoria: productoExistente.categoria,
-                    ),
+                  builder: (context) => CrearPedidoPage(
+                    initialProducto: productoExistente,
                   ),
                 ),
               );
             },
-            child: const Text('Crear movimiento'),
+            child: Text(l10n.crearPedido),
           ),
         ],
       ),
     );
   }
+
+  @visibleForTesting
+  void onDetectForTest(BarcodeCapture capture) => _onDetect(capture);
 
   @override
   Widget build(BuildContext context) {

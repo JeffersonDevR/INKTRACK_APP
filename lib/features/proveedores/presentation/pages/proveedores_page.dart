@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:InkTrack/core/data/local/database.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
 import 'package:InkTrack/features/proveedores/data/models/proveedor.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/widgets/app_card.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
-import 'package:InkTrack/core/services/import_service.dart';
 import 'package:InkTrack/l10n/app_localizations.dart';
 import 'proveedor_form_page.dart';
 import 'pedidos_proveedor_page.dart';
@@ -58,12 +55,6 @@ class ProveedoresPage extends StatelessWidget {
                   color: showInactive
                       ? AppTheme.warningColor
                       : AppTheme.textSecondary,
-                ),
-                _HeaderAction(
-                  onTap: () => _performImport(context),
-                  icon: Icons.file_upload_rounded,
-                  label: l10n.import,
-                  color: AppTheme.secondaryColor,
                 ),
               ],
               totalIngresos: viewModel.proveedores.length.toDouble(),
@@ -315,81 +306,6 @@ class ProveedoresPage extends StatelessWidget {
       ),
     );
   }
-}
-
-Future<void> _performImport(BuildContext context) async {
-  final result = await FilePicker.platform.pickFiles(
-    type: FileType.custom,
-    allowedExtensions: ['xlsx', 'csv'],
-  );
-
-  if (result == null || result.files.single.path == null) return;
-
-  final filePath = result.files.single.path!;
-  final db = context.read<AppDatabase>();
-  final importService = ImportService(db);
-  final scaffoldMessenger = ScaffoldMessenger.of(context);
-
-  final l10n = AppLocalizations.of(context)!;
-  scaffoldMessenger.showSnackBar(
-    SnackBar(
-      content: Text(l10n.importando),
-      duration: const Duration(seconds: 1),
-    ),
-  );
-
-  final importResult = await importService.importFile(filePath, 'proveedores');
-  if (context.mounted) {
-    await context.read<ProveedoresViewModel>().refresh();
-    _showImportResultDialog(context, importResult, 'proveedores');
-  }
-}
-
-void _showImportResultDialog(
-  BuildContext context,
-  ImportResult result,
-  String moduleLabel,
-) {
-  final l10n = AppLocalizations.of(context)!;
-  showDialog(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-      title: Text(
-        result.success ? l10n.importSuccess : l10n.importError,
-      ),
-      content: result.success
-          ? Text(l10n.importSuccess)
-          : SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.importError),
-                  const SizedBox(height: 12),
-                  ...?result.errors?.map(
-                    (e) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Text(
-                        e.toString(),
-                        style: const TextStyle(
-                          color: AppTheme.errorColor,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx),
-          child: Text(l10n.cancelar),
-        ),
-      ],
-    ),
-  );
 }
 
 class _HeaderAction extends StatelessWidget {

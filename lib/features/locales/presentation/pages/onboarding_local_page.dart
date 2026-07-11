@@ -50,7 +50,7 @@ class _OnboardingLocalPageState extends State<OnboardingLocalPage> {
       final viewModel = context.read<LocalesViewModel>();
 
       final nuevoLocal = Local(
-        id: IdUtils.generateTimestampId(),
+        id: IdUtils.generateId(),
         nombre: _nombreController.text.trim(),
         direccion: _direccionController.text.trim().isEmpty
             ? null

@@ -99,7 +99,7 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
     }
 
     final nuevoCliente = Cliente(
-      id: IdUtils.generateTimestampId(),
+      id: IdUtils.generateId(),
       nombre: nombre,
       telefono: telefono,
       email: email,

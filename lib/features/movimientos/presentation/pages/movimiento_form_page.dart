@@ -116,7 +116,9 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
     final producto = await Navigator.push<Producto>(
       context,
       MaterialPageRoute(
-        builder: (context) => const BarcodeScannerPage(returnMode: true),
+        builder: (context) => const BarcodeScannerPage(
+          mode: BarcodeScannerMode.selectProduct,
+        ),
       ),
     );
 
@@ -146,6 +148,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
   }
 
   Future<double?> _showCantidadDialog(Producto producto) async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: '1');
     return showDialog<double>(
       context: context,
@@ -154,11 +157,16 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Precio unitario: \$${producto.precioVenta.toStringAsFixed(2)}'),
+            Text(
+              '${l10n.precioUnitario}: \$${producto.precioVenta.toStringAsFixed(2)}',
+            ),
             const SizedBox(height: 16),
             TextField(
               controller: controller,
-              decoration: const InputDecoration(labelText: 'Cantidad'),
+              decoration: InputDecoration(
+                labelText: l10n.cantidad,
+                helperText: l10n.maximo9999,
+              ),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               autofocus: true,
             ),
@@ -167,7 +175,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: Text(l10n.cancelar),
           ),
           FilledButton(
             onPressed: () {
@@ -176,7 +184,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
                 Navigator.pop(ctx, cantidad);
               }
             },
-            child: const Text('Agregar'),
+            child: Text(l10n.agregar),
           ),
         ],
       ),
@@ -184,24 +192,25 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
   }
 
   Future<String?> _showAddCategoryDialog() async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController();
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Nueva Categoría'),
+        title: Text(l10n.nuevaCategoria),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(hintText: 'Nombre de la categoría'),
+          decoration: InputDecoration(hintText: l10n.nombreCategoria),
           autofocus: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: Text(l10n.cancelar),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text('Agregar'),
+            child: Text(l10n.agregar),
           ),
         ],
       ),
@@ -211,6 +220,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
   void _save() {
     if (!_formKey.currentState!.validate()) return;
 
+    final l10n = AppLocalizations.of(context)!;
     final monto = NumberFormatter.parseAmount(_montoController.text);
     final ivm = context.read<InventarioViewModel>();
 
@@ -221,7 +231,7 @@ class _MovimientoFormPageState extends State<MovimientoFormPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'No hay suficiente stock de "${product.nombre}". Disponible: ${product.cantidad}',
+                l10n.noHaySuficienteStock(product.nombre, product.cantidad),
               ),
               backgroundColor: AppTheme.errorColor,
             ),
@@ -708,6 +718,7 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
       maxChildSize: 0.9,
@@ -722,7 +733,7 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
               children: [
                 Expanded(
                   child: Text(
-                    'Agregar Producto',
+                    l10n.agregarProductoTitle,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
@@ -735,9 +746,9 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
             const SizedBox(height: 16),
             TextField(
               controller: _busquedaController,
-              decoration: const InputDecoration(
-                labelText: 'Buscar producto',
-                prefixIcon: Icon(Icons.search),
+              decoration: InputDecoration(
+                labelText: l10n.buscarProductoPlaceholder,
+                prefixIcon: const Icon(Icons.search),
               ),
               onChanged: (_) => setState(() {}),
             ),
@@ -767,7 +778,7 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
                         return ListTile(
                           title: Text(producto.nombre),
                           subtitle: Text(
-                            'Stock: ${producto.cantidad} • \$${producto.precioVenta.toStringAsFixed(2)}',
+                            '${l10n.stockLabel(producto.cantidad)} • \$${producto.precioVenta.toStringAsFixed(2)}',
                           ),
                           onTap: () {
                             setState(() {
@@ -801,14 +812,14 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
                   const SizedBox(height: 16),
                   TextField(
                     controller: _cantidadController,
-                    decoration: const InputDecoration(labelText: 'Cantidad'),
+                    decoration: InputDecoration(labelText: l10n.cantidad),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _precioController,
-                    decoration: const InputDecoration(
-                      labelText: 'Precio Unitario',
+                    decoration: InputDecoration(
+                      labelText: l10n.precioUnitario,
                       prefixText: '\$ ',
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
@@ -838,7 +849,7 @@ class _AgregarProductoSheetState extends State<_AgregarProductoSheet> {
                           );
                         }
                       },
-                      child: const Text('Agregar'),
+                      child: Text(l10n.agregar),
                     ),
                   ),                ],
               ),

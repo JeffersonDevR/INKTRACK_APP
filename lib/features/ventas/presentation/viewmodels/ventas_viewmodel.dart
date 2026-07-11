@@ -74,7 +74,7 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
     if (venta.monto <= 0) return;
 
     final bool isNew = venta.id.isEmpty;
-    final id = isNew ? IdUtils.generateTimestampId() : venta.id;
+    final id = isNew ? IdUtils.generateId() : venta.id;
 
     String? finalClienteId = venta.clienteId;
 
@@ -123,7 +123,9 @@ class VentasViewModel extends BaseCrudViewModel<Venta> {
             final producto = inventarioVM.getById(item.productoId);
             if (producto != null) {
               double decrement = item.cantidad.toDouble();
-              if (item.isUnidad && producto.esPaquete && producto.unidadesPorPaquete > 0) {
+              if (item.isUnidad &&
+                  producto.esPaquete &&
+                  producto.unidadesPorPaquete > 0) {
                 decrement = item.cantidad / producto.unidadesPorPaquete;
               }
               await inventarioVM.actualizarStock(item.productoId, -decrement);

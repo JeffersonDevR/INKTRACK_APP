@@ -78,7 +78,9 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
     final producto = await Navigator.push<Producto>(
       context,
       MaterialPageRoute(
-        builder: (context) => const BarcodeScannerPage(returnMode: true),
+        builder: (context) => const BarcodeScannerPage(
+          mode: BarcodeScannerMode.selectProduct,
+        ),
       ),
     );
 

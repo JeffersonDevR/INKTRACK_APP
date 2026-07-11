@@ -131,7 +131,7 @@ class LocalesViewModel extends BaseCrudViewModel<Local> {
     bool isNew = finalId.isEmpty;
 
     if (isNew) {
-      finalId = IdUtils.generateTimestampId();
+      finalId = IdUtils.generateId();
     }
 
     final localAGuardar = local.copyWith(id: finalId);

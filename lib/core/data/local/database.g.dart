@@ -618,6 +618,9 @@ class $ClientesTable extends Clientes
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES locales (id)',
+    ),
   );
   static const VerificationMeta _esFiadoMeta = const VerificationMeta(
     'esFiado',
@@ -1269,6 +1272,9 @@ class $ProveedoresTable extends Proveedores
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES locales (id)',
+    ),
   );
   static const VerificationMeta _isActivoMeta = const VerificationMeta(
     'isActivo',
@@ -1971,6 +1977,9 @@ class $ProductosTable extends Productos
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES proveedores (id)',
+    ),
   );
   static const VerificationMeta _localIdMeta = const VerificationMeta(
     'localId',
@@ -1982,6 +1991,9 @@ class $ProductosTable extends Productos
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES locales (id)',
+    ),
   );
   static const VerificationMeta _stockMinimoMeta = const VerificationMeta(
     'stockMinimo',
@@ -2934,6 +2946,9 @@ class $MovimientosTable extends Movimientos
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES productos (id)',
+    ),
   );
   static const VerificationMeta _clienteIdMeta = const VerificationMeta(
     'clienteId',
@@ -2945,6 +2960,9 @@ class $MovimientosTable extends Movimientos
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES clientes (id)',
+    ),
   );
   static const VerificationMeta _proveedorIdMeta = const VerificationMeta(
     'proveedorId',
@@ -2956,6 +2974,9 @@ class $MovimientosTable extends Movimientos
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES proveedores (id)',
+    ),
   );
   static const VerificationMeta _localIdMeta = const VerificationMeta(
     'localId',
@@ -2967,6 +2988,9 @@ class $MovimientosTable extends Movimientos
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES locales (id)',
+    ),
   );
   static const VerificationMeta _cantidadMeta = const VerificationMeta(
     'cantidad',
@@ -3777,6 +3801,9 @@ class $VentasTable extends Ventas with TableInfo<$VentasTable, VentaData> {
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES clientes (id)',
+    ),
   );
   static const VerificationMeta _clienteNombreMeta = const VerificationMeta(
     'clienteNombre',
@@ -3799,6 +3826,9 @@ class $VentasTable extends Ventas with TableInfo<$VentasTable, VentaData> {
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES locales (id)',
+    ),
   );
   static const VerificationMeta _conceptoMeta = const VerificationMeta(
     'concepto',
@@ -4388,6 +4418,9 @@ class $PedidosProveedorTable extends PedidosProveedor
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES proveedores (id)',
+    ),
   );
   static const VerificationMeta _proveedorNombreMeta = const VerificationMeta(
     'proveedorNombre',
@@ -4410,6 +4443,9 @@ class $PedidosProveedorTable extends PedidosProveedor
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES locales (id)',
+    ),
   );
   static const VerificationMeta _fechaPedidoMeta = const VerificationMeta(
     'fechaPedido',
@@ -5474,6 +5510,122 @@ typedef $$LocalesTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
+final class $$LocalesTableReferences
+    extends BaseReferences<_$AppDatabase, $LocalesTable, LocalData> {
+  $$LocalesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$ClientesTable, List<ClienteData>>
+  _clientesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.clientes,
+    aliasName: $_aliasNameGenerator(db.locales.id, db.clientes.localId),
+  );
+
+  $$ClientesTableProcessedTableManager get clientesRefs {
+    final manager = $$ClientesTableTableManager(
+      $_db,
+      $_db.clientes,
+    ).filter((f) => f.localId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_clientesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$ProveedoresTable, List<ProveedorData>>
+  _proveedoresRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.proveedores,
+    aliasName: $_aliasNameGenerator(db.locales.id, db.proveedores.localId),
+  );
+
+  $$ProveedoresTableProcessedTableManager get proveedoresRefs {
+    final manager = $$ProveedoresTableTableManager(
+      $_db,
+      $_db.proveedores,
+    ).filter((f) => f.localId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_proveedoresRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$ProductosTable, List<ProductoData>>
+  _productosRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.productos,
+    aliasName: $_aliasNameGenerator(db.locales.id, db.productos.localId),
+  );
+
+  $$ProductosTableProcessedTableManager get productosRefs {
+    final manager = $$ProductosTableTableManager(
+      $_db,
+      $_db.productos,
+    ).filter((f) => f.localId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_productosRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$MovimientosTable, List<MovimientoData>>
+  _movimientosRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.movimientos,
+    aliasName: $_aliasNameGenerator(db.locales.id, db.movimientos.localId),
+  );
+
+  $$MovimientosTableProcessedTableManager get movimientosRefs {
+    final manager = $$MovimientosTableTableManager(
+      $_db,
+      $_db.movimientos,
+    ).filter((f) => f.localId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_movimientosRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$VentasTable, List<VentaData>> _ventasRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.ventas,
+    aliasName: $_aliasNameGenerator(db.locales.id, db.ventas.localId),
+  );
+
+  $$VentasTableProcessedTableManager get ventasRefs {
+    final manager = $$VentasTableTableManager(
+      $_db,
+      $_db.ventas,
+    ).filter((f) => f.localId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_ventasRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$PedidosProveedorTable, List<PedidoProveedorData>>
+  _pedidosProveedorRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.pedidosProveedor,
+    aliasName: $_aliasNameGenerator(db.locales.id, db.pedidosProveedor.localId),
+  );
+
+  $$PedidosProveedorTableProcessedTableManager get pedidosProveedorRefs {
+    final manager = $$PedidosProveedorTableTableManager(
+      $_db,
+      $_db.pedidosProveedor,
+    ).filter((f) => f.localId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _pedidosProveedorRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
 class $$LocalesTableFilterComposer
     extends Composer<_$AppDatabase, $LocalesTable> {
   $$LocalesTableFilterComposer({
@@ -5527,6 +5679,156 @@ class $$LocalesTableFilterComposer
     column: $table.lastSyncedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> clientesRefs(
+    Expression<bool> Function($$ClientesTableFilterComposer f) f,
+  ) {
+    final $$ClientesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.clientes,
+      getReferencedColumn: (t) => t.localId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ClientesTableFilterComposer(
+            $db: $db,
+            $table: $db.clientes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> proveedoresRefs(
+    Expression<bool> Function($$ProveedoresTableFilterComposer f) f,
+  ) {
+    final $$ProveedoresTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.proveedores,
+      getReferencedColumn: (t) => t.localId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProveedoresTableFilterComposer(
+            $db: $db,
+            $table: $db.proveedores,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> productosRefs(
+    Expression<bool> Function($$ProductosTableFilterComposer f) f,
+  ) {
+    final $$ProductosTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.productos,
+      getReferencedColumn: (t) => t.localId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProductosTableFilterComposer(
+            $db: $db,
+            $table: $db.productos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> movimientosRefs(
+    Expression<bool> Function($$MovimientosTableFilterComposer f) f,
+  ) {
+    final $$MovimientosTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.movimientos,
+      getReferencedColumn: (t) => t.localId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MovimientosTableFilterComposer(
+            $db: $db,
+            $table: $db.movimientos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> ventasRefs(
+    Expression<bool> Function($$VentasTableFilterComposer f) f,
+  ) {
+    final $$VentasTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.ventas,
+      getReferencedColumn: (t) => t.localId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$VentasTableFilterComposer(
+            $db: $db,
+            $table: $db.ventas,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> pedidosProveedorRefs(
+    Expression<bool> Function($$PedidosProveedorTableFilterComposer f) f,
+  ) {
+    final $$PedidosProveedorTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pedidosProveedor,
+      getReferencedColumn: (t) => t.localId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PedidosProveedorTableFilterComposer(
+            $db: $db,
+            $table: $db.pedidosProveedor,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$LocalesTableOrderingComposer
@@ -5623,6 +5925,156 @@ class $$LocalesTableAnnotationComposer
     column: $table.lastSyncedAt,
     builder: (column) => column,
   );
+
+  Expression<T> clientesRefs<T extends Object>(
+    Expression<T> Function($$ClientesTableAnnotationComposer a) f,
+  ) {
+    final $$ClientesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.clientes,
+      getReferencedColumn: (t) => t.localId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ClientesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.clientes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> proveedoresRefs<T extends Object>(
+    Expression<T> Function($$ProveedoresTableAnnotationComposer a) f,
+  ) {
+    final $$ProveedoresTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.proveedores,
+      getReferencedColumn: (t) => t.localId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProveedoresTableAnnotationComposer(
+            $db: $db,
+            $table: $db.proveedores,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> productosRefs<T extends Object>(
+    Expression<T> Function($$ProductosTableAnnotationComposer a) f,
+  ) {
+    final $$ProductosTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.productos,
+      getReferencedColumn: (t) => t.localId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProductosTableAnnotationComposer(
+            $db: $db,
+            $table: $db.productos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> movimientosRefs<T extends Object>(
+    Expression<T> Function($$MovimientosTableAnnotationComposer a) f,
+  ) {
+    final $$MovimientosTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.movimientos,
+      getReferencedColumn: (t) => t.localId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MovimientosTableAnnotationComposer(
+            $db: $db,
+            $table: $db.movimientos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> ventasRefs<T extends Object>(
+    Expression<T> Function($$VentasTableAnnotationComposer a) f,
+  ) {
+    final $$VentasTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.ventas,
+      getReferencedColumn: (t) => t.localId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$VentasTableAnnotationComposer(
+            $db: $db,
+            $table: $db.ventas,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> pedidosProveedorRefs<T extends Object>(
+    Expression<T> Function($$PedidosProveedorTableAnnotationComposer a) f,
+  ) {
+    final $$PedidosProveedorTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pedidosProveedor,
+      getReferencedColumn: (t) => t.localId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PedidosProveedorTableAnnotationComposer(
+            $db: $db,
+            $table: $db.pedidosProveedor,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$LocalesTableTableManager
@@ -5636,9 +6088,16 @@ class $$LocalesTableTableManager
           $$LocalesTableAnnotationComposer,
           $$LocalesTableCreateCompanionBuilder,
           $$LocalesTableUpdateCompanionBuilder,
-          (LocalData, BaseReferences<_$AppDatabase, $LocalesTable, LocalData>),
+          (LocalData, $$LocalesTableReferences),
           LocalData,
-          PrefetchHooks Function()
+          PrefetchHooks Function({
+            bool clientesRefs,
+            bool proveedoresRefs,
+            bool productosRefs,
+            bool movimientosRefs,
+            bool ventasRefs,
+            bool pedidosProveedorRefs,
+          })
         > {
   $$LocalesTableTableManager(_$AppDatabase db, $LocalesTable table)
     : super(
@@ -5700,9 +6159,165 @@ class $$LocalesTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$LocalesTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback:
+              ({
+                clientesRefs = false,
+                proveedoresRefs = false,
+                productosRefs = false,
+                movimientosRefs = false,
+                ventasRefs = false,
+                pedidosProveedorRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (clientesRefs) db.clientes,
+                    if (proveedoresRefs) db.proveedores,
+                    if (productosRefs) db.productos,
+                    if (movimientosRefs) db.movimientos,
+                    if (ventasRefs) db.ventas,
+                    if (pedidosProveedorRefs) db.pedidosProveedor,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (clientesRefs)
+                        await $_getPrefetchedData<
+                          LocalData,
+                          $LocalesTable,
+                          ClienteData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LocalesTableReferences
+                              ._clientesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LocalesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).clientesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.localId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (proveedoresRefs)
+                        await $_getPrefetchedData<
+                          LocalData,
+                          $LocalesTable,
+                          ProveedorData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LocalesTableReferences
+                              ._proveedoresRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LocalesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).proveedoresRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.localId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (productosRefs)
+                        await $_getPrefetchedData<
+                          LocalData,
+                          $LocalesTable,
+                          ProductoData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LocalesTableReferences
+                              ._productosRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LocalesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).productosRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.localId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (movimientosRefs)
+                        await $_getPrefetchedData<
+                          LocalData,
+                          $LocalesTable,
+                          MovimientoData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LocalesTableReferences
+                              ._movimientosRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LocalesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).movimientosRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.localId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (ventasRefs)
+                        await $_getPrefetchedData<
+                          LocalData,
+                          $LocalesTable,
+                          VentaData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LocalesTableReferences
+                              ._ventasRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LocalesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).ventasRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.localId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (pedidosProveedorRefs)
+                        await $_getPrefetchedData<
+                          LocalData,
+                          $LocalesTable,
+                          PedidoProveedorData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LocalesTableReferences
+                              ._pedidosProveedorRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LocalesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).pedidosProveedorRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.localId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
         ),
       );
 }
@@ -5717,9 +6332,16 @@ typedef $$LocalesTableProcessedTableManager =
       $$LocalesTableAnnotationComposer,
       $$LocalesTableCreateCompanionBuilder,
       $$LocalesTableUpdateCompanionBuilder,
-      (LocalData, BaseReferences<_$AppDatabase, $LocalesTable, LocalData>),
+      (LocalData, $$LocalesTableReferences),
       LocalData,
-      PrefetchHooks Function()
+      PrefetchHooks Function({
+        bool clientesRefs,
+        bool proveedoresRefs,
+        bool productosRefs,
+        bool movimientosRefs,
+        bool ventasRefs,
+        bool pedidosProveedorRefs,
+      })
     >;
 typedef $$ClientesTableCreateCompanionBuilder =
     ClientesCompanion Function({
@@ -5750,6 +6372,65 @@ typedef $$ClientesTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
+final class $$ClientesTableReferences
+    extends BaseReferences<_$AppDatabase, $ClientesTable, ClienteData> {
+  $$ClientesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $LocalesTable _localIdTable(_$AppDatabase db) => db.locales
+      .createAlias($_aliasNameGenerator(db.clientes.localId, db.locales.id));
+
+  $$LocalesTableProcessedTableManager? get localId {
+    final $_column = $_itemColumn<String>('local_id');
+    if ($_column == null) return null;
+    final manager = $$LocalesTableTableManager(
+      $_db,
+      $_db.locales,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_localIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$MovimientosTable, List<MovimientoData>>
+  _movimientosRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.movimientos,
+    aliasName: $_aliasNameGenerator(db.clientes.id, db.movimientos.clienteId),
+  );
+
+  $$MovimientosTableProcessedTableManager get movimientosRefs {
+    final manager = $$MovimientosTableTableManager(
+      $_db,
+      $_db.movimientos,
+    ).filter((f) => f.clienteId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_movimientosRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$VentasTable, List<VentaData>> _ventasRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.ventas,
+    aliasName: $_aliasNameGenerator(db.clientes.id, db.ventas.clienteId),
+  );
+
+  $$VentasTableProcessedTableManager get ventasRefs {
+    final manager = $$VentasTableTableManager(
+      $_db,
+      $_db.ventas,
+    ).filter((f) => f.clienteId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_ventasRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
 class $$ClientesTableFilterComposer
     extends Composer<_$AppDatabase, $ClientesTable> {
   $$ClientesTableFilterComposer({
@@ -5779,11 +6460,6 @@ class $$ClientesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get localId => $composableBuilder(
-    column: $table.localId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<bool> get esFiado => $composableBuilder(
     column: $table.esFiado,
     builder: (column) => ColumnFilters(column),
@@ -5808,6 +6484,79 @@ class $$ClientesTableFilterComposer
     column: $table.lastSyncedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$LocalesTableFilterComposer get localId {
+    final $$LocalesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.localId,
+      referencedTable: $db.locales,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalesTableFilterComposer(
+            $db: $db,
+            $table: $db.locales,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> movimientosRefs(
+    Expression<bool> Function($$MovimientosTableFilterComposer f) f,
+  ) {
+    final $$MovimientosTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.movimientos,
+      getReferencedColumn: (t) => t.clienteId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MovimientosTableFilterComposer(
+            $db: $db,
+            $table: $db.movimientos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> ventasRefs(
+    Expression<bool> Function($$VentasTableFilterComposer f) f,
+  ) {
+    final $$VentasTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.ventas,
+      getReferencedColumn: (t) => t.clienteId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$VentasTableFilterComposer(
+            $db: $db,
+            $table: $db.ventas,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ClientesTableOrderingComposer
@@ -5839,11 +6588,6 @@ class $$ClientesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get localId => $composableBuilder(
-    column: $table.localId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<bool> get esFiado => $composableBuilder(
     column: $table.esFiado,
     builder: (column) => ColumnOrderings(column),
@@ -5868,6 +6612,29 @@ class $$ClientesTableOrderingComposer
     column: $table.lastSyncedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$LocalesTableOrderingComposer get localId {
+    final $$LocalesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.localId,
+      referencedTable: $db.locales,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalesTableOrderingComposer(
+            $db: $db,
+            $table: $db.locales,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ClientesTableAnnotationComposer
@@ -5891,9 +6658,6 @@ class $$ClientesTableAnnotationComposer
   GeneratedColumn<String> get email =>
       $composableBuilder(column: $table.email, builder: (column) => column);
 
-  GeneratedColumn<String> get localId =>
-      $composableBuilder(column: $table.localId, builder: (column) => column);
-
   GeneratedColumn<bool> get esFiado =>
       $composableBuilder(column: $table.esFiado, builder: (column) => column);
 
@@ -5914,6 +6678,79 @@ class $$ClientesTableAnnotationComposer
     column: $table.lastSyncedAt,
     builder: (column) => column,
   );
+
+  $$LocalesTableAnnotationComposer get localId {
+    final $$LocalesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.localId,
+      referencedTable: $db.locales,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.locales,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> movimientosRefs<T extends Object>(
+    Expression<T> Function($$MovimientosTableAnnotationComposer a) f,
+  ) {
+    final $$MovimientosTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.movimientos,
+      getReferencedColumn: (t) => t.clienteId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MovimientosTableAnnotationComposer(
+            $db: $db,
+            $table: $db.movimientos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> ventasRefs<T extends Object>(
+    Expression<T> Function($$VentasTableAnnotationComposer a) f,
+  ) {
+    final $$VentasTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.ventas,
+      getReferencedColumn: (t) => t.clienteId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$VentasTableAnnotationComposer(
+            $db: $db,
+            $table: $db.ventas,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ClientesTableTableManager
@@ -5927,12 +6764,13 @@ class $$ClientesTableTableManager
           $$ClientesTableAnnotationComposer,
           $$ClientesTableCreateCompanionBuilder,
           $$ClientesTableUpdateCompanionBuilder,
-          (
-            ClienteData,
-            BaseReferences<_$AppDatabase, $ClientesTable, ClienteData>,
-          ),
+          (ClienteData, $$ClientesTableReferences),
           ClienteData,
-          PrefetchHooks Function()
+          PrefetchHooks Function({
+            bool localId,
+            bool movimientosRefs,
+            bool ventasRefs,
+          })
         > {
   $$ClientesTableTableManager(_$AppDatabase db, $ClientesTable table)
     : super(
@@ -5998,9 +6836,101 @@ class $$ClientesTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ClientesTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback:
+              ({localId = false, movimientosRefs = false, ventasRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (movimientosRefs) db.movimientos,
+                    if (ventasRefs) db.ventas,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (localId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.localId,
+                                    referencedTable: $$ClientesTableReferences
+                                        ._localIdTable(db),
+                                    referencedColumn: $$ClientesTableReferences
+                                        ._localIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (movimientosRefs)
+                        await $_getPrefetchedData<
+                          ClienteData,
+                          $ClientesTable,
+                          MovimientoData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ClientesTableReferences
+                              ._movimientosRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ClientesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).movimientosRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.clienteId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (ventasRefs)
+                        await $_getPrefetchedData<
+                          ClienteData,
+                          $ClientesTable,
+                          VentaData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ClientesTableReferences
+                              ._ventasRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ClientesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).ventasRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.clienteId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
         ),
       );
 }
@@ -6015,9 +6945,13 @@ typedef $$ClientesTableProcessedTableManager =
       $$ClientesTableAnnotationComposer,
       $$ClientesTableCreateCompanionBuilder,
       $$ClientesTableUpdateCompanionBuilder,
-      (ClienteData, BaseReferences<_$AppDatabase, $ClientesTable, ClienteData>),
+      (ClienteData, $$ClientesTableReferences),
       ClienteData,
-      PrefetchHooks Function()
+      PrefetchHooks Function({
+        bool localId,
+        bool movimientosRefs,
+        bool ventasRefs,
+      })
     >;
 typedef $$ProveedoresTableCreateCompanionBuilder =
     ProveedoresCompanion Function({
@@ -6049,6 +6983,93 @@ typedef $$ProveedoresTableUpdateCompanionBuilder =
       Value<DateTime?> lastSyncedAt,
       Value<int> rowid,
     });
+
+final class $$ProveedoresTableReferences
+    extends BaseReferences<_$AppDatabase, $ProveedoresTable, ProveedorData> {
+  $$ProveedoresTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $LocalesTable _localIdTable(_$AppDatabase db) => db.locales
+      .createAlias($_aliasNameGenerator(db.proveedores.localId, db.locales.id));
+
+  $$LocalesTableProcessedTableManager? get localId {
+    final $_column = $_itemColumn<String>('local_id');
+    if ($_column == null) return null;
+    final manager = $$LocalesTableTableManager(
+      $_db,
+      $_db.locales,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_localIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$ProductosTable, List<ProductoData>>
+  _productosRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.productos,
+    aliasName: $_aliasNameGenerator(
+      db.proveedores.id,
+      db.productos.proveedorId,
+    ),
+  );
+
+  $$ProductosTableProcessedTableManager get productosRefs {
+    final manager = $$ProductosTableTableManager(
+      $_db,
+      $_db.productos,
+    ).filter((f) => f.proveedorId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_productosRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$MovimientosTable, List<MovimientoData>>
+  _movimientosRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.movimientos,
+    aliasName: $_aliasNameGenerator(
+      db.proveedores.id,
+      db.movimientos.proveedorId,
+    ),
+  );
+
+  $$MovimientosTableProcessedTableManager get movimientosRefs {
+    final manager = $$MovimientosTableTableManager(
+      $_db,
+      $_db.movimientos,
+    ).filter((f) => f.proveedorId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_movimientosRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$PedidosProveedorTable, List<PedidoProveedorData>>
+  _pedidosProveedorRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.pedidosProveedor,
+    aliasName: $_aliasNameGenerator(
+      db.proveedores.id,
+      db.pedidosProveedor.proveedorId,
+    ),
+  );
+
+  $$PedidosProveedorTableProcessedTableManager get pedidosProveedorRefs {
+    final manager = $$PedidosProveedorTableTableManager(
+      $_db,
+      $_db.pedidosProveedor,
+    ).filter((f) => f.proveedorId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _pedidosProveedorRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
 
 class $$ProveedoresTableFilterComposer
     extends Composer<_$AppDatabase, $ProveedoresTable> {
@@ -6095,11 +7116,6 @@ class $$ProveedoresTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get localId => $composableBuilder(
-    column: $table.localId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<bool> get isActivo => $composableBuilder(
     column: $table.isActivo,
     builder: (column) => ColumnFilters(column),
@@ -6114,6 +7130,104 @@ class $$ProveedoresTableFilterComposer
     column: $table.lastSyncedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$LocalesTableFilterComposer get localId {
+    final $$LocalesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.localId,
+      referencedTable: $db.locales,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalesTableFilterComposer(
+            $db: $db,
+            $table: $db.locales,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> productosRefs(
+    Expression<bool> Function($$ProductosTableFilterComposer f) f,
+  ) {
+    final $$ProductosTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.productos,
+      getReferencedColumn: (t) => t.proveedorId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProductosTableFilterComposer(
+            $db: $db,
+            $table: $db.productos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> movimientosRefs(
+    Expression<bool> Function($$MovimientosTableFilterComposer f) f,
+  ) {
+    final $$MovimientosTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.movimientos,
+      getReferencedColumn: (t) => t.proveedorId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MovimientosTableFilterComposer(
+            $db: $db,
+            $table: $db.movimientos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> pedidosProveedorRefs(
+    Expression<bool> Function($$PedidosProveedorTableFilterComposer f) f,
+  ) {
+    final $$PedidosProveedorTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pedidosProveedor,
+      getReferencedColumn: (t) => t.proveedorId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PedidosProveedorTableFilterComposer(
+            $db: $db,
+            $table: $db.pedidosProveedor,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ProveedoresTableOrderingComposer
@@ -6160,11 +7274,6 @@ class $$ProveedoresTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get localId => $composableBuilder(
-    column: $table.localId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<bool> get isActivo => $composableBuilder(
     column: $table.isActivo,
     builder: (column) => ColumnOrderings(column),
@@ -6179,6 +7288,29 @@ class $$ProveedoresTableOrderingComposer
     column: $table.lastSyncedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$LocalesTableOrderingComposer get localId {
+    final $$LocalesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.localId,
+      referencedTable: $db.locales,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalesTableOrderingComposer(
+            $db: $db,
+            $table: $db.locales,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ProveedoresTableAnnotationComposer
@@ -6220,9 +7352,6 @@ class $$ProveedoresTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get localId =>
-      $composableBuilder(column: $table.localId, builder: (column) => column);
-
   GeneratedColumn<bool> get isActivo =>
       $composableBuilder(column: $table.isActivo, builder: (column) => column);
 
@@ -6235,6 +7364,104 @@ class $$ProveedoresTableAnnotationComposer
     column: $table.lastSyncedAt,
     builder: (column) => column,
   );
+
+  $$LocalesTableAnnotationComposer get localId {
+    final $$LocalesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.localId,
+      referencedTable: $db.locales,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.locales,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> productosRefs<T extends Object>(
+    Expression<T> Function($$ProductosTableAnnotationComposer a) f,
+  ) {
+    final $$ProductosTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.productos,
+      getReferencedColumn: (t) => t.proveedorId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProductosTableAnnotationComposer(
+            $db: $db,
+            $table: $db.productos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> movimientosRefs<T extends Object>(
+    Expression<T> Function($$MovimientosTableAnnotationComposer a) f,
+  ) {
+    final $$MovimientosTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.movimientos,
+      getReferencedColumn: (t) => t.proveedorId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MovimientosTableAnnotationComposer(
+            $db: $db,
+            $table: $db.movimientos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> pedidosProveedorRefs<T extends Object>(
+    Expression<T> Function($$PedidosProveedorTableAnnotationComposer a) f,
+  ) {
+    final $$PedidosProveedorTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pedidosProveedor,
+      getReferencedColumn: (t) => t.proveedorId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PedidosProveedorTableAnnotationComposer(
+            $db: $db,
+            $table: $db.pedidosProveedor,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ProveedoresTableTableManager
@@ -6248,12 +7475,14 @@ class $$ProveedoresTableTableManager
           $$ProveedoresTableAnnotationComposer,
           $$ProveedoresTableCreateCompanionBuilder,
           $$ProveedoresTableUpdateCompanionBuilder,
-          (
-            ProveedorData,
-            BaseReferences<_$AppDatabase, $ProveedoresTable, ProveedorData>,
-          ),
+          (ProveedorData, $$ProveedoresTableReferences),
           ProveedorData,
-          PrefetchHooks Function()
+          PrefetchHooks Function({
+            bool localId,
+            bool productosRefs,
+            bool movimientosRefs,
+            bool pedidosProveedorRefs,
+          })
         > {
   $$ProveedoresTableTableManager(_$AppDatabase db, $ProveedoresTable table)
     : super(
@@ -6323,9 +7552,130 @@ class $$ProveedoresTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ProveedoresTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback:
+              ({
+                localId = false,
+                productosRefs = false,
+                movimientosRefs = false,
+                pedidosProveedorRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (productosRefs) db.productos,
+                    if (movimientosRefs) db.movimientos,
+                    if (pedidosProveedorRefs) db.pedidosProveedor,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (localId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.localId,
+                                    referencedTable:
+                                        $$ProveedoresTableReferences
+                                            ._localIdTable(db),
+                                    referencedColumn:
+                                        $$ProveedoresTableReferences
+                                            ._localIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (productosRefs)
+                        await $_getPrefetchedData<
+                          ProveedorData,
+                          $ProveedoresTable,
+                          ProductoData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ProveedoresTableReferences
+                              ._productosRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ProveedoresTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).productosRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.proveedorId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (movimientosRefs)
+                        await $_getPrefetchedData<
+                          ProveedorData,
+                          $ProveedoresTable,
+                          MovimientoData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ProveedoresTableReferences
+                              ._movimientosRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ProveedoresTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).movimientosRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.proveedorId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (pedidosProveedorRefs)
+                        await $_getPrefetchedData<
+                          ProveedorData,
+                          $ProveedoresTable,
+                          PedidoProveedorData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ProveedoresTableReferences
+                              ._pedidosProveedorRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ProveedoresTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).pedidosProveedorRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.proveedorId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
         ),
       );
 }
@@ -6340,12 +7690,14 @@ typedef $$ProveedoresTableProcessedTableManager =
       $$ProveedoresTableAnnotationComposer,
       $$ProveedoresTableCreateCompanionBuilder,
       $$ProveedoresTableUpdateCompanionBuilder,
-      (
-        ProveedorData,
-        BaseReferences<_$AppDatabase, $ProveedoresTable, ProveedorData>,
-      ),
+      (ProveedorData, $$ProveedoresTableReferences),
       ProveedorData,
-      PrefetchHooks Function()
+      PrefetchHooks Function({
+        bool localId,
+        bool productosRefs,
+        bool movimientosRefs,
+        bool pedidosProveedorRefs,
+      })
     >;
 typedef $$ProductosTableCreateCompanionBuilder =
     ProductosCompanion Function({
@@ -6389,6 +7741,65 @@ typedef $$ProductosTableUpdateCompanionBuilder =
       Value<DateTime?> lastSyncedAt,
       Value<int> rowid,
     });
+
+final class $$ProductosTableReferences
+    extends BaseReferences<_$AppDatabase, $ProductosTable, ProductoData> {
+  $$ProductosTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ProveedoresTable _proveedorIdTable(_$AppDatabase db) =>
+      db.proveedores.createAlias(
+        $_aliasNameGenerator(db.productos.proveedorId, db.proveedores.id),
+      );
+
+  $$ProveedoresTableProcessedTableManager get proveedorId {
+    final $_column = $_itemColumn<String>('proveedor_id')!;
+
+    final manager = $$ProveedoresTableTableManager(
+      $_db,
+      $_db.proveedores,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_proveedorIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $LocalesTable _localIdTable(_$AppDatabase db) => db.locales
+      .createAlias($_aliasNameGenerator(db.productos.localId, db.locales.id));
+
+  $$LocalesTableProcessedTableManager? get localId {
+    final $_column = $_itemColumn<String>('local_id');
+    if ($_column == null) return null;
+    final manager = $$LocalesTableTableManager(
+      $_db,
+      $_db.locales,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_localIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$MovimientosTable, List<MovimientoData>>
+  _movimientosRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.movimientos,
+    aliasName: $_aliasNameGenerator(db.productos.id, db.movimientos.productoId),
+  );
+
+  $$MovimientosTableProcessedTableManager get movimientosRefs {
+    final manager = $$MovimientosTableTableManager(
+      $_db,
+      $_db.movimientos,
+    ).filter((f) => f.productoId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_movimientosRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
 
 class $$ProductosTableFilterComposer
     extends Composer<_$AppDatabase, $ProductosTable> {
@@ -6439,16 +7850,6 @@ class $$ProductosTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get proveedorId => $composableBuilder(
-    column: $table.proveedorId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get localId => $composableBuilder(
-    column: $table.localId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<int> get stockMinimo => $composableBuilder(
     column: $table.stockMinimo,
     builder: (column) => ColumnFilters(column),
@@ -6483,6 +7884,77 @@ class $$ProductosTableFilterComposer
     column: $table.lastSyncedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$ProveedoresTableFilterComposer get proveedorId {
+    final $$ProveedoresTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.proveedorId,
+      referencedTable: $db.proveedores,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProveedoresTableFilterComposer(
+            $db: $db,
+            $table: $db.proveedores,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalesTableFilterComposer get localId {
+    final $$LocalesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.localId,
+      referencedTable: $db.locales,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalesTableFilterComposer(
+            $db: $db,
+            $table: $db.locales,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> movimientosRefs(
+    Expression<bool> Function($$MovimientosTableFilterComposer f) f,
+  ) {
+    final $$MovimientosTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.movimientos,
+      getReferencedColumn: (t) => t.productoId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MovimientosTableFilterComposer(
+            $db: $db,
+            $table: $db.movimientos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ProductosTableOrderingComposer
@@ -6534,16 +8006,6 @@ class $$ProductosTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get proveedorId => $composableBuilder(
-    column: $table.proveedorId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get localId => $composableBuilder(
-    column: $table.localId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<int> get stockMinimo => $composableBuilder(
     column: $table.stockMinimo,
     builder: (column) => ColumnOrderings(column),
@@ -6578,6 +8040,52 @@ class $$ProductosTableOrderingComposer
     column: $table.lastSyncedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$ProveedoresTableOrderingComposer get proveedorId {
+    final $$ProveedoresTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.proveedorId,
+      referencedTable: $db.proveedores,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProveedoresTableOrderingComposer(
+            $db: $db,
+            $table: $db.proveedores,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalesTableOrderingComposer get localId {
+    final $$LocalesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.localId,
+      referencedTable: $db.locales,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalesTableOrderingComposer(
+            $db: $db,
+            $table: $db.locales,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ProductosTableAnnotationComposer
@@ -6617,14 +8125,6 @@ class $$ProductosTableAnnotationComposer
   GeneratedColumn<String> get categoria =>
       $composableBuilder(column: $table.categoria, builder: (column) => column);
 
-  GeneratedColumn<String> get proveedorId => $composableBuilder(
-    column: $table.proveedorId,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get localId =>
-      $composableBuilder(column: $table.localId, builder: (column) => column);
-
   GeneratedColumn<int> get stockMinimo => $composableBuilder(
     column: $table.stockMinimo,
     builder: (column) => column,
@@ -6657,6 +8157,77 @@ class $$ProductosTableAnnotationComposer
     column: $table.lastSyncedAt,
     builder: (column) => column,
   );
+
+  $$ProveedoresTableAnnotationComposer get proveedorId {
+    final $$ProveedoresTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.proveedorId,
+      referencedTable: $db.proveedores,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProveedoresTableAnnotationComposer(
+            $db: $db,
+            $table: $db.proveedores,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalesTableAnnotationComposer get localId {
+    final $$LocalesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.localId,
+      referencedTable: $db.locales,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.locales,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> movimientosRefs<T extends Object>(
+    Expression<T> Function($$MovimientosTableAnnotationComposer a) f,
+  ) {
+    final $$MovimientosTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.movimientos,
+      getReferencedColumn: (t) => t.productoId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MovimientosTableAnnotationComposer(
+            $db: $db,
+            $table: $db.movimientos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ProductosTableTableManager
@@ -6670,12 +8241,13 @@ class $$ProductosTableTableManager
           $$ProductosTableAnnotationComposer,
           $$ProductosTableCreateCompanionBuilder,
           $$ProductosTableUpdateCompanionBuilder,
-          (
-            ProductoData,
-            BaseReferences<_$AppDatabase, $ProductosTable, ProductoData>,
-          ),
+          (ProductoData, $$ProductosTableReferences),
           ProductoData,
-          PrefetchHooks Function()
+          PrefetchHooks Function({
+            bool proveedorId,
+            bool localId,
+            bool movimientosRefs,
+          })
         > {
   $$ProductosTableTableManager(_$AppDatabase db, $ProductosTable table)
     : super(
@@ -6769,9 +8341,96 @@ class $$ProductosTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ProductosTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback:
+              ({
+                proveedorId = false,
+                localId = false,
+                movimientosRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (movimientosRefs) db.movimientos,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (proveedorId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.proveedorId,
+                                    referencedTable: $$ProductosTableReferences
+                                        ._proveedorIdTable(db),
+                                    referencedColumn: $$ProductosTableReferences
+                                        ._proveedorIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+                        if (localId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.localId,
+                                    referencedTable: $$ProductosTableReferences
+                                        ._localIdTable(db),
+                                    referencedColumn: $$ProductosTableReferences
+                                        ._localIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (movimientosRefs)
+                        await $_getPrefetchedData<
+                          ProductoData,
+                          $ProductosTable,
+                          MovimientoData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ProductosTableReferences
+                              ._movimientosRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ProductosTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).movimientosRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.productoId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
         ),
       );
 }
@@ -6786,12 +8445,13 @@ typedef $$ProductosTableProcessedTableManager =
       $$ProductosTableAnnotationComposer,
       $$ProductosTableCreateCompanionBuilder,
       $$ProductosTableUpdateCompanionBuilder,
-      (
-        ProductoData,
-        BaseReferences<_$AppDatabase, $ProductosTable, ProductoData>,
-      ),
+      (ProductoData, $$ProductosTableReferences),
       ProductoData,
-      PrefetchHooks Function()
+      PrefetchHooks Function({
+        bool proveedorId,
+        bool localId,
+        bool movimientosRefs,
+      })
     >;
 typedef $$MovimientosTableCreateCompanionBuilder =
     MovimientosCompanion Function({
@@ -6831,6 +8491,85 @@ typedef $$MovimientosTableUpdateCompanionBuilder =
       Value<DateTime?> lastSyncedAt,
       Value<int> rowid,
     });
+
+final class $$MovimientosTableReferences
+    extends BaseReferences<_$AppDatabase, $MovimientosTable, MovimientoData> {
+  $$MovimientosTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ProductosTable _productoIdTable(_$AppDatabase db) =>
+      db.productos.createAlias(
+        $_aliasNameGenerator(db.movimientos.productoId, db.productos.id),
+      );
+
+  $$ProductosTableProcessedTableManager? get productoId {
+    final $_column = $_itemColumn<String>('producto_id');
+    if ($_column == null) return null;
+    final manager = $$ProductosTableTableManager(
+      $_db,
+      $_db.productos,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_productoIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $ClientesTable _clienteIdTable(_$AppDatabase db) =>
+      db.clientes.createAlias(
+        $_aliasNameGenerator(db.movimientos.clienteId, db.clientes.id),
+      );
+
+  $$ClientesTableProcessedTableManager? get clienteId {
+    final $_column = $_itemColumn<String>('cliente_id');
+    if ($_column == null) return null;
+    final manager = $$ClientesTableTableManager(
+      $_db,
+      $_db.clientes,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_clienteIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $ProveedoresTable _proveedorIdTable(_$AppDatabase db) =>
+      db.proveedores.createAlias(
+        $_aliasNameGenerator(db.movimientos.proveedorId, db.proveedores.id),
+      );
+
+  $$ProveedoresTableProcessedTableManager? get proveedorId {
+    final $_column = $_itemColumn<String>('proveedor_id');
+    if ($_column == null) return null;
+    final manager = $$ProveedoresTableTableManager(
+      $_db,
+      $_db.proveedores,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_proveedorIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $LocalesTable _localIdTable(_$AppDatabase db) => db.locales
+      .createAlias($_aliasNameGenerator(db.movimientos.localId, db.locales.id));
+
+  $$LocalesTableProcessedTableManager? get localId {
+    final $_column = $_itemColumn<String>('local_id');
+    if ($_column == null) return null;
+    final manager = $$LocalesTableTableManager(
+      $_db,
+      $_db.locales,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_localIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
 
 class $$MovimientosTableFilterComposer
     extends Composer<_$AppDatabase, $MovimientosTable> {
@@ -6872,26 +8611,6 @@ class $$MovimientosTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get productoId => $composableBuilder(
-    column: $table.productoId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get clienteId => $composableBuilder(
-    column: $table.clienteId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get proveedorId => $composableBuilder(
-    column: $table.proveedorId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get localId => $composableBuilder(
-    column: $table.localId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<int> get cantidad => $composableBuilder(
     column: $table.cantidad,
     builder: (column) => ColumnFilters(column),
@@ -6916,6 +8635,98 @@ class $$MovimientosTableFilterComposer
     column: $table.lastSyncedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$ProductosTableFilterComposer get productoId {
+    final $$ProductosTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.productoId,
+      referencedTable: $db.productos,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProductosTableFilterComposer(
+            $db: $db,
+            $table: $db.productos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ClientesTableFilterComposer get clienteId {
+    final $$ClientesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.clienteId,
+      referencedTable: $db.clientes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ClientesTableFilterComposer(
+            $db: $db,
+            $table: $db.clientes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ProveedoresTableFilterComposer get proveedorId {
+    final $$ProveedoresTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.proveedorId,
+      referencedTable: $db.proveedores,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProveedoresTableFilterComposer(
+            $db: $db,
+            $table: $db.proveedores,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalesTableFilterComposer get localId {
+    final $$LocalesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.localId,
+      referencedTable: $db.locales,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalesTableFilterComposer(
+            $db: $db,
+            $table: $db.locales,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$MovimientosTableOrderingComposer
@@ -6957,26 +8768,6 @@ class $$MovimientosTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get productoId => $composableBuilder(
-    column: $table.productoId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get clienteId => $composableBuilder(
-    column: $table.clienteId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get proveedorId => $composableBuilder(
-    column: $table.proveedorId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get localId => $composableBuilder(
-    column: $table.localId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<int> get cantidad => $composableBuilder(
     column: $table.cantidad,
     builder: (column) => ColumnOrderings(column),
@@ -7001,6 +8792,98 @@ class $$MovimientosTableOrderingComposer
     column: $table.lastSyncedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$ProductosTableOrderingComposer get productoId {
+    final $$ProductosTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.productoId,
+      referencedTable: $db.productos,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProductosTableOrderingComposer(
+            $db: $db,
+            $table: $db.productos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ClientesTableOrderingComposer get clienteId {
+    final $$ClientesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.clienteId,
+      referencedTable: $db.clientes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ClientesTableOrderingComposer(
+            $db: $db,
+            $table: $db.clientes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ProveedoresTableOrderingComposer get proveedorId {
+    final $$ProveedoresTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.proveedorId,
+      referencedTable: $db.proveedores,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProveedoresTableOrderingComposer(
+            $db: $db,
+            $table: $db.proveedores,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalesTableOrderingComposer get localId {
+    final $$LocalesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.localId,
+      referencedTable: $db.locales,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalesTableOrderingComposer(
+            $db: $db,
+            $table: $db.locales,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$MovimientosTableAnnotationComposer
@@ -7030,22 +8913,6 @@ class $$MovimientosTableAnnotationComposer
   GeneratedColumn<String> get categoria =>
       $composableBuilder(column: $table.categoria, builder: (column) => column);
 
-  GeneratedColumn<String> get productoId => $composableBuilder(
-    column: $table.productoId,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get clienteId =>
-      $composableBuilder(column: $table.clienteId, builder: (column) => column);
-
-  GeneratedColumn<String> get proveedorId => $composableBuilder(
-    column: $table.proveedorId,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get localId =>
-      $composableBuilder(column: $table.localId, builder: (column) => column);
-
   GeneratedColumn<int> get cantidad =>
       $composableBuilder(column: $table.cantidad, builder: (column) => column);
 
@@ -7066,6 +8933,98 @@ class $$MovimientosTableAnnotationComposer
     column: $table.lastSyncedAt,
     builder: (column) => column,
   );
+
+  $$ProductosTableAnnotationComposer get productoId {
+    final $$ProductosTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.productoId,
+      referencedTable: $db.productos,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProductosTableAnnotationComposer(
+            $db: $db,
+            $table: $db.productos,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ClientesTableAnnotationComposer get clienteId {
+    final $$ClientesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.clienteId,
+      referencedTable: $db.clientes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ClientesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.clientes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ProveedoresTableAnnotationComposer get proveedorId {
+    final $$ProveedoresTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.proveedorId,
+      referencedTable: $db.proveedores,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProveedoresTableAnnotationComposer(
+            $db: $db,
+            $table: $db.proveedores,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalesTableAnnotationComposer get localId {
+    final $$LocalesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.localId,
+      referencedTable: $db.locales,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.locales,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$MovimientosTableTableManager
@@ -7079,12 +9038,14 @@ class $$MovimientosTableTableManager
           $$MovimientosTableAnnotationComposer,
           $$MovimientosTableCreateCompanionBuilder,
           $$MovimientosTableUpdateCompanionBuilder,
-          (
-            MovimientoData,
-            BaseReferences<_$AppDatabase, $MovimientosTable, MovimientoData>,
-          ),
+          (MovimientoData, $$MovimientosTableReferences),
           MovimientoData,
-          PrefetchHooks Function()
+          PrefetchHooks Function({
+            bool productoId,
+            bool clienteId,
+            bool proveedorId,
+            bool localId,
+          })
         > {
   $$MovimientosTableTableManager(_$AppDatabase db, $MovimientosTable table)
     : super(
@@ -7170,9 +9131,107 @@ class $$MovimientosTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$MovimientosTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback:
+              ({
+                productoId = false,
+                clienteId = false,
+                proveedorId = false,
+                localId = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (productoId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.productoId,
+                                    referencedTable:
+                                        $$MovimientosTableReferences
+                                            ._productoIdTable(db),
+                                    referencedColumn:
+                                        $$MovimientosTableReferences
+                                            ._productoIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (clienteId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.clienteId,
+                                    referencedTable:
+                                        $$MovimientosTableReferences
+                                            ._clienteIdTable(db),
+                                    referencedColumn:
+                                        $$MovimientosTableReferences
+                                            ._clienteIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (proveedorId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.proveedorId,
+                                    referencedTable:
+                                        $$MovimientosTableReferences
+                                            ._proveedorIdTable(db),
+                                    referencedColumn:
+                                        $$MovimientosTableReferences
+                                            ._proveedorIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (localId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.localId,
+                                    referencedTable:
+                                        $$MovimientosTableReferences
+                                            ._localIdTable(db),
+                                    referencedColumn:
+                                        $$MovimientosTableReferences
+                                            ._localIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
+                  },
+                );
+              },
         ),
       );
 }
@@ -7187,12 +9246,14 @@ typedef $$MovimientosTableProcessedTableManager =
       $$MovimientosTableAnnotationComposer,
       $$MovimientosTableCreateCompanionBuilder,
       $$MovimientosTableUpdateCompanionBuilder,
-      (
-        MovimientoData,
-        BaseReferences<_$AppDatabase, $MovimientosTable, MovimientoData>,
-      ),
+      (MovimientoData, $$MovimientosTableReferences),
       MovimientoData,
-      PrefetchHooks Function()
+      PrefetchHooks Function({
+        bool productoId,
+        bool clienteId,
+        bool proveedorId,
+        bool localId,
+      })
     >;
 typedef $$VentasTableCreateCompanionBuilder =
     VentasCompanion Function({
@@ -7223,6 +9284,45 @@ typedef $$VentasTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
+final class $$VentasTableReferences
+    extends BaseReferences<_$AppDatabase, $VentasTable, VentaData> {
+  $$VentasTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ClientesTable _clienteIdTable(_$AppDatabase db) => db.clientes
+      .createAlias($_aliasNameGenerator(db.ventas.clienteId, db.clientes.id));
+
+  $$ClientesTableProcessedTableManager? get clienteId {
+    final $_column = $_itemColumn<String>('cliente_id');
+    if ($_column == null) return null;
+    final manager = $$ClientesTableTableManager(
+      $_db,
+      $_db.clientes,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_clienteIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $LocalesTable _localIdTable(_$AppDatabase db) => db.locales
+      .createAlias($_aliasNameGenerator(db.ventas.localId, db.locales.id));
+
+  $$LocalesTableProcessedTableManager? get localId {
+    final $_column = $_itemColumn<String>('local_id');
+    if ($_column == null) return null;
+    final manager = $$LocalesTableTableManager(
+      $_db,
+      $_db.locales,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_localIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
 class $$VentasTableFilterComposer
     extends Composer<_$AppDatabase, $VentasTable> {
   $$VentasTableFilterComposer({
@@ -7247,18 +9347,8 @@ class $$VentasTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get clienteId => $composableBuilder(
-    column: $table.clienteId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get clienteNombre => $composableBuilder(
     column: $table.clienteNombre,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get localId => $composableBuilder(
-    column: $table.localId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -7281,6 +9371,52 @@ class $$VentasTableFilterComposer
     column: $table.lastSyncedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$ClientesTableFilterComposer get clienteId {
+    final $$ClientesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.clienteId,
+      referencedTable: $db.clientes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ClientesTableFilterComposer(
+            $db: $db,
+            $table: $db.clientes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalesTableFilterComposer get localId {
+    final $$LocalesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.localId,
+      referencedTable: $db.locales,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalesTableFilterComposer(
+            $db: $db,
+            $table: $db.locales,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$VentasTableOrderingComposer
@@ -7307,18 +9443,8 @@ class $$VentasTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get clienteId => $composableBuilder(
-    column: $table.clienteId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get clienteNombre => $composableBuilder(
     column: $table.clienteNombre,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get localId => $composableBuilder(
-    column: $table.localId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -7341,6 +9467,52 @@ class $$VentasTableOrderingComposer
     column: $table.lastSyncedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$ClientesTableOrderingComposer get clienteId {
+    final $$ClientesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.clienteId,
+      referencedTable: $db.clientes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ClientesTableOrderingComposer(
+            $db: $db,
+            $table: $db.clientes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalesTableOrderingComposer get localId {
+    final $$LocalesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.localId,
+      referencedTable: $db.locales,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalesTableOrderingComposer(
+            $db: $db,
+            $table: $db.locales,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$VentasTableAnnotationComposer
@@ -7361,16 +9533,10 @@ class $$VentasTableAnnotationComposer
   GeneratedColumn<DateTime> get fecha =>
       $composableBuilder(column: $table.fecha, builder: (column) => column);
 
-  GeneratedColumn<String> get clienteId =>
-      $composableBuilder(column: $table.clienteId, builder: (column) => column);
-
   GeneratedColumn<String> get clienteNombre => $composableBuilder(
     column: $table.clienteNombre,
     builder: (column) => column,
   );
-
-  GeneratedColumn<String> get localId =>
-      $composableBuilder(column: $table.localId, builder: (column) => column);
 
   GeneratedColumn<String> get concepto =>
       $composableBuilder(column: $table.concepto, builder: (column) => column);
@@ -7389,6 +9555,52 @@ class $$VentasTableAnnotationComposer
     column: $table.lastSyncedAt,
     builder: (column) => column,
   );
+
+  $$ClientesTableAnnotationComposer get clienteId {
+    final $$ClientesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.clienteId,
+      referencedTable: $db.clientes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ClientesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.clientes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalesTableAnnotationComposer get localId {
+    final $$LocalesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.localId,
+      referencedTable: $db.locales,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.locales,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$VentasTableTableManager
@@ -7402,9 +9614,9 @@ class $$VentasTableTableManager
           $$VentasTableAnnotationComposer,
           $$VentasTableCreateCompanionBuilder,
           $$VentasTableUpdateCompanionBuilder,
-          (VentaData, BaseReferences<_$AppDatabase, $VentasTable, VentaData>),
+          (VentaData, $$VentasTableReferences),
           VentaData,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool clienteId, bool localId})
         > {
   $$VentasTableTableManager(_$AppDatabase db, $VentasTable table)
     : super(
@@ -7470,9 +9682,65 @@ class $$VentasTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) =>
+                    (e.readTable(table), $$VentasTableReferences(db, table, e)),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({clienteId = false, localId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (clienteId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.clienteId,
+                                referencedTable: $$VentasTableReferences
+                                    ._clienteIdTable(db),
+                                referencedColumn: $$VentasTableReferences
+                                    ._clienteIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+                    if (localId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.localId,
+                                referencedTable: $$VentasTableReferences
+                                    ._localIdTable(db),
+                                referencedColumn: $$VentasTableReferences
+                                    ._localIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -7487,9 +9755,9 @@ typedef $$VentasTableProcessedTableManager =
       $$VentasTableAnnotationComposer,
       $$VentasTableCreateCompanionBuilder,
       $$VentasTableUpdateCompanionBuilder,
-      (VentaData, BaseReferences<_$AppDatabase, $VentasTable, VentaData>),
+      (VentaData, $$VentasTableReferences),
       VentaData,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool clienteId, bool localId})
     >;
 typedef $$PedidosProveedorTableCreateCompanionBuilder =
     PedidosProveedorCompanion Function({
@@ -7524,6 +9792,61 @@ typedef $$PedidosProveedorTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
+final class $$PedidosProveedorTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $PedidosProveedorTable,
+          PedidoProveedorData
+        > {
+  $$PedidosProveedorTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $ProveedoresTable _proveedorIdTable(_$AppDatabase db) =>
+      db.proveedores.createAlias(
+        $_aliasNameGenerator(
+          db.pedidosProveedor.proveedorId,
+          db.proveedores.id,
+        ),
+      );
+
+  $$ProveedoresTableProcessedTableManager get proveedorId {
+    final $_column = $_itemColumn<String>('proveedor_id')!;
+
+    final manager = $$ProveedoresTableTableManager(
+      $_db,
+      $_db.proveedores,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_proveedorIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $LocalesTable _localIdTable(_$AppDatabase db) =>
+      db.locales.createAlias(
+        $_aliasNameGenerator(db.pedidosProveedor.localId, db.locales.id),
+      );
+
+  $$LocalesTableProcessedTableManager? get localId {
+    final $_column = $_itemColumn<String>('local_id');
+    if ($_column == null) return null;
+    final manager = $$LocalesTableTableManager(
+      $_db,
+      $_db.locales,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_localIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
 class $$PedidosProveedorTableFilterComposer
     extends Composer<_$AppDatabase, $PedidosProveedorTable> {
   $$PedidosProveedorTableFilterComposer({
@@ -7538,18 +9861,8 @@ class $$PedidosProveedorTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get proveedorId => $composableBuilder(
-    column: $table.proveedorId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get proveedorNombre => $composableBuilder(
     column: $table.proveedorNombre,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get localId => $composableBuilder(
-    column: $table.localId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -7592,6 +9905,52 @@ class $$PedidosProveedorTableFilterComposer
     column: $table.lastSyncedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$ProveedoresTableFilterComposer get proveedorId {
+    final $$ProveedoresTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.proveedorId,
+      referencedTable: $db.proveedores,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProveedoresTableFilterComposer(
+            $db: $db,
+            $table: $db.proveedores,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalesTableFilterComposer get localId {
+    final $$LocalesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.localId,
+      referencedTable: $db.locales,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalesTableFilterComposer(
+            $db: $db,
+            $table: $db.locales,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$PedidosProveedorTableOrderingComposer
@@ -7608,18 +9967,8 @@ class $$PedidosProveedorTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get proveedorId => $composableBuilder(
-    column: $table.proveedorId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get proveedorNombre => $composableBuilder(
     column: $table.proveedorNombre,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get localId => $composableBuilder(
-    column: $table.localId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -7662,6 +10011,52 @@ class $$PedidosProveedorTableOrderingComposer
     column: $table.lastSyncedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$ProveedoresTableOrderingComposer get proveedorId {
+    final $$ProveedoresTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.proveedorId,
+      referencedTable: $db.proveedores,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProveedoresTableOrderingComposer(
+            $db: $db,
+            $table: $db.proveedores,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalesTableOrderingComposer get localId {
+    final $$LocalesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.localId,
+      referencedTable: $db.locales,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalesTableOrderingComposer(
+            $db: $db,
+            $table: $db.locales,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$PedidosProveedorTableAnnotationComposer
@@ -7676,18 +10071,10 @@ class $$PedidosProveedorTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get proveedorId => $composableBuilder(
-    column: $table.proveedorId,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<String> get proveedorNombre => $composableBuilder(
     column: $table.proveedorNombre,
     builder: (column) => column,
   );
-
-  GeneratedColumn<String> get localId =>
-      $composableBuilder(column: $table.localId, builder: (column) => column);
 
   GeneratedColumn<DateTime> get fechaPedido => $composableBuilder(
     column: $table.fechaPedido,
@@ -7724,6 +10111,52 @@ class $$PedidosProveedorTableAnnotationComposer
     column: $table.lastSyncedAt,
     builder: (column) => column,
   );
+
+  $$ProveedoresTableAnnotationComposer get proveedorId {
+    final $$ProveedoresTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.proveedorId,
+      referencedTable: $db.proveedores,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ProveedoresTableAnnotationComposer(
+            $db: $db,
+            $table: $db.proveedores,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LocalesTableAnnotationComposer get localId {
+    final $$LocalesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.localId,
+      referencedTable: $db.locales,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.locales,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$PedidosProveedorTableTableManager
@@ -7737,16 +10170,9 @@ class $$PedidosProveedorTableTableManager
           $$PedidosProveedorTableAnnotationComposer,
           $$PedidosProveedorTableCreateCompanionBuilder,
           $$PedidosProveedorTableUpdateCompanionBuilder,
-          (
-            PedidoProveedorData,
-            BaseReferences<
-              _$AppDatabase,
-              $PedidosProveedorTable,
-              PedidoProveedorData
-            >,
-          ),
+          (PedidoProveedorData, $$PedidosProveedorTableReferences),
           PedidoProveedorData,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool proveedorId, bool localId})
         > {
   $$PedidosProveedorTableTableManager(
     _$AppDatabase db,
@@ -7822,9 +10248,71 @@ class $$PedidosProveedorTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$PedidosProveedorTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({proveedorId = false, localId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (proveedorId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.proveedorId,
+                                referencedTable:
+                                    $$PedidosProveedorTableReferences
+                                        ._proveedorIdTable(db),
+                                referencedColumn:
+                                    $$PedidosProveedorTableReferences
+                                        ._proveedorIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+                    if (localId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.localId,
+                                referencedTable:
+                                    $$PedidosProveedorTableReferences
+                                        ._localIdTable(db),
+                                referencedColumn:
+                                    $$PedidosProveedorTableReferences
+                                        ._localIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -7839,16 +10327,9 @@ typedef $$PedidosProveedorTableProcessedTableManager =
       $$PedidosProveedorTableAnnotationComposer,
       $$PedidosProveedorTableCreateCompanionBuilder,
       $$PedidosProveedorTableUpdateCompanionBuilder,
-      (
-        PedidoProveedorData,
-        BaseReferences<
-          _$AppDatabase,
-          $PedidosProveedorTable,
-          PedidoProveedorData
-        >,
-      ),
+      (PedidoProveedorData, $$PedidosProveedorTableReferences),
       PedidoProveedorData,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool proveedorId, bool localId})
     >;
 typedef $$LocalUsersTableCreateCompanionBuilder =
     LocalUsersCompanion Function({

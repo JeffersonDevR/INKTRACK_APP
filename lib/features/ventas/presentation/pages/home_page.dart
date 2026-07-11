@@ -18,6 +18,8 @@ import 'package:InkTrack/core/utils/number_formatter.dart';
 import 'package:InkTrack/core/widgets/app_card.dart';
 import 'package:InkTrack/core/services/pdf_export_service.dart';
 import 'package:InkTrack/core/services/excel_export_service.dart';
+import 'package:InkTrack/core/data/local/database.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:InkTrack/l10n/app_localizations.dart';
 
 class HomePage extends StatelessWidget {
@@ -59,20 +61,21 @@ class HomePage extends StatelessWidget {
     try {
       final movVM = context.read<MovimientosViewModel>();
       final l10n = AppLocalizations.of(context)!;
-      
+
       final pdfData = await PdfExportService.generateMovementsReport(
         movVM.items,
         startDate: movVM.startDateFilter,
         endDate: movVM.endDateFilter,
       );
-      
-      final filename = 'reporte_movimientos_${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf';
+
+      final filename =
+          'reporte_movimientos_${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf';
       await Printing.sharePdf(bytes: pdfData, filename: filename);
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.pdfExportado(filename))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.pdfExportado(filename))));
       }
     } catch (e) {
       if (context.mounted) {
@@ -94,21 +97,23 @@ class HomePage extends StatelessWidget {
         startDate: movVM.startDateFilter,
         endDate: movVM.endDateFilter,
       );
-      
-      final filename = 'reporte_movimientos_${DateFormat('yyyyMMdd').format(DateTime.now())}.xlsx';
-      
+
+      final filename =
+          'reporte_movimientos_${DateFormat('yyyyMMdd').format(DateTime.now())}.xlsx';
+
       await Share.shareXFiles([
         XFile.fromData(
           excelData,
           name: filename,
-          mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          mimeType:
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ),
       ], text: l10n.appTitle);
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.excelExportado(filename))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.excelExportado(filename))));
       }
     } catch (e) {
       if (context.mounted) {
@@ -116,6 +121,31 @@ class HomePage extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.errorAlExportarExcel(e.toString()))),
         );
+      }
+    }
+  }
+
+  // TEMPORAL: exporta la base SQLite para inspección con DBeaver.
+  Future<void> _exportDatabase(BuildContext context) async {
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final exportPath = '${tempDir.path}/inktrack_db.sqlite';
+      final exported = await exportDatabaseTo(exportPath);
+
+      await Share.shareXFiles([
+        XFile(exported.path),
+      ], text: 'InkTrack SQLite DB');
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Base SQLite lista para compartir')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error exportando DB: $e')));
       }
     }
   }
@@ -128,96 +158,99 @@ class HomePage extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (context) => SafeArea(
         child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? AppTheme.darkSurface : AppTheme.surfaceColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        ),
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 24),
-                  decoration: BoxDecoration(
-                    color: (isDark
-                        ? AppTheme.darkBorder
-                        : AppTheme.borderLightColor),
-                    borderRadius: BorderRadius.circular(2),
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.darkSurface : AppTheme.surfaceColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 24),
+                    decoration: BoxDecoration(
+                      color: (isDark
+                          ? AppTheme.darkBorder
+                          : AppTheme.borderLightColor),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    l10n.detalleMovimiento,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
-                    style: IconButton.styleFrom(
-                      backgroundColor: isDark
-                          ? AppTheme.darkCard
-                          : AppTheme.backgroundColor,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              AppCard(
-                margin: EdgeInsets.zero,
-                padding: const EdgeInsets.all(20),
-                child: Column(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _DetailRow(label: l10n.concepto, value: mov.concepto),
-                    const Divider(height: 32),
-                    _DetailRow(
-                      label: l10n.monto,
-                      value: NumberFormatter.formatCompact(mov.monto),
-                      valueStyle: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        color: mov.tipo == mov_model.MovimientoType.ingreso
-                            ? AppTheme.successColor
-                            : mov.tipo == mov_model.MovimientoType.egreso
-                            ? AppTheme.errorColor
-                            : null,
+                    Text(
+                      l10n.detalleMovimiento,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close),
+                      style: IconButton.styleFrom(
+                        backgroundColor: isDark
+                            ? AppTheme.darkCard
+                            : AppTheme.backgroundColor,
                       ),
-                    ),
-                    const Divider(height: 32),
-                    _DetailRow(
-                      label: l10n.fecha,
-                      value: DateFormat('dd/MM/yyyy HH:mm').format(mov.fecha),
-                    ),
-                    if (mov.categoria != null) ...[
-                      const Divider(height: 32),
-                      _DetailRow(label: l10n.categoria, value: mov.categoria!),
-                    ],
-                    const Divider(height: 32),
-                    _DetailRow(
-                      label: l10n.tipo,
-                      value: mov.tipo == mov_model.MovimientoType.ingreso
-                          ? l10n.ingreso
-                          : mov.tipo == mov_model.MovimientoType.egreso
-                          ? l10n.egresoTipo
-                          : l10n.actividad,
                     ),
                   ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+                AppCard(
+                  margin: EdgeInsets.zero,
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      _DetailRow(label: l10n.concepto, value: mov.concepto),
+                      const Divider(height: 32),
+                      _DetailRow(
+                        label: l10n.monto,
+                        value: NumberFormatter.formatCompact(mov.monto),
+                        valueStyle: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          color: mov.tipo == mov_model.MovimientoType.ingreso
+                              ? AppTheme.successColor
+                              : mov.tipo == mov_model.MovimientoType.egreso
+                              ? AppTheme.errorColor
+                              : null,
+                        ),
+                      ),
+                      const Divider(height: 32),
+                      _DetailRow(
+                        label: l10n.fecha,
+                        value: DateFormat('dd/MM/yyyy HH:mm').format(mov.fecha),
+                      ),
+                      if (mov.categoria != null) ...[
+                        const Divider(height: 32),
+                        _DetailRow(
+                          label: l10n.categoria,
+                          value: mov.categoria!,
+                        ),
+                      ],
+                      const Divider(height: 32),
+                      _DetailRow(
+                        label: l10n.tipo,
+                        value: mov.tipo == mov_model.MovimientoType.ingreso
+                            ? l10n.ingreso
+                            : mov.tipo == mov_model.MovimientoType.egreso
+                            ? l10n.egresoTipo
+                            : l10n.actividad,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
   }
 
   Map<String, double> _groupExpensesByCategory(
@@ -225,7 +258,9 @@ class HomePage extends StatelessWidget {
     AppLocalizations l10n,
   ) {
     final Map<String, double> data = {};
-    for (var m in movs.where((m) => m.tipo == mov_model.MovimientoType.egreso)) {
+    for (var m in movs.where(
+      (m) => m.tipo == mov_model.MovimientoType.egreso,
+    )) {
       final cat = m.categoria ?? l10n.sinCategoria;
       data[cat] = (data[cat] ?? 0) + m.monto;
     }
@@ -241,8 +276,8 @@ class HomePage extends StatelessWidget {
       body: Consumer2<MovimientosViewModel, InventarioViewModel>(
         builder: (context, movVM, invVM, child) {
           final isFiltered = movVM.startDateFilter != null;
-          
-            final summary = FinancialSummaryHeader(
+
+          final summary = FinancialSummaryHeader(
             title: isFiltered ? l10n.resultados : l10n.reporteGeneral,
             totalIngresos: isFiltered
                 ? movVM.totalIngresosFiltered
@@ -270,11 +305,13 @@ class HomePage extends StatelessWidget {
                 ..sort((a, b) => b.fecha.compareTo(a.fecha));
 
           final expensesByCategory = _groupExpensesByCategory(
-            movVM.startDateFilter == null ? movVM.historialCompleto : movVM.filteredItems,
+            movVM.startDateFilter == null
+                ? movVM.historialCompleto
+                : movVM.filteredItems,
             l10n,
           );
-          final totalEgresos = movVM.startDateFilter == null 
-              ? movVM.totalEgresos 
+          final totalEgresos = movVM.startDateFilter == null
+              ? movVM.totalEgresos
               : movVM.totalEgresosFiltered;
 
           return CustomScrollView(
@@ -310,6 +347,16 @@ class HomePage extends StatelessWidget {
                               onTap: () => _exportExcel(context),
                             ),
                           ),
+                          const SizedBox(width: 12),
+                          // TEMPORAL: botón para exportar SQLite a DBeaver
+                          Expanded(
+                            child: _ExportButton(
+                              icon: Icons.storage_rounded,
+                              label: 'SQLite',
+                              color: Colors.blue.shade700,
+                              onTap: () => _exportDatabase(context),
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 28),
@@ -332,9 +379,11 @@ class HomePage extends StatelessWidget {
                               onTap: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const MovimientoFormPage(
-                                    initialType: mov_model.MovimientoType.ingreso,
-                                  ),
+                                  builder: (context) =>
+                                      const MovimientoFormPage(
+                                        initialType:
+                                            mov_model.MovimientoType.ingreso,
+                                      ),
                                 ),
                               ),
                             ),
@@ -348,9 +397,11 @@ class HomePage extends StatelessWidget {
                               onTap: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const MovimientoFormPage(
-                                    initialType: mov_model.MovimientoType.egreso,
-                                  ),
+                                  builder: (context) =>
+                                      const MovimientoFormPage(
+                                        initialType:
+                                            mov_model.MovimientoType.egreso,
+                                      ),
                                 ),
                               ),
                             ),
@@ -427,7 +478,7 @@ class HomePage extends StatelessWidget {
             ],
           );
         },
-        ),
+      ),
     );
   }
 
@@ -492,7 +543,9 @@ class HomePage extends StatelessWidget {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
+                    color: isDark
+                        ? AppTheme.darkTextSecondary
+                        : AppTheme.textSecondary,
                   ),
                 ),
               ],
@@ -620,14 +673,29 @@ class _HistoryTableHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkCard.withValues(alpha: 0.5) : AppTheme.backgroundColor,
+        color: isDark
+            ? AppTheme.darkCard.withValues(alpha: 0.5)
+            : AppTheme.backgroundColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
-          Expanded(flex: 2, child: Text(l10n.fecha.toUpperCase(), style: textStyle)),
-          Expanded(flex: 4, child: Text(l10n.concepto.toUpperCase(), style: textStyle)),
-          Expanded(flex: 3, child: Text(l10n.monto.toUpperCase(), style: textStyle, textAlign: TextAlign.end)),
+          Expanded(
+            flex: 2,
+            child: Text(l10n.fecha.toUpperCase(), style: textStyle),
+          ),
+          Expanded(
+            flex: 4,
+            child: Text(l10n.concepto.toUpperCase(), style: textStyle),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              l10n.monto.toUpperCase(),
+              style: textStyle,
+              textAlign: TextAlign.end,
+            ),
+          ),
         ],
       ),
     );
@@ -670,7 +738,9 @@ class _MovimientoTableRow extends StatelessWidget {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
+                  color: isDark
+                      ? AppTheme.darkTextSecondary
+                      : AppTheme.textSecondary,
                 ),
               ),
             ),

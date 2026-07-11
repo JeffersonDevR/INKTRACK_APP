@@ -50,18 +50,17 @@ dependencies:
   fl_chart: ^0.70.2
   barcode_widget: ^2.0.4
   barcode: ^2.2.6
-  excel: ^4.0.3
+  excel: ^4.0.6
   pdf: ^3.11.1
   printing: ^5.13.3
   share_plus: ^10.1.4
   supabase_flutter: ^2.0.0
   flutter_dotenv: ^5.1.0
-  csv: ^8.0.0
   bcrypt: ^1.2.0
   flutter_local_notifications: ^18.0.0
   shimmer: ^3.0.0
   shared_preferences: ^2.3.3
-  file_picker: ^8.0.0
+  test: ^1.31.0
 
 dev_dependencies:
   flutter_test:

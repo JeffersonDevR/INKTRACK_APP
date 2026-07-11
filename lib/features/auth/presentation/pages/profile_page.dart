@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:InkTrack/core/services/auth_service.dart';
 import 'package:InkTrack/core/services/theme_provider.dart';
-import 'package:InkTrack/core/services/locale_provider.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:InkTrack/features/auth/presentation/pages/login_page.dart';
@@ -131,87 +130,6 @@ class ProfilePage extends StatelessWidget {
                         value: isDark,
                         onChanged: (_) => themeProvider.toggleTheme(),
                         activeTrackColor: AppTheme.primaryColor,
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-            Consumer<LocaleProvider>(
-              builder: (context, localeProvider, child) {
-                return Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppTheme.darkSurface
-                        : AppTheme.surfaceColor,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isDark
-                          ? AppTheme.darkBorder
-                          : AppTheme.borderLightColor,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.language, color: AppTheme.primaryColor),
-                          const SizedBox(width: 12),
-                          Text(
-                            l10n.idioma,
-                            style: Theme.of(context).textTheme.bodyLarge
-                                ?.copyWith(
-                                  color: isDark
-                                      ? AppTheme.darkTextPrimary
-                                      : null,
-                                ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'ES',
-                            style: TextStyle(
-                              color: !localeProvider.isEnglish
-                                  ? AppTheme.primaryColor
-                                  : (isDark
-                                        ? AppTheme.darkTextSecondary
-                                        : Colors.grey),
-                              fontWeight: !localeProvider.isEnglish
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              fontSize: 12,
-                            ),
-                          ),
-                          Switch(
-                            value: localeProvider.isEnglish,
-                            onChanged: (_) => localeProvider.toggleLanguage(),
-                            activeTrackColor: AppTheme.primaryColor,
-                          ),
-                          Text(
-                            'EN',
-                            style: TextStyle(
-                              color: localeProvider.isEnglish
-                                  ? AppTheme.primaryColor
-                                  : (isDark
-                                        ? AppTheme.darkTextSecondary
-                                        : Colors.grey),
-                              fontWeight: localeProvider.isEnglish
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),

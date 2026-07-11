@@ -75,7 +75,7 @@ class PedidosProveedorViewModel extends BaseCrudViewModel<PedidoProveedor> {
     final montoTotal = productos.fold(0.0, (sum, p) => sum + p.subtotal);
 
     final pedido = PedidoProveedor(
-      id: IdUtils.generateTimestampId(),
+      id: IdUtils.generateId(),
       proveedorId: proveedorId,
       proveedorNombre: proveedorNombre,
       localId: _localId,
@@ -144,10 +144,7 @@ class PedidosProveedorViewModel extends BaseCrudViewModel<PedidoProveedor> {
     }
 
     if (proveedoresVM != null) {
-      await proveedoresVM.actualizarVisita(
-        pedido.proveedorId,
-        DateTime.now(),
-      );
+      await proveedoresVM.actualizarVisita(pedido.proveedorId, DateTime.now());
     }
   }
 
