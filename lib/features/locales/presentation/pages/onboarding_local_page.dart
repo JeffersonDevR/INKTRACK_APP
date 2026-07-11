@@ -108,8 +108,14 @@ class _OnboardingLocalPageState extends State<OnboardingLocalPage> {
   }
 
   Future<bool> _syncLocalToSupabase(Local local) async {
+    SupabaseClient? supabase;
     try {
-      final supabase = Supabase.instance.client;
+      supabase = Supabase.instance.client;
+    } catch (_) {
+      // Supabase was never initialized (local-only mode). Skip remote sync.
+      return false;
+    }
+    try {
       await supabase.from('locales').insert({
         'id': local.id,
         'nombre': local.nombre,

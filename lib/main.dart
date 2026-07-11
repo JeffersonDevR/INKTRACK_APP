@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -39,36 +40,72 @@ Future<void> main() async {
   await initializeDateFormatting('es', null);
   debugRepaintRainbowEnabled = false;
   try {
-    // Load environment variables from .env file
-    await dotenv.load(fileName: ".env", isOptional: false);
-
-    // SECURITY: Get credentials from environment variables only
-    // Never use hardcoded fallbacks
-    final supabaseUrl = dotenv.env['SUPABASE_URL'];
-    final supabaseKey = dotenv.env['SUPABASE_ANON_KEY'];
-
-    if (supabaseUrl == null || supabaseKey == null) {
-      throw Exception(
-        'Missing required environment variables. '
-        'Please configure SUPABASE_URL and SUPABASE_ANON_KEY in .env file'
-      );
+    // Load .env tolerantly. `.env` is NOT bundled as an asset (see pubspec),
+    // so on a clean checkout this throws and we fall back to compile-time
+    // (--dart-define) and runtime (Platform.environment) credentials below.
+    // When a local .env exists, dotenv.env is populated as before.
+    try {
+      await dotenv.load(fileName: ".env", isOptional: true);
+    } catch (_) {
+      // Asset missing is fine; credentials resolved via layered fallback.
     }
 
-    await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
+    // Layered credential resolution (no hardcoded fallbacks):
+    //   1. --dart-define (compile-time, via String.fromEnvironment)
+    //   2. dotenv.env (local .env, when present)
+    //   3. Platform.environment (runtime, desktop/CI)
+    final supabaseCompileUrl =
+        const String.fromEnvironment('SUPABASE_URL');
+    final supabaseCompileKey =
+        const String.fromEnvironment('SUPABASE_ANON_KEY');
+    final supabaseUrl = supabaseCompileUrl.isNotEmpty
+        ? supabaseCompileUrl
+        : (dotenv.env['SUPABASE_URL'] ?? Platform.environment['SUPABASE_URL']);
+    final supabaseKey = supabaseCompileKey.isNotEmpty
+        ? supabaseCompileKey
+        : (dotenv.env['SUPABASE_ANON_KEY'] ??
+            Platform.environment['SUPABASE_ANON_KEY']);
+
+    SupabaseClient? supabaseClient;
+    final database = AppDatabase();
+    AuthService authService;
+    User? currentUser;
+
+    if (supabaseUrl != null &&
+        supabaseUrl.isNotEmpty &&
+        supabaseKey != null &&
+        supabaseKey.isNotEmpty) {
+      // REMOTE mode: credentials present (unchanged behavior).
+      await Supabase.initialize(
+        url: supabaseUrl,
+        anonKey: supabaseKey,
+      );
+      supabaseClient = Supabase.instance.client;
+      authService = AuthService(supabaseClient, database: database);
+      currentUser = authService.currentUser;
+    } else {
+      // LOCAL-ONLY mode: Supabase credentials absent. Cloud sync disabled.
+      // Construct a no-network SupabaseClient adapter so AuthService (whose
+      // supabase field is non-nullable) compiles; all its supabase calls are
+      // already wrapped in try/catch, so local-only auth degrades to the
+      // existing offline bcrypt cache path.
+      debugPrint(
+        '[InkTrack] Local-only mode: Supabase credentials not provided. '
+        'Cloud sync disabled.',
+      );
+      final localClient = SupabaseClient('', '');
+      authService = AuthService(localClient, database: database);
+      currentUser = authService.currentUser;
+    }
 
     await NotificationService().initialize();
-
-    final database = AppDatabase();
-    final supabase = Supabase.instance.client;
-    final authService = AuthService(supabase, database: database);
-    final currentUser = authService.currentUser;
 
     runApp(
       InkTrackApp(
         database: database,
         supabaseUrl: supabaseUrl,
         supabaseKey: supabaseKey,
-        supabaseClient: supabase,
+        supabaseClient: supabaseClient,
         authService: authService,
         currentUser: currentUser,
       ),
@@ -92,18 +129,18 @@ Future<void> main() async {
 
 class InkTrackApp extends StatefulWidget {
   final AppDatabase database;
-  final String supabaseUrl;
-  final String supabaseKey;
-  final SupabaseClient supabaseClient;
+  final String? supabaseUrl;
+  final String? supabaseKey;
+  final SupabaseClient? supabaseClient;
   final AuthService authService;
   final User? currentUser;
 
   const InkTrackApp({
     super.key,
     required this.database,
-    required this.supabaseUrl,
-    required this.supabaseKey,
-    required this.supabaseClient,
+    this.supabaseUrl,
+    this.supabaseKey,
+    this.supabaseClient,
     required this.authService,
     this.currentUser,
   });
@@ -249,8 +286,8 @@ class _InkTrackAppState extends State<InkTrackApp> {
         Provider(
           create: (_) => SupabaseSyncService(
             widget.database,
-            widget.supabaseUrl,
-            widget.supabaseKey,
+            widget.supabaseUrl ?? '',
+            widget.supabaseKey ?? '',
           ),
         ),
         ChangeNotifierProvider(

@@ -11,6 +11,8 @@ class SupabaseSyncService {
 
   SupabaseSyncService(this._db, this._supabaseUrl, this._supabaseKey);
 
+  bool get isEnabled => _supabaseUrl.isNotEmpty && _supabaseKey.isNotEmpty;
+
   Map<String, String> get _headers => {
     'apikey': _supabaseKey,
     'Authorization': 'Bearer $_supabaseKey',
@@ -19,6 +21,14 @@ class SupabaseSyncService {
   };
 
   Future<SyncResult> syncTable(String tableName) async {
+    if (!isEnabled) {
+      return SyncResult(
+        tableName: tableName,
+        uploaded: 0,
+        downloaded: 0,
+        errors: 0,
+      );
+    }
     int uploaded = 0;
     int downloaded = 0;
     int errors = 0;
@@ -73,6 +83,14 @@ class SupabaseSyncService {
   }
 
   Future<SyncResult> downloadFromSupabase(String tableName) async {
+    if (!isEnabled) {
+      return SyncResult(
+        tableName: tableName,
+        uploaded: 0,
+        downloaded: 0,
+        errors: 0,
+      );
+    }
     int downloaded = 0;
     int errors = 0;
 
@@ -120,6 +138,14 @@ class SupabaseSyncService {
   }
 
   Future<SyncResult> downloadAll() async {
+    if (!isEnabled) {
+      return SyncResult(
+        tableName: 'all',
+        uploaded: 0,
+        downloaded: 0,
+        errors: 0,
+      );
+    }
     int totalDownloaded = 0;
     int totalErrors = 0;
 
@@ -148,6 +174,14 @@ class SupabaseSyncService {
   }
 
   Future<SyncResult> syncAll() async {
+    if (!isEnabled) {
+      return SyncResult(
+        tableName: 'all',
+        uploaded: 0,
+        downloaded: 0,
+        errors: 0,
+      );
+    }
     int totalUploaded = 0;
     int totalDownloaded = 0;
     int totalErrors = 0;
