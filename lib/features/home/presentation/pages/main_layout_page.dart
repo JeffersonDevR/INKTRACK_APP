@@ -280,26 +280,12 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
             children: [
               const OfflineBanner(),
 
-              Container(
+              Padding(
                 padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).padding.top + 8,
+                  top: MediaQuery.of(context).padding.top,
                   left: 20,
                   right: 20,
                   bottom: 16,
-                ),
-                decoration: BoxDecoration(
-                  color: isDark ? AppTheme.darkSurface : Colors.white,
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(32),
-                    bottomRight: Radius.circular(32),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 15,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
                 ),
                 child: Row(
                   children: [

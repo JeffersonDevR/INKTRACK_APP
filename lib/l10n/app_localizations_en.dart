@@ -1294,6 +1294,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get syncRetryAction => 'Retry';
 
   @override
+  String get offlineBannerTitle => 'Offline mode';
+
+  @override
   String offlineBannerPending(int n) {
     return 'Offline mode — $n pending change(s)';
   }
@@ -1308,6 +1311,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get creditLimitContinueAnyway => 'Do you want to continue anyway?';
+
+  @override
+  String get lapsoVisita => 'Visit interval (months)';
+
+  @override
+  String get lapsoVisitaHelper => 'Optional: for suppliers who visit every X months.';
+
+  @override
+  String get ingreseNumeroValido => 'Enter a valid number';
+
+  @override
+  String get visitaCadaMes => 'Every month';
+
+  @override
+  String visitaCadaMeses(int n) {
+    return 'Every $n months';
+  }
 
   @override
   String get abonoHistoryTitle => 'Payment History';

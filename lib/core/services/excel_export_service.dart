@@ -14,6 +14,23 @@ class ExcelExportService {
     decimalDigits: 0,
   );
 
+  /// Derives a contextual report title from active filters.
+  static String _excelReportTitle(ReportFilters filters) {
+    if (filters.soloDeudores) return 'INKTRACK - REPORTE DE DEUDORES';
+    if (filters.topVendidos) return 'INKTRACK - REPORTE DE TOP VENDIDOS';
+    if (filters.abonosDelMes) return 'INKTRACK - REPORTE DE ABONOS DEL MES';
+    return 'INKTRACK - REPORTE DE MOVIMIENTOS';
+  }
+
+  /// Builds the filter info line shown after the title.
+  static String _excelFilterSummary(ReportFilters filters) {
+    final labels = <String>[];
+    if (filters.soloDeudores) labels.add('Solo deudores');
+    if (filters.topVendidos) labels.add('Top vendidos');
+    if (filters.abonosDelMes) labels.add('Abonos del mes');
+    return labels.isEmpty ? '' : 'Filtros aplicados: ${labels.join(" | ")}';
+  }
+
   static Future<Uint8List> generateMovementsReport(
     List<Movimiento> movements, {
     ReportFilters? filters,
@@ -25,6 +42,9 @@ class ExcelExportService {
     final filteredMovements = movements.where((m) {
       if (!ReportPredicates.dateRange(m.fecha, activeFilters)) return false;
       if (!ReportPredicates.abonosDelMes(m, activeFilters)) return false;
+      if (!ReportPredicates.topVendidos(m, activeFilters)) return false;
+      // soloDeudores: when active, only show movements linked to a client
+      if (activeFilters.soloDeudores && m.clienteId == null) return false;
       return true;
     }).toList();
 
@@ -36,7 +56,8 @@ class ExcelExportService {
         .where((m) => m.tipo == MovimientoType.egreso)
         .fold(0.0, (sum, m) => sum + m.monto);
 
-    sheet.appendRow([TextCellValue('INKTRACK - REPORTE DE MOVIMIENTOS')]);
+    final excelTitle = _excelReportTitle(activeFilters);
+    sheet.appendRow([TextCellValue(excelTitle)]);
     sheet.appendRow([]);
 
     if (activeFilters.startDate != null || activeFilters.endDate != null) {
@@ -45,6 +66,12 @@ class ExcelExportService {
           'Período: ${activeFilters.startDate != null ? _dateFormat.format(activeFilters.startDate!) : 'Inicio'} - ${activeFilters.endDate != null ? _dateFormat.format(activeFilters.endDate!) : 'Fin'}',
         ),
       ]);
+      sheet.appendRow([]);
+    }
+
+    final filterSummary = _excelFilterSummary(activeFilters);
+    if (filterSummary.isNotEmpty) {
+      sheet.appendRow([TextCellValue(filterSummary)]);
       sheet.appendRow([]);
     }
 

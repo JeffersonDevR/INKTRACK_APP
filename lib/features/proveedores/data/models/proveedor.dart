@@ -1,4 +1,5 @@
 import '../../../../core/base_crud_viewmodel.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class Proveedor implements HasId {
   @override
@@ -28,6 +29,17 @@ class Proveedor implements HasId {
       'Domingo': 'Dom',
     };
     return _diasVisita.map((d) => dayMap[d] ?? d).join(', ');
+  }
+
+  /// Localized version of [diasVisitaShort] using [l10n] for visit interval
+  /// strings. Day abbreviations remain short and locale-independent.
+  String toDiasVisitaShort(AppLocalizations l10n) {
+    if (periodoVisita != null) {
+      return periodoVisita == 1
+          ? l10n.visitaCadaMes
+          : l10n.visitaCadaMeses(periodoVisita!);
+    }
+    return diasVisitaShort;
   }
 
   final String? localId;

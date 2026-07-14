@@ -1,4 +1,5 @@
 // lib/features/home/presentation/widgets/filter_chooser_dialog.dart
+import 'package:intl/intl.dart';
 import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 //import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -98,7 +99,75 @@ class _FilterChooserDialogState extends State<FilterChooserDialog> {
                   ],
                 ),
               ),
-            // Optional: add date picker for startDate and endDate here
+            const Divider(height: 24),
+            // Start date picker
+            ListTile(
+              title: const Text('Desde'),
+              subtitle: Text(
+                _startDate != null
+                    ? DateFormat('dd/MM/yyyy').format(_startDate!)
+                    : 'Sin filtro',
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_startDate != null)
+                    IconButton(
+                      icon: const Icon(Icons.clear, size: 18),
+                      onPressed: () => setState(() => _startDate = null),
+                    ),
+                  IconButton(
+                    icon: const Icon(Icons.calendar_month),
+                    onPressed: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: _startDate ?? DateTime.now(),
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2030),
+                        locale: const Locale('es'),
+                      );
+                      if (picked != null) {
+                        setState(() => _startDate = picked);
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+            // End date picker
+            ListTile(
+              title: const Text('Hasta'),
+              subtitle: Text(
+                _endDate != null
+                    ? DateFormat('dd/MM/yyyy').format(_endDate!)
+                    : 'Sin filtro',
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_endDate != null)
+                    IconButton(
+                      icon: const Icon(Icons.clear, size: 18),
+                      onPressed: () => setState(() => _endDate = null),
+                    ),
+                  IconButton(
+                    icon: const Icon(Icons.calendar_month),
+                    onPressed: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: _endDate ?? DateTime.now(),
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2030),
+                        locale: const Locale('es'),
+                      );
+                      if (picked != null) {
+                        setState(() => _endDate = picked);
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

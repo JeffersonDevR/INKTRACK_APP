@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -10,6 +12,7 @@ import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimiento
 import 'package:InkTrack/features/movimientos/data/models/movimiento.dart'
     as mov_model;
 import 'package:InkTrack/features/movimientos/presentation/pages/movimiento_form_page.dart';
+import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/widgets/financial_summary_header.dart';
@@ -21,6 +24,7 @@ import 'package:InkTrack/core/services/excel_export_service.dart';
 import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:InkTrack/features/home/presentation/widgets/filter_chooser_dialog.dart';
 import 'package:InkTrack/core/services/reports/report_filters.dart';
+import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmodel.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -69,15 +73,29 @@ class HomePage extends StatelessWidget {
     if (filters == null) return;
 
     try {
-      final movVM = context.read<MovimientosViewModel>();
+      final localesVM = context.read<LocalesViewModel>();
+      final localName = localesVM.localActual?.nombre ?? 'local';
 
-      final pdfData = await PdfExportService.generateMovementsReport(
-        movVM.items,
-        filters: filters,
-      );
+      final Uint8List pdfData;
+      final String filename;
 
-      final filename =
-          'reporte_movimientos_${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf';
+      if (filters.soloDeudores) {
+        final clientesVM = context.read<ClientesViewModel>();
+        pdfData = await PdfExportService.generateClientDebtReport(
+          clientesVM.clientes,
+          filters: filters,
+        );
+        filename =
+            'Deudores_pdf_${localName}_${DateFormat('yyyy-MM-dd').format(DateTime.now())}.pdf';
+      } else {
+        final movVM = context.read<MovimientosViewModel>();
+        pdfData = await PdfExportService.generateMovementsReport(
+          movVM.historialCompleto,
+          filters: filters,
+        );
+        filename =
+            'Reporte_pdf_${localName}_${DateFormat('yyyy-MM-dd').format(DateTime.now())}.pdf';
+      }
 
       if (context.mounted) {
         Navigator.of(context).push(
@@ -133,16 +151,30 @@ class HomePage extends StatelessWidget {
     if (filters == null) return;
 
     try {
-      final movVM = context.read<MovimientosViewModel>();
+      final localesVM = context.read<LocalesViewModel>();
       final l10n = AppLocalizations.of(context)!;
+      final localName = localesVM.localActual?.nombre ?? 'local';
 
-      final excelData = await ExcelExportService.generateMovementsReport(
-        movVM.items,
-        filters: filters,
-      );
+      final Uint8List excelData;
+      final String filename;
 
-      final filename =
-          'reporte_movimientos_${DateFormat('yyyyMMdd').format(DateTime.now())}.xlsx';
+      if (filters.soloDeudores) {
+        final clientesVM = context.read<ClientesViewModel>();
+        excelData = await ExcelExportService.generateClientDebtReport(
+          clientesVM.clientes,
+          filters: filters,
+        );
+        filename =
+            'Deudores_excel_${localName}_${DateFormat('yyyy-MM-dd').format(DateTime.now())}.xlsx';
+      } else {
+        final movVM = context.read<MovimientosViewModel>();
+        excelData = await ExcelExportService.generateMovementsReport(
+          movVM.historialCompleto,
+          filters: filters,
+        );
+        filename =
+            'Reporte_excel_${localName}_${DateFormat('yyyy-MM-dd').format(DateTime.now())}.xlsx';
+      }
 
       await Share.shareXFiles([
         XFile.fromData(

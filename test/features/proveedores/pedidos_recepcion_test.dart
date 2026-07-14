@@ -10,15 +10,11 @@
 
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
 import 'package:drift/native.dart';
 import 'package:drift/drift.dart';
 import 'package:InkTrack/core/data/local/database.dart';
 import 'package:InkTrack/features/proveedores/data/models/pedido_proveedor.dart';
-import 'package:InkTrack/features/proveedores/data/repositories/drift_pedidos_repository.dart';
-import 'package:InkTrack/features/proveedores/presentation/viewmodels/pedidos_viewmodel.dart';
 import 'package:InkTrack/features/inventario/data/models/producto.dart';
 
 // ---------------------------------------------------------------------------

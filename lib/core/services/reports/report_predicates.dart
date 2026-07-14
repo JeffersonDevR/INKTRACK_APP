@@ -24,6 +24,12 @@ class ReportPredicates {
     return producto.cantidad <= producto.stockMinimo && (producto.precioCompra ?? 0) > 0;
   }
 
+  static bool topVendidos(Movimiento movimiento, ReportFilters filters) {
+    if (!filters.topVendidos) return true;
+    // When active, only show sales (ingresos) — conceptually "top sold" for movements
+    return movimiento.tipo == MovimientoType.ingreso;
+  }
+
   static bool dateRange(DateTime date, ReportFilters filters) {
     if (filters.startDate != null && date.isBefore(filters.startDate!)) return false;
     if (filters.endDate != null && date.isAfter(filters.endDate!)) return false;

@@ -46,6 +46,10 @@ class _FakeAuthService implements AuthService {
 
   @override
   Future<bool> hasUserLocales({AppDatabase? localDb}) async => false;
+  
+  @override
+  // TODO: implement userEmail
+  String? get userEmail => throw UnimplementedError();
 }
 
 Widget _buildProfileTestApp() {

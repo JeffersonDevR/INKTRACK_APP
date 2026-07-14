@@ -151,9 +151,9 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
               TextFormField(
                 controller: _periodoVisitaController,
                 decoration: InputDecoration(
-                  labelText: 'Lapso de visita (meses)',
+                  labelText: l10n.lapsoVisita,
                   border: const OutlineInputBorder(),
-                  helperText: 'Opcional: usar cuando el proveedor pasa cada X meses.',
+                  helperText: l10n.lapsoVisitaHelper,
                 ),
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -161,7 +161,7 @@ class _ProveedorFormPageState extends State<ProveedorFormPage> {
                   if (value == null || value.isEmpty) return null;
                   final number = int.tryParse(value);
                   if (number == null || number <= 0) {
-                    return 'Ingrese un número válido';
+                    return l10n.ingreseNumeroValido;
                   }
                   return null;
                 },

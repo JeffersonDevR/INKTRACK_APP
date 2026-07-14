@@ -296,7 +296,7 @@
   "ingreseConcepto": "Ingrese un concepto",
   "clienteOpcional": "Cliente (Opcional)",
   "ninguno": "Ninguno",
-  "ventaFiada": "Venta Fiada",
+  "ventaFiada": "Venta a crédito",
   "anadirSaldoPendiente": "Añadir al saldo pendiente del cliente",
   "calculadoAutomaticamente": "Calculado automáticamente",
   "sinClienteVentaGeneral": "Sin cliente (venta general)",
@@ -845,6 +845,10 @@
   "@syncRetryAction": {
     "description": "Retry action for sync"
   },
+  "offlineBannerTitle": "Modo offline",
+  "@offlineBannerTitle": {
+    "description": "Offline banner base text"
+  },
   "offlineBannerPending": "Modo offline — {n} cambio(s) pendiente(s)",
   "@offlineBannerPending": {
     "description": "Offline banner text with pending count",
@@ -876,6 +880,29 @@
   "creditLimitContinueAnyway": "¿Desea continuar de todos modos?",
   "@creditLimitContinueAnyway": {
     "description": "Prompt asking user if they want to override credit limit check"
+  },
+  "lapsoVisita": "Lapso de visita (meses)",
+  "@lapsoVisita": {
+    "description": "Visit interval form label in months"
+  },
+  "lapsoVisitaHelper": "Opcional: usar cuando el proveedor pasa cada X meses.",
+  "@lapsoVisitaHelper": {
+    "description": "Helper text for visit interval field"
+  },
+  "ingreseNumeroValido": "Ingrese un número válido",
+  "@ingreseNumeroValido": {
+    "description": "Enter a valid number error message"
+  },
+  "visitaCadaMes": "Cada mes",
+  "@visitaCadaMes": {
+    "description": "Visit frequency: every month"
+  },
+  "visitaCadaMeses": "Cada {n} meses",
+  "@visitaCadaMeses": {
+    "description": "Visit frequency: every N months",
+    "placeholders": {
+      "n": { "type": "int" }
+    }
   },
   "abonoHistoryTitle": "Historial de Abonos",
   "@abonoHistoryTitle": {

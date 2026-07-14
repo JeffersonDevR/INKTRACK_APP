@@ -2573,6 +2573,12 @@ abstract class AppLocalizations {
   /// **'Retry'**
   String get syncRetryAction;
 
+  /// No description provided for @offlineBannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline mode'**
+  String get offlineBannerTitle;
+
   /// Offline banner text with pending count
   ///
   /// In en, this message translates to:
@@ -2596,6 +2602,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Do you want to continue anyway?'**
   String get creditLimitContinueAnyway;
+
+  /// No description provided for @lapsoVisita.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit interval (months)'**
+  String get lapsoVisita;
+
+  /// No description provided for @lapsoVisitaHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional: for suppliers who visit every X months.'**
+  String get lapsoVisitaHelper;
+
+  /// No description provided for @ingreseNumeroValido.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid number'**
+  String get ingreseNumeroValido;
+
+  /// No description provided for @visitaCadaMes.
+  ///
+  /// In en, this message translates to:
+  /// **'Every month'**
+  String get visitaCadaMes;
+
+  /// Visit frequency: every N months
+  ///
+  /// In en, this message translates to:
+  /// **'Every {n} months'**
+  String visitaCadaMeses(int n);
 
   /// No description provided for @abonoHistoryTitle.
   ///

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:InkTrack/core/services/auth_service.dart';
+import 'package:InkTrack/core/services/connectivity_service.dart';
 import 'package:InkTrack/core/services/theme_provider.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/l10n/app_localizations.dart';
@@ -14,6 +16,8 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final authService = context.read<AuthService>();
     final user = authService.currentUser;
+    final userEmail = authService.userEmail;
+    final offlineMode = authService.offlineMode;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
 
@@ -29,7 +33,8 @@ class ProfilePage extends StatelessWidget {
             ? AppTheme.darkTextPrimary
             : AppTheme.textPrimary,
       ),
-      body: SingleChildScrollView(
+      body: SafeArea(
+        child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
@@ -38,7 +43,7 @@ class ProfilePage extends StatelessWidget {
               radius: 50,
               backgroundColor: AppTheme.primaryColor,
               child: Text(
-                user?.email?.substring(0, 1).toUpperCase() ?? 'U',
+                (userEmail?.substring(0, 1).toUpperCase() ?? 'U'),
                 style: const TextStyle(
                   fontSize: 40,
                   color: Colors.white,
@@ -47,8 +52,9 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
+            // Display full_name from user metadata, fallback to email or "Usuario"
             Text(
-              user?.email ?? l10n.usuario,
+              _displayName(user, l10n, fallbackEmail: userEmail),
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary,
@@ -75,14 +81,28 @@ class ProfilePage extends StatelessWidget {
               context,
               icon: Icons.email_outlined,
               title: l10n.email,
-              value: user?.email ?? l10n.noDisponible,
+              value: userEmail ?? l10n.noDisponible,
             ),
             const SizedBox(height: 16),
             _buildInfoCard(
               context,
               icon: Icons.fingerprint,
               title: l10n.userId,
-              value: user?.id.substring(0, 8) ?? l10n.noDisponible,
+              value: offlineMode
+                  ? 'Local'
+                  : (user?.id.substring(0, 8) ?? l10n.noDisponible),
+            ),
+            const SizedBox(height: 16),
+            Consumer<ConnectivityService>(
+              builder: (context, connectivity, child) {
+                final online = connectivity.isOnline;
+                return _buildInfoCard(
+                  context,
+                  icon: online ? Icons.wifi : Icons.wifi_off,
+                  title: 'Estado de conexión',
+                  value: online ? 'En línea' : 'Sin conexión',
+                );
+              },
             ),
             const SizedBox(height: 24),
             Consumer<ThemeProvider>(
@@ -207,7 +227,22 @@ class ProfilePage extends StatelessWidget {
           ],
         ),
       ),
+      ),
     );
+  }
+
+  /// Returns the user's display name: tries [User.userMetadata]'s 'full_name',
+  /// falls back to email local-part, then to the generic [l10n.usuario].
+  String _displayName(User? user, AppLocalizations l10n, {String? fallbackEmail}) {
+    final email = user?.email ?? fallbackEmail;
+    if (user != null) {
+      final fullName = user.userMetadata?['full_name'] as String?;
+      if (fullName != null && fullName.isNotEmpty) return fullName;
+    }
+    if (email != null && email.isNotEmpty) {
+      return email.split('@').first;
+    }
+    return l10n.usuario;
   }
 
   Widget _buildInfoCard(

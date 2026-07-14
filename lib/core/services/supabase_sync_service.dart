@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:InkTrack/core/data/local/database.dart';
 import 'package:InkTrack/core/services/sync/conflict_resolver.dart';
 import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
@@ -10,6 +11,7 @@ class SupabaseSyncService {
   final AppDatabase _db;
   final String _supabaseUrl;
   final String _supabaseKey;
+  final SupabaseClient? _supabaseClient;
   bool _abonosSyncEnabled;
 
   SupabaseSyncService(
@@ -17,7 +19,9 @@ class SupabaseSyncService {
     this._supabaseUrl,
     this._supabaseKey, {
     bool abonosSyncEnabled = true,
-  }) : _abonosSyncEnabled = abonosSyncEnabled;
+    SupabaseClient? supabaseClient,
+  })  : _abonosSyncEnabled = abonosSyncEnabled,
+        _supabaseClient = supabaseClient;
 
   /// Whether abonos push/pull sync branches are active.
   /// Default `true`. Toggle at runtime via [setAbonosSyncEnabled] or
@@ -31,12 +35,43 @@ class SupabaseSyncService {
 
   bool get isEnabled => _supabaseUrl.isNotEmpty && _supabaseKey.isNotEmpty;
 
+  /// Returns the user's access token (JWT) from the Supabase session.
+  /// Returns `null` when there's no authenticated session — sync will skip
+  /// uploads rather than silently fail via the anon key (which RLS blocks).
+  String? get _accessToken {
+    try {
+      return _supabaseClient?.auth.currentSession?.accessToken;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// True when we have an authenticated Supabase session (JWT available),
+  /// not just anon key credentials. RLS-safe uploads require a real session.
+  bool get _hasSession => _accessToken != null;
+
+  /// Headers used for raw REST API calls.
+  /// Uses the session JWT when available; falls back to the anon key for
+  /// read-only (download) operations that RLS allows publicly.
   Map<String, String> get _headers => {
     'apikey': _supabaseKey,
-    'Authorization': 'Bearer $_supabaseKey',
+    'Authorization': 'Bearer ${_accessToken ?? _supabaseKey}',
     'Content-Type': 'application/json',
     'Prefer': 'resolution=merge-duplicates',
   };
+
+  /// Upserts [data] into [tableName] using the Supabase client's built-in
+  /// `from().upsert()` — handles auth automatically via the stored session.
+  /// Returns `true` on success, `false` on any failure.
+  Future<bool> _upsertViaClient(String tableName, Map<String, dynamic> data) async {
+    if (_supabaseClient == null) return false;
+    try {
+      await _supabaseClient!.from(tableName).upsert(data);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 
   Future<SyncResult> syncTable(String tableName) async {
     if (!isEnabled) {
@@ -50,6 +85,17 @@ class SupabaseSyncService {
     int uploaded = 0;
     int downloaded = 0;
     int errors = 0;
+
+    // Uploads require an authenticated Supabase session (JWT). Without it,
+    // the anon key silently fails under RLS. Skip uploads and downloads.
+    if (!_hasSession) {
+      return SyncResult(
+        tableName: tableName,
+        uploaded: 0,
+        downloaded: 0,
+        errors: 0,
+      );
+    }
 
     switch (tableName) {
       case 'locales':
@@ -284,13 +330,8 @@ class SupabaseSyncService {
             'is_activo': local.isActivo,
           };
 
-          final response = await http.post(
-            Uri.parse('$_supabaseUrl/rest/v1/locales'),
-            headers: _headers,
-            body: jsonEncode(data),
-          );
-
-          if (response.statusCode == 200 || response.statusCode == 201) {
+          final ok = await _upsertViaClient('locales', data);
+          if (ok) {
             await (_db.update(
               _db.locales,
             )..where((t) => t.id.equals(local.id))).write(
@@ -403,13 +444,8 @@ class SupabaseSyncService {
             'is_activo': producto.isActivo,
           };
 
-          final response = await http.post(
-            Uri.parse('$_supabaseUrl/rest/v1/productos'),
-            headers: _headers,
-            body: jsonEncode(data),
-          );
-
-          if (response.statusCode == 200 || response.statusCode == 201) {
+          final ok = await _upsertViaClient('productos', data);
+          if (ok) {
             await (_db.update(
               _db.productos,
             )..where((t) => t.id.equals(producto.id))).write(
@@ -461,13 +497,8 @@ class SupabaseSyncService {
             'is_activo': cliente.isActivo,
           };
 
-          final response = await http.post(
-            Uri.parse('$_supabaseUrl/rest/v1/clientes'),
-            headers: _headers,
-            body: jsonEncode(data),
-          );
-
-          if (response.statusCode == 200 || response.statusCode == 201) {
+          final ok = await _upsertViaClient('clientes', data);
+          if (ok) {
             await (_db.update(
               _db.clientes,
             )..where((t) => t.id.equals(cliente.id))).write(
@@ -517,13 +548,8 @@ class SupabaseSyncService {
             'is_activo': proveedor.isActivo,
           };
 
-          final response = await http.post(
-            Uri.parse('$_supabaseUrl/rest/v1/proveedores'),
-            headers: _headers,
-            body: jsonEncode(data),
-          );
-
-          if (response.statusCode == 200 || response.statusCode == 201) {
+          final ok = await _upsertViaClient('proveedores', data);
+          if (ok) {
             await (_db.update(
               _db.proveedores,
             )..where((t) => t.id.equals(proveedor.id))).write(
@@ -581,13 +607,8 @@ class SupabaseSyncService {
             'last_synced_at': movimiento.lastSyncedAt?.toIso8601String(),
           };
 
-          final response = await http.post(
-            Uri.parse('$_supabaseUrl/rest/v1/movimientos'),
-            headers: _headers,
-            body: jsonEncode(data),
-          );
-
-          if (response.statusCode == 200 || response.statusCode == 201) {
+          final ok = await _upsertViaClient('movimientos', data);
+          if (ok) {
             await (_db.update(
               _db.movimientos,
             )..where((t) => t.id.equals(movimiento.id))).write(
@@ -640,13 +661,8 @@ class SupabaseSyncService {
             'last_synced_at': venta.lastSyncedAt?.toIso8601String(),
           };
 
-          final response = await http.post(
-            Uri.parse('$_supabaseUrl/rest/v1/ventas'),
-            headers: _headers,
-            body: jsonEncode(data),
-          );
-
-          if (response.statusCode == 200 || response.statusCode == 201) {
+          final ok = await _upsertViaClient('ventas', data);
+          if (ok) {
             await (_db.update(
               _db.ventas,
             )..where((t) => t.id.equals(venta.id))).write(
@@ -1030,13 +1046,8 @@ class SupabaseSyncService {
             'updated_at': abono.updatedAt.toIso8601String(),
           };
 
-          final response = await http.post(
-            Uri.parse('$_supabaseUrl/rest/v1/abonos'),
-            headers: _headers,
-            body: jsonEncode(data),
-          );
-
-          if (response.statusCode == 200 || response.statusCode == 201) {
+          final ok = await _upsertViaClient('abonos', data);
+          if (ok) {
             await (_db.update(_db.abonos)..where((t) => t.id.equals(abono.id))).write(
               AbonosCompanion(
                 syncStatus: const Value('synced'),
@@ -1221,13 +1232,8 @@ extension _PedidosSyncExt on SupabaseSyncService {
             if (pedido.updatedAt != null) 'updated_at': pedido.updatedAt!.toIso8601String(),
           };
 
-          final response = await http.post(
-            Uri.parse('$_supabaseUrl/rest/v1/pedidos_proveedor'),
-            headers: _headers,
-            body: jsonEncode(data),
-          );
-
-          if (response.statusCode == 200 || response.statusCode == 201) {
+          final ok = await _upsertViaClient('pedidos_proveedor', data);
+          if (ok) {
             await (_db.update(_db.pedidosProveedor)
                   ..where((t) => t.id.equals(pedido.id)))
                 .write(

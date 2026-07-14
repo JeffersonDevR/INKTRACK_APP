@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -15,6 +16,7 @@ import 'package:InkTrack/core/services/theme_provider.dart';
 import 'package:InkTrack/core/services/locale_provider.dart';
 import 'package:InkTrack/core/services/notification_service.dart';
 import 'package:InkTrack/core/services/scanner_service.dart';
+import 'package:InkTrack/core/services/connectivity_service.dart';
 import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:InkTrack/features/clientes/data/repositories/drift_clientes_repository.dart';
 import 'package:InkTrack/features/clientes/data/repositories/drift_abonos_repository.dart';
@@ -292,16 +294,19 @@ class _InkTrackAppState extends State<InkTrackApp> {
         Provider.value(value: _pedidosRepo),
         Provider.value(value: _localesRepo),
         Provider(create: (_) => ScannerService()),
+        Provider(create: (_) => ConnectivityService()),
         Provider(
           create: (_) => SupabaseSyncService(
             widget.database,
             widget.supabaseUrl ?? '',
             widget.supabaseKey ?? '',
+            supabaseClient: widget.supabaseClient,
           ),
         ),
         ChangeNotifierProvider(
           create: (context) => SyncQueueViewModel(
             syncService: context.read<SupabaseSyncService>(),
+            connectivityService: context.read<ConnectivityService>(),
             db: widget.database,
           ),
         ),
@@ -340,6 +345,17 @@ class _InkTrackAppState extends State<InkTrackApp> {
             locale: localeProvider.locale,
             supportedLocales: AppLocalizations.supportedLocales,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
+            builder: (context, child) {
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              return AnnotatedRegion<SystemUiOverlayStyle>(
+                value: SystemUiOverlayStyle(
+                  statusBarColor: Colors.transparent,
+                  statusBarIconBrightness:
+                      isDark ? Brightness.light : Brightness.dark,
+                ),
+                child: child!,
+              );
+            },
             home: _isLoggedIn
                 ? MainLayoutPage(authService: widget.authService)
                 : LoginPage(onLoginSuccess: _handleLoginSuccess),

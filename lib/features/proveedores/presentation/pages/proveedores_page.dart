@@ -164,7 +164,7 @@ class ProveedoresPage extends StatelessWidget {
                                   fit: BoxFit.scaleDown,
                                   alignment: Alignment.centerLeft,
                                     child: Text(
-                                      '${l10n.diasVisita}: ${proveedor.diasVisitaShort}',
+                                      '${l10n.diasVisita}: ${proveedor.toDiasVisitaShort(l10n)}',
                                     style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
                                           color: AppTheme.infoColor,

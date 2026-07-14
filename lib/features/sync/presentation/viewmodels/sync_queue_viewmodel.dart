@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:InkTrack/core/services/connectivity_service.dart';
 import 'package:InkTrack/core/services/supabase_sync_service.dart';
 import 'package:InkTrack/core/data/local/database.dart';
 
@@ -18,17 +20,29 @@ class SyncResult {
 
 class SyncQueueViewModel extends ChangeNotifier {
   final SupabaseSyncService syncService;
+  final ConnectivityService? connectivityService;
   final AppDatabase _db;
 
   int _pendingCount = 0;
   bool _isRunning = false;
   SyncResult? _lastSyncResult;
+  Timer? _pollTimer;
 
   SyncQueueViewModel({
     required this.syncService,
+    this.connectivityService,
     required AppDatabase db,
   }) : _db = db {
     recompute();
+    // Auto-poll every 8 seconds so DB changes (new pending_upload rows) are
+    // picked up without requiring manual badge interaction.
+    _pollTimer = Timer.periodic(const Duration(seconds: 8), (_) => recompute());
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
   }
 
   int get pendingCount => _pendingCount;

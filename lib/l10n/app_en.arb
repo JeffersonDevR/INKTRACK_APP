@@ -420,10 +420,22 @@
   "syncStateSynced": "Synced",
   "syncStateError": "Sync error",
   "syncRetryAction": "Retry",
+  "offlineBannerTitle": "Offline mode",
   "offlineBannerPending": "Offline mode — {n} pending change(s)",
   "creditLimitExceededTitle": "Credit Limit Exceeded",
   "creditLimitExceededMessage": "The client balance ({actual}) plus the new amount ({nuevo}) exceeds their credit limit ({limite}).",
   "creditLimitContinueAnyway": "Do you want to continue anyway?",
+  "lapsoVisita": "Visit interval (months)",
+  "lapsoVisitaHelper": "Optional: for suppliers who visit every X months.",
+  "ingreseNumeroValido": "Enter a valid number",
+  "visitaCadaMes": "Every month",
+  "visitaCadaMeses": "Every {n} months",
+  "@visitaCadaMeses": {
+    "description": "Visit frequency: every N months",
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
   "abonoHistoryTitle": "Payment History",
   "registerAbonoTitle": "Register Payment",
   "abonoAmountLabel": "Payment Amount",

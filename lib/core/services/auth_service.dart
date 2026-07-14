@@ -18,6 +18,19 @@ class AuthService {
   /// Whether the last successful login was performed offline.
   bool get offlineMode => _offlineMode;
 
+  /// Email of the last successfully authenticated user, tracked for offline
+  /// scenarios where Supabase.currentUser is null.
+  String? _localUserEmail;
+
+  /// Returns the email of the current user, even in offline/local mode.
+  String? get userEmail {
+    try {
+      return _supabase.auth.currentUser?.email ?? _localUserEmail;
+    } catch (_) {
+      return _localUserEmail;
+    }
+  }
+
   AuthService(this._supabase, {AppDatabase? database})
       : _database = database;
 
@@ -54,6 +67,7 @@ class AuthService {
       );
       if (response.user != null) {
         _offlineMode = false;
+        _localUserEmail = email;
         await _cacheCredentials(response.user!.id, email, password);
         return AuthResult(success: true, user: response.user);
       }
@@ -63,20 +77,42 @@ class AuthService {
         final offlineResult = await _validateOffline(email, password);
         if (offlineResult.success) {
           _offlineMode = true;
+          _localUserEmail = email;
         }
         return offlineResult;
+      }
+      // signIn failed but we have connectivity — try auto-registering the
+      // user in Supabase Auth. If the user already exists this will fail
+      // and we'll return the original error. If it succeeds, signUp returns
+      // a valid session and sync will work.
+      try {
+        final signUpResponse = await _supabase.auth.signUp(
+          email: email,
+          password: password,
+        );
+        if (signUpResponse.user != null) {
+          _offlineMode = false;
+          _localUserEmail = email;
+          await _cacheCredentials(signUpResponse.user!.id, email, password);
+          return AuthResult(success: true, user: signUpResponse.user);
+        }
+      } on AuthException catch (signUpError) {
+        // signUp also failed — return the original signIn error
+        return AuthResult(success: false, error: e.message);
       }
       return AuthResult(success: false, error: e.message);
     } on SocketException catch (_) {
       final offlineResult = await _validateOffline(email, password);
       if (offlineResult.success) {
         _offlineMode = true;
+        _localUserEmail = email;
       }
       return offlineResult;
     } on TimeoutException catch (_) {
       final offlineResult = await _validateOffline(email, password);
       if (offlineResult.success) {
         _offlineMode = true;
+        _localUserEmail = email;
       }
       return offlineResult;
     } catch (e, st) {

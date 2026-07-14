@@ -751,7 +751,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get ninguno => 'Ninguno';
 
   @override
-  String get ventaFiada => 'Venta Fiada';
+  String get ventaFiada => 'Venta a crédito';
 
   @override
   String get anadirSaldoPendiente => 'Añadir al saldo pendiente del cliente';
@@ -1294,6 +1294,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get syncRetryAction => 'Reintentar';
 
   @override
+  String get offlineBannerTitle => 'Modo offline';
+
+  @override
   String offlineBannerPending(int n) {
     return 'Modo offline — $n cambio(s) pendiente(s)';
   }
@@ -1308,6 +1311,23 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get creditLimitContinueAnyway => '¿Desea continuar de todos modos?';
+
+  @override
+  String get lapsoVisita => 'Lapso de visita (meses)';
+
+  @override
+  String get lapsoVisitaHelper => 'Opcional: usar cuando el proveedor pasa cada X meses.';
+
+  @override
+  String get ingreseNumeroValido => 'Ingrese un número válido';
+
+  @override
+  String get visitaCadaMes => 'Cada mes';
+
+  @override
+  String visitaCadaMeses(int n) {
+    return 'Cada $n meses';
+  }
 
   @override
   String get abonoHistoryTitle => 'Historial de Abonos';

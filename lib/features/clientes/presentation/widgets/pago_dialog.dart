@@ -40,10 +40,10 @@ class _PagoDialogState extends State<PagoDialog> {
   @override
   void initState() {
     super.initState();
+    // Pre-fill with the specific credit amount if provided, otherwise the full balance
+    final prefill = widget.maxAmount ?? widget.cliente.saldoPendiente;
     _montoController = TextEditingController(
-      text: NumberFormatter.formatCurrency(
-        widget.cliente.saldoPendiente,
-      ).replaceAll('\$', ''),
+      text: NumberFormatter.formatCurrency(prefill).replaceAll('\$', ''),
     );
   }
 

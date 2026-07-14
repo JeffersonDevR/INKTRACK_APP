@@ -12,7 +12,8 @@ DeudorStatus computeStatus(Cliente cliente, {DateTime? now}) {
 
   final promesa = cliente.promesaPago;
   if (promesa == null) {
-    return DeudorStatus.alDia;
+    // Tiene deuda pero no hay promesa de pago → no puede estar "al día"
+    return DeudorStatus.porVencer;
   }
 
   final currentDateOnly = DateTime(current.year, current.month, current.day);

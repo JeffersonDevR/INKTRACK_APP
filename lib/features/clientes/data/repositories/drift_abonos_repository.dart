@@ -41,7 +41,13 @@ class DriftAbonosRepository implements AbonosRepository {
             ),
           );
 
-      final double nuevoSaldo = await getSaldoPendiente(item.clienteId);
+      // Read the current client balance directly instead of recalculating
+      // from ventas/abonos tables. This correctly handles credits created as
+      // Movimiento objects (the common path), not just Venta records.
+      final current = await (_db.select(_db.clientes)
+        ..where((t) => t.id.equals(item.clienteId))).getSingleOrNull();
+      final currentSaldo = current?.saldoPendiente ?? 0.0;
+      final nuevoSaldo = (currentSaldo - item.monto).clamp(0.0, double.infinity);
       await (_db.update(
         _db.clientes,
       )..where((t) => t.id.equals(item.clienteId))).write(
@@ -65,7 +71,10 @@ class DriftAbonosRepository implements AbonosRepository {
     await _db.transaction(() async {
       await (_db.delete(_db.abonos)..where((t) => t.id.equals(id))).go();
 
-      final double nuevoSaldo = await getSaldoPendiente(abono.clienteId);
+      final current = await (_db.select(_db.clientes)
+        ..where((t) => t.id.equals(abono.clienteId))).getSingleOrNull();
+      final currentSaldo = current?.saldoPendiente ?? 0.0;
+      final nuevoSaldo = currentSaldo + abono.monto;
       await (_db.update(
         _db.clientes,
       )..where((t) => t.id.equals(abono.clienteId))).write(

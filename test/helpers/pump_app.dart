@@ -85,6 +85,10 @@ class FakeAuthService implements AuthService {
 
   @override
   bool get offlineMode => false;
+  
+  @override
+  // TODO: implement userEmail
+  String? get userEmail => throw UnimplementedError();
 }
 
 class InMemoryAbonosRepository implements AbonosRepository {

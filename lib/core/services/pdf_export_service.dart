@@ -25,6 +25,9 @@ class PdfExportService {
     final filteredMovements = movements.where((m) {
       if (!ReportPredicates.dateRange(m.fecha, activeFilters)) return false;
       if (!ReportPredicates.abonosDelMes(m, activeFilters)) return false;
+      if (!ReportPredicates.topVendidos(m, activeFilters)) return false;
+      // soloDeudores: when active, only show movements linked to a client
+      if (activeFilters.soloDeudores && m.clienteId == null) return false;
       return true;
     }).toList();
 
@@ -41,9 +44,8 @@ class PdfExportService {
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
         header: (context) => _buildHeader(
-          'Reporte de Movimientos',
-          startDate: activeFilters.startDate,
-          endDate: activeFilters.endDate,
+          _reportTitle(activeFilters),
+          activeFilters: activeFilters,
         ),
         footer: (context) => _buildFooter(context),
         build: (context) => [
@@ -130,11 +132,31 @@ class PdfExportService {
     return pdf.save();
   }
 
+  /// Derives a contextual report title from active filters.
+  static String _reportTitle(ReportFilters filters) {
+    if (filters.soloDeudores) return 'Reporte de Deudores';
+    if (filters.topVendidos) return 'Reporte de Top Vendidos';
+    if (filters.abonosDelMes) return 'Reporte de Abonos del Mes';
+    return 'Reporte de Movimientos';
+  }
+
+  /// Builds the comma-separated filter labels shown in the PDF header.
+  static String _filterSummary(ReportFilters? filters) {
+    if (filters == null) return '';
+    final labels = <String>[];
+    if (filters.soloDeudores) labels.add('Solo deudores');
+    if (filters.topVendidos) labels.add('Top vendidos');
+    if (filters.abonosDelMes) labels.add('Abonos del mes');
+    return labels.isEmpty ? '' : 'Filtros: ${labels.join(" | ")}';
+  }
+
   static pw.Widget _buildHeader(
     String title, {
+    ReportFilters? activeFilters,
     DateTime? startDate,
     DateTime? endDate,
   }) {
+    final filterSummary = _filterSummary(activeFilters);
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -160,13 +182,22 @@ class PdfExportService {
           title,
           style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
         ),
-        if (startDate != null || endDate != null) ...[
-          pw.SizedBox(height: 4),
-          pw.Text(
-            'Período: ${startDate != null ? _dateFormat.format(startDate) : 'Inicio'} - ${endDate != null ? _dateFormat.format(endDate) : 'Fin'}',
-            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+        if (startDate != null || endDate != null)
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(top: 4),
+            child: pw.Text(
+              'Período: ${startDate != null ? _dateFormat.format(startDate) : 'Inicio'} - ${endDate != null ? _dateFormat.format(endDate) : 'Fin'}',
+              style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+            ),
           ),
-        ],
+        if (filterSummary.isNotEmpty)
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(top: 4),
+            child: pw.Text(
+              filterSummary,
+              style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+            ),
+          ),
         pw.Divider(color: PdfColors.indigo, thickness: 2),
         pw.SizedBox(height: 16),
       ],

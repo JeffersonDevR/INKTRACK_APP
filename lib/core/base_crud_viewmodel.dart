@@ -14,7 +14,12 @@ abstract class BaseCrudViewModel<T extends HasId> extends ChangeNotifier {
   bool get isNotEmpty => _items.isNotEmpty;
 
   void add(T item) {
-    _items.add(item);
+    final existing = _items.indexWhere((i) => _getId(i) == _getId(item));
+    if (existing != -1) {
+      _items[existing] = item;
+    } else {
+      _items.add(item);
+    }
     _cachedItems = null;
     notifyListeners();
   }
