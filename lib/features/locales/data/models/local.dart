@@ -9,6 +9,8 @@ class Local implements HasId {
   final String tipo;
   final String? userId;
   final bool isActivo;
+  final DateTime? updatedAt;
+  final String? syncStatus;
 
   Local({
     required this.id,
@@ -18,6 +20,8 @@ class Local implements HasId {
     this.tipo = 'tienda',
     this.userId,
     this.isActivo = true,
+    this.updatedAt,
+    this.syncStatus,
   });
 
   Local copyWith({
@@ -28,6 +32,8 @@ class Local implements HasId {
     String? tipo,
     String? userId,
     bool? isActivo,
+    DateTime? updatedAt,
+    String? syncStatus,
   }) {
     return Local(
       id: id ?? this.id,
@@ -37,6 +43,9 @@ class Local implements HasId {
       tipo: tipo ?? this.tipo,
       userId: userId ?? this.userId,
       isActivo: isActivo ?? this.isActivo,
+      updatedAt: updatedAt ?? this.updatedAt,
+      syncStatus: syncStatus ?? this.syncStatus,
     );
   }
 }
+

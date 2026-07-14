@@ -138,27 +138,27 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reportesTitulo => 'Reportes';
 
   @override
-  String pdfExportado(String filename) {
+  String pdfExportado(Object filename) {
     return 'PDF exportado: $filename';
   }
 
   @override
-  String excelExportado(String filename) {
+  String excelExportado(Object filename) {
     return 'Excel exportado: $filename';
   }
 
   @override
-  String errorAlExportarPdf(String error) {
+  String errorAlExportarPdf(Object error) {
     return 'Error al exportar PDF: $error';
   }
 
   @override
-  String errorAlExportarExcel(String error) {
+  String errorAlExportarExcel(Object error) {
     return 'Error al exportar Excel: $error';
   }
 
   @override
-  String entregasPendientes(int count) {
+  String entregasPendientes(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -253,7 +253,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get fin => 'Fin';
 
   @override
-  String periodo(String start, String end) {
+  String periodo(Object end, Object start) {
     return 'Período: $start - $end';
   }
 
@@ -570,7 +570,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reactivarProducto => 'Reactivar Producto';
 
   @override
-  String reactivarEnCatalogo(String name) {
+  String reactivarEnCatalogo(Object name) {
     return '¿Reactivar \"$name\" en el catálogo?';
   }
 
@@ -650,7 +650,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get otros => 'Otros';
 
   @override
-  String semana(int number) {
+  String semana(Object number) {
     return 'SEM $number';
   }
 
@@ -802,12 +802,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get datosDetectados => 'Datos detectados:';
 
   @override
-  String montoDetectado(String amount) {
+  String montoDetectado(Object amount) {
     return 'Monto: $amount';
   }
 
   @override
-  String clienteDetectado(String name) {
+  String clienteDetectado(Object name) {
     return 'Cliente: $name';
   }
 
@@ -818,12 +818,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get ingreseConceptoVenta => 'Ingrese el concepto';
 
   @override
-  String productoInactivo(String name) {
+  String productoInactivo(Object name) {
     return 'El producto \"$name\" está inactivo';
   }
 
   @override
-  String noHaySuficienteStock(String name, int available) {
+  String noHaySuficienteStock(Object available, Object name) {
     return 'No hay suficiente stock de \"$name\". Disponible: $available';
   }
 
@@ -840,7 +840,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buscarProductoPlaceholder => 'Buscar producto';
 
   @override
-  String stockLabel(int stock) {
+  String stockLabel(Object stock) {
     return 'Stock: $stock';
   }
 
@@ -878,7 +878,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get productoNoEncontrado => 'Producto no encontrado en el inventario';
 
   @override
-  String restockLabel(String name) {
+  String restockLabel(Object name) {
     return 'Restock: $name';
   }
 
@@ -898,7 +898,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get resultadosFiltroTitle => 'Resultados Filtrados';
 
   @override
-  String totalItems(int count) {
+  String totalItems(Object count) {
     return 'Total: $count';
   }
 
@@ -1107,7 +1107,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String productoYaExisteMensaje(String codigo, String nombre) {
-    return 'El código de barras "$codigo" pertenece al producto "$nombre". ¿Qué deseas hacer?';
+    return 'El código de barras \"$codigo\" pertenece al producto \"$nombre\". ¿Qué deseas hacer?';
   }
 
   @override
@@ -1198,7 +1198,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get escribirNombreProveedor => 'Escribir nombre del proveedor';
 
   @override
-  String get seleccioneProveedorOEscribaNombre => 'Seleccione un proveedor o use "Escribir nombre"';
+  String get seleccioneProveedorOEscribaNombre => 'Seleccione un proveedor o use \"Escribir nombre\"';
 
   @override
   String get escribaNombreProveedor => 'Escriba el nombre del proveedor';
@@ -1235,4 +1235,203 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get crearPedido => 'Crear pedido';
+
+  @override
+  String get gs1InvalidWeightCode => 'Código de peso/precio no válido';
+
+  @override
+  String get gs1ParseError => 'No se pudo interpretar el código de peso variable';
+
+  @override
+  String get orphanCodeTitle => 'Código no registrado';
+
+  @override
+  String orphanCodeMessage(String codigo) {
+    return 'El código $codigo no pertenece a ningún producto. ¿Desea asignarlo a un producto existente o crear uno nuevo?';
+  }
+
+  @override
+  String get orphanAssignExistingAction => 'Asignar a producto existente';
+
+  @override
+  String get orphanCreateNewAction => 'Crear nuevo producto';
+
+  @override
+  String get actionCancel => 'Cancelar';
+
+  @override
+  String get burstModeLabel => 'Modo ráfaga';
+
+  @override
+  String productAddedCountSnackbar(String producto, int n) {
+    return '$producto agregado (x$n)';
+  }
+
+  @override
+  String get databaseMigrationErrorTitle => 'Error de base de datos';
+
+  @override
+  String get databaseMigrationErrorMessage => 'Ocurrió un error al actualizar la base de datos. Contacte soporte.';
+
+  @override
+  String get syncStateSyncing => 'Sincronizando…';
+
+  @override
+  String syncStatePendingCount(int n) {
+    return '$n pendientes';
+  }
+
+  @override
+  String get syncStateOffline => 'Modo local seguro';
+
+  @override
+  String get syncStateSynced => 'Sincronizado';
+
+  @override
+  String get syncStateError => 'Error de sincronización';
+
+  @override
+  String get syncRetryAction => 'Reintentar';
+
+  @override
+  String offlineBannerPending(int n) {
+    return 'Modo offline — $n cambio(s) pendiente(s)';
+  }
+
+  @override
+  String get creditLimitExceededTitle => 'Límite de crédito excedido';
+
+  @override
+  String creditLimitExceededMessage(String actual, String nuevo, String limite) {
+    return 'El saldo pendiente del cliente ($actual) más el nuevo monto ($nuevo) excede su límite de crédito ($limite).';
+  }
+
+  @override
+  String get creditLimitContinueAnyway => '¿Desea continuar de todos modos?';
+
+  @override
+  String get abonoHistoryTitle => 'Historial de Abonos';
+
+  @override
+  String get registerAbonoTitle => 'Registrar Abono';
+
+  @override
+  String get abonoAmountLabel => 'Monto del Abono';
+
+  @override
+  String get remainingBalanceLabel => 'Saldo Restante';
+
+  @override
+  String get saveAbonoAction => 'Registrar Pago';
+
+  @override
+  String get debtorStatusUpToDate => 'Al día';
+
+  @override
+  String get debtorStatusDueSoon => 'Por vencer';
+
+  @override
+  String get debtorStatusOverdue => 'Vencido';
+
+  @override
+  String get paymentPromiseDateLabel => 'Promesa de pago';
+
+  @override
+  String get orderReceptionTitle => 'Recepción de Pedido';
+
+  @override
+  String get scanReceivedProductsHint => 'Escanea los productos recibidos';
+
+  @override
+  String get requestedCountLabel => 'Solicitado';
+
+  @override
+  String get receivedCountLabel => 'Recibido';
+
+  @override
+  String get discrepancyLabel => 'Discrepancia';
+
+  @override
+  String discrepancySummaryMessage(int received, int requested) {
+    return 'Discrepancia: recibió $received de $requested unidades';
+  }
+
+  @override
+  String get receptionCompleteMessage => 'Recepción completada';
+
+  @override
+  String get receptionPartialMessage => 'Recepción parcial';
+
+  @override
+  String get reorderSuggestionTitle => 'Sugerencia de Pedido';
+
+  @override
+  String get productsBelowMinimumMessage => 'Productos por debajo del mínimo';
+
+  @override
+  String reorderProductLineLabel(String producto, int actual, int minimo) {
+    return '$producto — Actual: $actual, Mínimo: $minimo';
+  }
+
+  @override
+  String get createSuggestedOrderAction => 'Crear Pedido Sugerido';
+
+  @override
+  String get confirmPartialReceptionAction => 'Confirmar Recepción Parcial';
+
+  @override
+  String get markDeliveredAction => 'Marcar como Entregado';
+
+  @override
+  String get reportFiltersTitle => 'Filtros de Reporte';
+
+  @override
+  String get filterOnlyDebtors => 'Solo deudores';
+
+  @override
+  String get filterAbonosOfMonth => 'Abonos del mes';
+
+  @override
+  String get filterTopSold => 'Más vendidos';
+
+  @override
+  String get filterCriticalInventoryValorized => 'Inventario crítico valorizado';
+
+  @override
+  String filterTopN(int n) {
+    return 'Top $n';
+  }
+
+  @override
+  String get filterIncludeCost => 'Incluir costo';
+
+  @override
+  String get filterDateRange => 'Rango de fechas';
+
+  @override
+  String get filterCustomer => 'Cliente';
+
+  @override
+  String get filterProduct => 'Producto';
+
+  @override
+  String get movementsReportTitle => 'Reporte de Movimientos';
+
+  @override
+  String get inventoryReportTitle => 'Reporte de Inventario';
+
+  @override
+  String get debtorsReportTitle => 'Reporte de Deudores';
+
+  @override
+  String get criticalInventoryValorizedTitle => 'Inventario Crítico Valorizado';
+
+  @override
+  String get pdfPreviewAction => 'Vista Previa PDF';
+
+  @override
+  String get shareAction => 'Compartir';
+
+  @override
+  String get closeAction => 'Cerrar';
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+
 import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/clientes/data/models/cliente.dart';
@@ -22,6 +24,7 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
   final _nombreController = TextEditingController();
   final _telefonoController = TextEditingController();
   final _emailController = TextEditingController();
+  DateTime? _promesaPago;
 
   @override
   void initState() {
@@ -30,8 +33,10 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
       _nombreController.text = widget.cliente!.nombre;
       _telefonoController.text = widget.cliente!.telefono;
       _emailController.text = widget.cliente!.email ?? '';
+      _promesaPago = widget.cliente!.promesaPago;
     }
   }
+
 
   @override
   void dispose() {
@@ -121,6 +126,25 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
                   return null;
                 },
               ),
+              const SizedBox(height: 16),
+              ListTile(
+                title: Text(l10n.paymentPromiseDateLabel),
+                subtitle: Text(_promesaPago == null ? 'Sin fecha' : DateFormat('dd/MM/yyyy').format(_promesaPago!)),
+                trailing: const Icon(Icons.calendar_today),
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: _promesaPago ?? DateTime.now(),
+                    firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                    lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                  );
+                  if (picked != null) {
+                    setState(() {
+                      _promesaPago = picked;
+                    });
+                  }
+                },
+              ),
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _saveCliente,
@@ -128,6 +152,7 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
                   widget.cliente == null ? l10n.guardar : l10n.actualizar,
                 ),
               ),
+
             ],
           ),
         ),
@@ -149,6 +174,7 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
             esFiado: false,
             localId: localesVM.localIdSeleccionado,
             movimientosVM: context.read<MovimientosViewModel>(),
+            promesaPago: _promesaPago,
           );
         } else {
           await viewModel.editar(
@@ -157,6 +183,7 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
             telefono: _telefonoController.text,
             email: _emailController.text,
             esFiado: widget.cliente!.esFiado,
+            promesaPago: _promesaPago,
           );
         }
         if (mounted) Navigator.pop(context);

@@ -14,7 +14,10 @@ import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/services/scanner_service.dart';
 import 'package:InkTrack/core/data/local/database.dart';
 import 'package:InkTrack/features/clientes/data/repositories/clientes_repository.dart';
+import 'package:InkTrack/features/clientes/data/repositories/abonos_repository.dart';
 import 'package:InkTrack/features/clientes/data/models/cliente.dart';
+import 'package:InkTrack/features/clientes/data/models/abono.dart';
+
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/proveedores/data/repositories/proveedores_repository.dart';
 import 'package:InkTrack/features/proveedores/data/models/proveedor.dart';
@@ -82,6 +85,30 @@ class FakeAuthService implements AuthService {
 
   @override
   bool get offlineMode => false;
+}
+
+class InMemoryAbonosRepository implements AbonosRepository {
+  final List<Abono> _items = [];
+
+  @override
+  Future<List<Abono>> getByCliente(String clienteId) async {
+    return _items.where((a) => a.clienteId == clienteId).toList();
+  }
+
+  @override
+  Future<void> save(Abono item) async {
+    _items.add(item);
+  }
+
+  @override
+  Future<void> delete(String id) async {
+    _items.removeWhere((a) => a.id == id);
+  }
+
+  @override
+  Future<double> getSaldoPendiente(String clienteId) async {
+    return 0.0;
+  }
 }
 
 class InMemoryLocalesRepository implements LocalesRepository {
@@ -269,6 +296,7 @@ void _suppressGoogleFontsErrors() {
 
 class TestAppProviders {
   final clientesRepo = InMemoryClientesRepository();
+  final abonosRepo = InMemoryAbonosRepository();
   final proveedoresRepo = InMemoryProveedoresRepository();
   final productosRepo = InMemoryProductosRepository();
   final movimientosRepo = InMemoryMovimientosRepository();
@@ -302,7 +330,7 @@ class TestAppProviders {
     );
 
     ventasVM = VentasViewModel(ventasRepo, scannerService);
-    clientesVM = ClientesViewModel(clientesRepo);
+    clientesVM = ClientesViewModel(clientesRepo, abonosRepo);
     proveedoresVM = ProveedoresViewModel(proveedoresRepo);
     localesVM = LocalesViewModel(localesRepo);
     pedidosVM = PedidosProveedorViewModel(pedidosRepo);
@@ -319,6 +347,7 @@ Widget Function(Widget) appShell({TestAppProviders? providers}) {
         Provider<AuthService>.value(value: p.authService),
         Provider<ScannerService>.value(value: p.scannerService),
         Provider<ClientesRepository>.value(value: p.clientesRepo),
+        Provider<AbonosRepository>.value(value: p.abonosRepo),
         Provider<ProveedoresRepository>.value(value: p.proveedoresRepo),
         Provider<ProductosRepository>.value(value: p.productosRepo),
         Provider<MovimientosRepository>.value(value: p.movimientosRepo),

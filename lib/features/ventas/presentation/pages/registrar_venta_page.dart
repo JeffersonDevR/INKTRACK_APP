@@ -10,13 +10,16 @@ import 'package:InkTrack/features/clientes/data/models/cliente.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
-import 'package:InkTrack/features/inventario/data/models/producto.dart';
 import 'package:InkTrack/features/inventario/presentation/pages/barcode_scanner_page.dart';
 import 'package:InkTrack/features/locales/presentation/viewmodels/locales_viewmodel.dart';
 import 'package:InkTrack/core/input_formatters.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/core/utils/number_formatter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:bcrypt/bcrypt.dart';
+import 'package:InkTrack/core/data/local/database.dart';
+import 'package:InkTrack/features/clientes/presentation/widgets/credit_limit_dialog.dart';
+
 
 class RegistrarVentaPage extends StatefulWidget {
   const RegistrarVentaPage({super.key});
@@ -32,7 +35,9 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
   final _conceptoController = TextEditingController();
   String? _clienteId;
   bool _esFiado = false;
+  String? _managerIdForOverride;
   final List<_VentaItemState> _productos = [];
+
   static const String _kWriteNameValue = '__write_name__';
 
   @override
@@ -75,80 +80,81 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
   }
 
   Future<void> _escanearProducto() async {
-    final producto = await Navigator.push<Producto>(
+    await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const BarcodeScannerPage(
-          mode: BarcodeScannerMode.selectProduct,
+        builder: (context) => BarcodeScannerPage(
+          mode: BarcodeScannerMode.burst,
+          onBurstScan: (producto, {weightKg, embeddedPrice}) {
+            if (!mounted) return;
+            setState(() {
+              final existingIndex = _productos.indexWhere(
+                (p) => p.productoId == producto.id && !p.isUnidad,
+              );
+              if (existingIndex != -1) {
+                _productos[existingIndex].cantidad += 1;
+              } else {
+                double precio = producto.precioVenta;
+                int cantidad = 1;
+                if (weightKg != null && producto.unidad == 'kg') {
+                  precio = producto.precioVenta * weightKg;
+                } else if (embeddedPrice != null) {
+                  precio = embeddedPrice;
+                }
+                _productos.add(
+                  _VentaItemState(
+                    productoId: producto.id,
+                    nombre: producto.nombre,
+                    cantidad: cantidad,
+                    precioUnitario: precio,
+                  ),
+                );
+              }
+              _actualizarMonto();
+            });
+          },
         ),
       ),
     );
-
-    if (producto != null && mounted) {
-      final cantidad = await _showCantidadDialog(producto);
-      if (cantidad != null && mounted) {
-        setState(() {
-          final existingIndex = _productos.indexWhere(
-            (p) => p.productoId == producto.id && !p.isUnidad,
-          );
-          if (existingIndex != -1) {
-            _productos[existingIndex].cantidad += cantidad;
-          } else {
-            _productos.add(
-              _VentaItemState(
-                productoId: producto.id,
-                nombre: producto.nombre,
-                cantidad: cantidad,
-                precioUnitario: producto.precioVenta,
-              ),
-            );
-          }
-          _actualizarMonto();
-        });
-      }
-    }
   }
 
-  Future<int?> _showCantidadDialog(Producto producto) async {
+  void _executeSave(double monto, String? clienteNombre, String? productosJson, String? auditString) {
+    final localesVM = context.read<LocalesViewModel>();
+    final localIdSeleccionado = localesVM.localIdSeleccionado;
     final l10n = AppLocalizations.of(context)!;
-    final controller = TextEditingController(text: '1');
-    return showDialog<int>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(producto.nombre),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '${l10n.precioUnitario}: \$${producto.precioVenta.toStringAsFixed(2)}',
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              decoration: InputDecoration(labelText: l10n.cantidad),
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              autofocus: true,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(l10n.cancelar),
-          ),
-          FilledButton(
-            onPressed: () {
-              final cantidad = int.tryParse(controller.text);
-              if (cantidad != null && cantidad > 0) {
-                Navigator.pop(ctx, cantidad);
-              }
-            },
-            child: Text(l10n.agregar),
-          ),
-        ],
+    final inventarioVM = context.read<InventarioViewModel>();
+
+    String finalConcepto = _conceptoController.text.trim();
+    if (auditString != null) {
+      finalConcepto = finalConcepto.isEmpty ? auditString : "$finalConcepto $auditString";
+    }
+
+    final venta = Venta(
+      id: '',
+      monto: monto,
+      fecha: DateTime.now(),
+      clienteId: _clienteId == _kWriteNameValue ? null : _clienteId,
+      esFiado: _esFiado,
+      clienteNombre: clienteNombre,
+      concepto: finalConcepto,
+      productosJson: productosJson,
+      localId: localIdSeleccionado,
+    );
+
+    context.read<VentasViewModel>().guardar(
+      venta,
+      movimientosVM: context.read<MovimientosViewModel>(),
+      clientesVM: context.read<ClientesViewModel>(),
+      inventarioVM: inventarioVM,
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l10n.ventaRegistradaExitoMsg),
+        backgroundColor: AppTheme.successColor,
       ),
     );
+    Navigator.pop(context);
   }
 
   void _guardarVenta() {
@@ -164,8 +170,6 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
     }
 
     final inventarioVM = context.read<InventarioViewModel>();
-    final localesVM = context.read<LocalesViewModel>();
-    final localIdSeleccionado = localesVM.localIdSeleccionado;
     final l10n = AppLocalizations.of(context)!;
     for (final prod in _productos) {
       final product = inventarioVM.getById(prod.productoId);
@@ -207,33 +211,49 @@ class _RegistrarVentaPageState extends State<RegistrarVentaPage> {
                 .toList(),
           );
 
-    final venta = Venta(
-      id: '',
-      monto: monto,
-      fecha: DateTime.now(),
-      clienteId: _clienteId == _kWriteNameValue ? null : _clienteId,
-      esFiado: _esFiado,
-      clienteNombre: clienteNombre,
-      concepto: _conceptoController.text.trim(),
-      productosJson: productosJson,
-      localId: localIdSeleccionado,
-    );
+    final clientesVM = context.read<ClientesViewModel>();
+    final clienteIdVal = _clienteId == _kWriteNameValue ? null : _clienteId;
 
-    context.read<VentasViewModel>().guardar(
-      venta,
-      movimientosVM: context.read<MovimientosViewModel>(),
-      clientesVM: context.read<ClientesViewModel>(),
-      inventarioVM: inventarioVM,
-    );
+    if (_esFiado && clienteIdVal != null) {
+      final cliente = clientesVM.getById(clienteIdVal);
+      if (cliente != null && cliente.limiteCredito != null) {
+        if (cliente.saldoPendiente + monto > cliente.limiteCredito!) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (dialogCtx) => CreditLimitDialog(
+              actual: cliente.saldoPendiente,
+              nuevo: monto,
+              limite: cliente.limiteCredito!,
+              onVerifyPin: (pin) async {
+                final db = context.read<AppDatabase>();
+                final users = await db.select(db.localUsers).get();
+                for (final user in users) {
+                  if (user.rol == 'gerente' && user.pinHash != null) {
+                    try {
+                      if (BCrypt.checkpw(pin, user.pinHash!)) {
+                        _managerIdForOverride = user.id;
+                        return true;
+                      }
+                    } catch (_) {}
+                  }
+                }
+                return false;
+              },
+              onOverrideSuccess: () {
+                final auditString = "OVERRIDE_LIMIT gerenteId=$_managerIdForOverride ts=${DateTime.now().millisecondsSinceEpoch} monto=$monto limite=${cliente.limiteCredito} saldoPrevio=${cliente.saldoPendiente}";
+                _executeSave(monto, clienteNombre, productosJson, auditString);
+              },
+            ),
+          );
+          return;
+        }
+      }
+    }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l10n.ventaRegistradaExitoMsg),
-        backgroundColor: AppTheme.successColor,
-      ),
-    );
-    Navigator.pop(context);
+    _executeSave(monto, clienteNombre, productosJson, null);
   }
+
 
   Future<void> _pickAndScanImage(ImageSource source) async {
     final picker = ImagePicker();

@@ -54,6 +54,13 @@ class DriftClientesRepository implements ClientesRepository {
             saldoPendiente: Value(item.saldoPendiente),
             isActivo: Value(item.isActivo),
             syncStatus: const Value('pending_upload'),
+            updatedAt: Value(DateTime.now()),
+            limiteCredito: item.limiteCredito != null
+                ? Value(item.limiteCredito)
+                : const Value.absent(),
+            promesaPago: item.promesaPago != null
+                ? Value(item.promesaPago)
+                : const Value.absent(),
           ),
         );
   }
@@ -72,6 +79,13 @@ class DriftClientesRepository implements ClientesRepository {
         saldoPendiente: Value(item.saldoPendiente),
         isActivo: Value(item.isActivo),
         syncStatus: const Value('pending_upload'),
+        updatedAt: Value(DateTime.now()),
+        limiteCredito: item.limiteCredito != null
+            ? Value(item.limiteCredito)
+            : const Value.absent(),
+        promesaPago: item.promesaPago != null
+            ? Value(item.promesaPago)
+            : const Value.absent(),
       ),
     );
   }
@@ -100,6 +114,10 @@ class DriftClientesRepository implements ClientesRepository {
       esFiado: data.esFiado,
       saldoPendiente: data.saldoPendiente,
       isActivo: data.isActivo,
+      updatedAt: data.updatedAt,
+      syncStatus: data.syncStatus,
+      limiteCredito: data.limiteCredito,
+      promesaPago: data.promesaPago,
     );
   }
 }

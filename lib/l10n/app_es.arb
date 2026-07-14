@@ -758,5 +758,314 @@
   "crearPedido": "Crear pedido",
   "@crearPedido": {
     "description": "Button label to create supplier order from scanner"
+  },
+  "gs1InvalidWeightCode": "Código de peso/precio no válido",
+  "@gs1InvalidWeightCode": {
+    "description": "Error message shown when a scanned variable-weight code is invalid"
+  },
+  "gs1ParseError": "No se pudo interpretar el código de peso variable",
+  "@gs1ParseError": {
+    "description": "Error message shown when the GS1 parser fails to decode a barcode"
+  },
+  "orphanCodeTitle": "Código no registrado",
+  "@orphanCodeTitle": {
+    "description": "Title of the dialog shown when a scanned code matches no product"
+  },
+  "orphanCodeMessage": "El código {codigo} no pertenece a ningún producto. ¿Desea asignarlo a un producto existente o crear uno nuevo?",
+  "@orphanCodeMessage": {
+    "description": "Message of the orphan code assignment dialog",
+    "placeholders": {
+      "codigo": {
+        "type": "String"
+      }
+    }
+  },
+  "orphanAssignExistingAction": "Asignar a producto existente",
+  "@orphanAssignExistingAction": {
+    "description": "Action to assign orphan code to an existing product"
+  },
+  "orphanCreateNewAction": "Crear nuevo producto",
+  "@orphanCreateNewAction": {
+    "description": "Action to create a new product from an orphan code"
+  },
+  "actionCancel": "Cancelar",
+  "@actionCancel": {
+    "description": "Cancel action used in dialogs"
+  },
+  "burstModeLabel": "Modo ráfaga",
+  "@burstModeLabel": {
+    "description": "Label for burst scan mode"
+  },
+  "productAddedCountSnackbar": "{producto} agregado (x{n})",
+  "@productAddedCountSnackbar": {
+    "description": "Snackbar shown when a product is added to the sale via burst scan",
+    "placeholders": {
+      "producto": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "databaseMigrationErrorTitle": "Error de base de datos",
+  "@databaseMigrationErrorTitle": {
+    "description": "Title shown when a database migration fails"
+  },
+  "databaseMigrationErrorMessage": "Ocurrió un error al actualizar la base de datos. Contacte soporte.",
+  "@databaseMigrationErrorMessage": {
+    "description": "Message shown when a database migration fails"
+  },
+  "syncStateSyncing": "Sincronizando…",
+  "@syncStateSyncing": {
+    "description": "Badge text shown while syncing"
+  },
+  "syncStatePendingCount": "{n} pendientes",
+  "@syncStatePendingCount": {
+    "description": "Badge text showing pending change count",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "syncStateOffline": "Modo local seguro",
+  "@syncStateOffline": {
+    "description": "Badge text for local-only mode"
+  },
+  "syncStateSynced": "Sincronizado",
+  "@syncStateSynced": {
+    "description": "Badge text when fully synced"
+  },
+  "syncStateError": "Error de sincronización",
+  "@syncStateError": {
+    "description": "Badge text on sync error"
+  },
+  "syncRetryAction": "Reintentar",
+  "@syncRetryAction": {
+    "description": "Retry action for sync"
+  },
+  "offlineBannerPending": "Modo offline — {n} cambio(s) pendiente(s)",
+  "@offlineBannerPending": {
+    "description": "Offline banner text with pending count",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "creditLimitExceededTitle": "Límite de crédito excedido",
+  "@creditLimitExceededTitle": {
+    "description": "Title when a customer's credit limit is exceeded"
+  },
+  "creditLimitExceededMessage": "El saldo pendiente del cliente ({actual}) más el nuevo monto ({nuevo}) excede su límite de crédito ({limite}).",
+  "@creditLimitExceededMessage": {
+    "description": "Message describing credit limit overflow details",
+    "placeholders": {
+      "actual": {
+        "type": "String"
+      },
+      "nuevo": {
+        "type": "String"
+      },
+      "limite": {
+        "type": "String"
+      }
+    }
+  },
+  "creditLimitContinueAnyway": "¿Desea continuar de todos modos?",
+  "@creditLimitContinueAnyway": {
+    "description": "Prompt asking user if they want to override credit limit check"
+  },
+  "abonoHistoryTitle": "Historial de Abonos",
+  "@abonoHistoryTitle": {
+    "description": "Title for payment history section"
+  },
+  "registerAbonoTitle": "Registrar Abono",
+  "@registerAbonoTitle": {
+    "description": "Title for registering a new payment/abono"
+  },
+  "abonoAmountLabel": "Monto del Abono",
+  "@abonoAmountLabel": {
+    "description": "Input field label for payment/abono amount"
+  },
+  "remainingBalanceLabel": "Saldo Restante",
+  "@remainingBalanceLabel": {
+    "description": "Text label showing remaining debt balance"
+  },
+  "saveAbonoAction": "Registrar Pago",
+  "@saveAbonoAction": {
+    "description": "Button label to save the payment/abono"
+  },
+  "debtorStatusUpToDate": "Al día",
+  "@debtorStatusUpToDate": {
+    "description": "Debtor status when account is up to date"
+  },
+  "debtorStatusDueSoon": "Por vencer",
+  "@debtorStatusDueSoon": {
+    "description": "Debtor status when account is due soon"
+  },
+  "debtorStatusOverdue": "Vencido",
+  "@debtorStatusOverdue": {
+    "description": "Debtor status when account is overdue"
+  },
+  "paymentPromiseDateLabel": "Promesa de pago",
+  "@paymentPromiseDateLabel": {
+    "description": "Label for payment promise date"
+  },
+  "orderReceptionTitle": "Recepción de Pedido",
+  "@orderReceptionTitle": {
+    "description": "Title for the order reception screen"
+  },
+  "scanReceivedProductsHint": "Escanea los productos recibidos",
+  "@scanReceivedProductsHint": {
+    "description": "Hint text to instruct the user to scan received products"
+  },
+  "requestedCountLabel": "Solicitado",
+  "@requestedCountLabel": {
+    "description": "Label showing the quantity that was ordered/requested"
+  },
+  "receivedCountLabel": "Recibido",
+  "@receivedCountLabel": {
+    "description": "Label showing the quantity that was actually received"
+  },
+  "discrepancyLabel": "Discrepancia",
+  "@discrepancyLabel": {
+    "description": "Label for a discrepancy between ordered and received quantities"
+  },
+  "discrepancySummaryMessage": "Discrepancia: recibió {received} de {requested} unidades",
+  "@discrepancySummaryMessage": {
+    "description": "Summary message showing received vs. requested unit discrepancy",
+    "placeholders": {
+      "received": { "type": "int" },
+      "requested": { "type": "int" }
+    }
+  },
+  "receptionCompleteMessage": "Recepción completada",
+  "@receptionCompleteMessage": {
+    "description": "Message shown when all items of an order have been received"
+  },
+  "receptionPartialMessage": "Recepción parcial",
+  "@receptionPartialMessage": {
+    "description": "Message shown when only some items of an order have been received"
+  },
+  "reorderSuggestionTitle": "Sugerencia de Pedido",
+  "@reorderSuggestionTitle": {
+    "description": "Title for the automatic reorder suggestion section"
+  },
+  "productsBelowMinimumMessage": "Productos por debajo del mínimo",
+  "@productsBelowMinimumMessage": {
+    "description": "Message shown when products are below their minimum stock level"
+  },
+  "reorderProductLineLabel": "{producto} — Actual: {actual}, Mínimo: {minimo}",
+  "@reorderProductLineLabel": {
+    "description": "Line format for each product in a reorder suggestion",
+    "placeholders": {
+      "producto": { "type": "String" },
+      "actual": { "type": "int" },
+      "minimo": { "type": "int" }
+    }
+  },
+  "createSuggestedOrderAction": "Crear Pedido Sugerido",
+  "@createSuggestedOrderAction": {
+    "description": "Button label to create a suggested reorder"
+  },
+  "confirmPartialReceptionAction": "Confirmar Recepción Parcial",
+  "@confirmPartialReceptionAction": {
+    "description": "Button label to confirm a partial reception"
+  },
+  "markDeliveredAction": "Marcar como Entregado",
+  "@markDeliveredAction": {
+    "description": "Button label to mark an order as fully delivered"
+  },
+  "reportFiltersTitle": "Filtros de Reporte",
+  "@reportFiltersTitle": {
+    "description": "Title for report filters dialog"
+  },
+  "filterOnlyDebtors": "Solo deudores",
+  "@filterOnlyDebtors": {
+    "description": "Filter toggle for showing only debtors"
+  },
+  "filterAbonosOfMonth": "Abonos del mes",
+  "@filterAbonosOfMonth": {
+    "description": "Filter toggle for payments of the current month"
+  },
+  "filterTopSold": "Más vendidos",
+  "@filterTopSold": {
+    "description": "Filter toggle for top sold products"
+  },
+  "filterCriticalInventoryValorized": "Inventario crítico valorizado",
+  "@filterCriticalInventoryValorized": {
+    "description": "Filter toggle for critical inventory with cost value"
+  },
+  "filterTopN": "Top {n}",
+  "@filterTopN": {
+    "description": "Label for selecting top N items",
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "filterIncludeCost": "Incluir costo",
+  "@filterIncludeCost": {
+    "description": "Toggle to include cost in reports"
+  },
+  "filterDateRange": "Rango de fechas",
+  "@filterDateRange": {
+    "description": "Label for date range filter"
+  },
+  "filterCustomer": "Cliente",
+  "@filterCustomer": {
+    "description": "Label for customer filter"
+  },
+  "filterProduct": "Producto",
+  "@filterProduct": {
+    "description": "Label for product filter"
+  },
+  "movementsReportTitle": "Reporte de Movimientos",
+  "@movementsReportTitle": {
+    "description": "Title for movements report"
+  },
+  "inventoryReportTitle": "Reporte de Inventario",
+  "@inventoryReportTitle": {
+    "description": "Title for inventory report"
+  },
+  "debtorsReportTitle": "Reporte de Deudores",
+  "@debtorsReportTitle": {
+    "description": "Title for debtors report"
+  },
+  "criticalInventoryValorizedTitle": "Inventario Crítico Valorizado",
+  "@criticalInventoryValorizedTitle": {
+    "description": "Title for critical inventory report"
+  },
+  "pdfPreviewAction": "Vista Previa PDF",
+  "@pdfPreviewAction": {
+    "description": "Action to preview PDF"
+  },
+  "shareAction": "Compartir",
+  "@shareAction": {
+    "description": "Action to share document"
+  },
+  "closeAction": "Cerrar",
+  "@closeAction": {
+    "description": "Action to close view"
+  },
+  "creditLimitExceededTitle": "Límite de crédito excedido",
+  "@creditLimitExceededTitle": {
+    "description": "Title for credit limit dialog"
+  },
+  "creditLimitExceededMessage": "El saldo pendiente del cliente ({actual}) más el nuevo monto ({nuevo}) excede su límite de crédito ({limite}).",
+  "@creditLimitExceededMessage": {
+    "description": "Message for credit limit dialog",
+    "placeholders": {
+      "actual": { "type": "String" },
+      "nuevo": { "type": "String" },
+      "limite": { "type": "String" }
+    }
+  },
+  "creditLimitContinueAnyway": "¿Desea continuar de todos modos?",
+  "@creditLimitContinueAnyway": {
+    "description": "Question to continue anyway"
   }
 }
+
+

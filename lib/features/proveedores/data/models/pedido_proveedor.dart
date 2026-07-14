@@ -13,6 +13,8 @@ class PedidoProveedor implements HasId {
   final double montoTotal;
   final bool isEntregado;
   final String? notas;
+  final DateTime? updatedAt;
+  final String? syncStatus;
 
   PedidoProveedor({
     required this.id,
@@ -25,6 +27,8 @@ class PedidoProveedor implements HasId {
     required this.montoTotal,
     this.isEntregado = false,
     this.notas,
+    this.updatedAt,
+    this.syncStatus,
   });
 
   String get productosJson =>
@@ -46,6 +50,8 @@ class PedidoProveedor implements HasId {
     double? montoTotal,
     bool? isEntregado,
     String? notas,
+    DateTime? updatedAt,
+    String? syncStatus,
   }) {
     return PedidoProveedor(
       id: id ?? this.id,
@@ -58,21 +64,28 @@ class PedidoProveedor implements HasId {
       montoTotal: montoTotal ?? this.montoTotal,
       isEntregado: isEntregado ?? this.isEntregado,
       notas: notas ?? this.notas,
+      updatedAt: updatedAt ?? this.updatedAt,
+      syncStatus: syncStatus ?? this.syncStatus,
     );
   }
 }
+
 
 class PedidoProducto {
   final String productoId;
   final String nombre;
   final int cantidad;
   final double precioUnitario;
+  /// Quantity actually received during partial reception (Chain 5, task 5.5).
+  /// Defaults to 0. NOT a DB column — persisted inside the productos JSON.
+  final int recibido;
 
   PedidoProducto({
     required this.productoId,
     required this.nombre,
     required this.cantidad,
     required this.precioUnitario,
+    this.recibido = 0,
   });
 
   double get subtotal => cantidad * precioUnitario;
@@ -82,6 +95,7 @@ class PedidoProducto {
     'nombre': nombre,
     'cantidad': cantidad,
     'precioUnitario': precioUnitario,
+    'recibido': recibido,
   };
 
   factory PedidoProducto.fromJson(Map<String, dynamic> json) => PedidoProducto(
@@ -89,6 +103,7 @@ class PedidoProducto {
     nombre: json['nombre'] as String,
     cantidad: json['cantidad'] as int,
     precioUnitario: (json['precioUnitario'] as num).toDouble(),
+    recibido: (json['recibido'] as int?) ?? 0,
   );
 
   PedidoProducto copyWith({
@@ -96,12 +111,14 @@ class PedidoProducto {
     String? nombre,
     int? cantidad,
     double? precioUnitario,
+    int? recibido,
   }) {
     return PedidoProducto(
       productoId: productoId ?? this.productoId,
       nombre: nombre ?? this.nombre,
       cantidad: cantidad ?? this.cantidad,
       precioUnitario: precioUnitario ?? this.precioUnitario,
+      recibido: recibido ?? this.recibido,
     );
   }
 }

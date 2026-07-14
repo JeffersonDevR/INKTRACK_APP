@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
@@ -19,6 +20,7 @@ class Locales extends Table {
   BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
   DateTimeColumn get lastSyncedAt => dateTime().nullable()();
+  DateTimeColumn get updatedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -36,6 +38,9 @@ class Clientes extends Table {
   BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
   DateTimeColumn get lastSyncedAt => dateTime().nullable()();
+  DateTimeColumn get updatedAt => dateTime().nullable()();
+  RealColumn get limiteCredito => real().nullable()();
+  DateTimeColumn get promesaPago => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -79,6 +84,8 @@ class Productos extends Table {
   BoolColumn get isActivo => boolean().withDefault(const Constant(true))();
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
   DateTimeColumn get lastSyncedAt => dateTime().nullable()();
+  DateTimeColumn get updatedAt => dateTime().nullable()();
+  TextColumn get unidad => text().withDefault(const Constant('unidad'))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -102,6 +109,7 @@ class Movimientos extends Table {
   TextColumn get productosJson => text().nullable()();
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
   DateTimeColumn get lastSyncedAt => dateTime().nullable()();
+  DateTimeColumn get updatedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -122,6 +130,8 @@ class Ventas extends Table {
   TextColumn get productosJson => text().nullable()();
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
   DateTimeColumn get lastSyncedAt => dateTime().nullable()();
+  DateTimeColumn get updatedAt => dateTime().nullable()();
+  BoolColumn get esFiado => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -141,6 +151,7 @@ class PedidosProveedor extends Table {
   TextColumn get notas => text().nullable()();
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
   DateTimeColumn get lastSyncedAt => dateTime().nullable()();
+  DateTimeColumn get updatedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -152,6 +163,8 @@ class LocalUsers extends Table {
   TextColumn get email => text()();
   TextColumn get hashedPassword => text()();
   DateTimeColumn get lastLogin => dateTime()();
+  TextColumn get pinHash => text().nullable()();
+  TextColumn get rol => text().withDefault(const Constant('vendedor'))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -171,6 +184,23 @@ class StringListConverter extends TypeConverter<List<String>, String> {
   }
 }
 
+@DataClassName('AbonoData')
+class Abonos extends Table {
+  TextColumn get id => text()();
+  TextColumn get clienteId => text().references(Clientes, #id)();
+  TextColumn get ventaId => text().nullable().references(Ventas, #id)();
+  RealColumn get monto => real()();
+  DateTimeColumn get fecha => dateTime()();
+  RealColumn get saldoRestante => real()();
+  TextColumn get concepto => text().nullable()();
+  TextColumn get syncStatus => text().withDefault(const Constant('pending_upload'))();
+  DateTimeColumn get lastSyncedAt => dateTime().nullable()();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 @DriftDatabase(
   tables: [
     Locales,
@@ -181,6 +211,7 @@ class StringListConverter extends TypeConverter<List<String>, String> {
     Ventas,
     PedidosProveedor,
     LocalUsers,
+    Abonos,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -190,7 +221,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.fromConnection(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 15;
+  int get schemaVersion => 19;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -334,6 +365,53 @@ class AppDatabase extends _$AppDatabase {
         }
       } catch (e) {
         debugPrint("Migration v15 skip: $e");
+      }
+      if (from < 16) {
+        await m.addColumn(productos, productos.updatedAt);
+        await m.addColumn(productos, productos.unidad);
+      }
+      if (from < 17) {
+        await m.addColumn(clientes, clientes.updatedAt);
+        await m.addColumn(movimientos, movimientos.updatedAt);
+        await m.addColumn(ventas, ventas.updatedAt);
+        await m.addColumn(locales, locales.updatedAt);
+        await m.addColumn(pedidosProveedor, pedidosProveedor.updatedAt);
+      }
+      if (from < 18) {
+        await m.createTable(abonos);
+        await m.addColumn(clientes, clientes.limiteCredito);
+        await m.addColumn(clientes, clientes.promesaPago);
+        await m.addColumn(ventas, ventas.esFiado);
+        await m.addColumn(localUsers, localUsers.pinHash);
+        await m.addColumn(localUsers, localUsers.rol);
+      }
+      // v18 → v19: data-only JSON backfill — add `recibido=0` to every
+      // PedidoProducto line where the field is absent. No DDL change.
+      // Throws on decode failure (ADR-12 — no silent swallow).
+      if (from < 19) {
+        final rows = await customSelect('SELECT id, productos FROM pedidos_proveedor').get();
+        for (final row in rows) {
+          final id = row.read<String>('id');
+          final productosStr = row.read<String>('productos');
+          List<dynamic> productosList;
+          try {
+            productosList = jsonDecode(productosStr) as List<dynamic>;
+          } catch (e) {
+            throw Exception(
+              'Migration v19 failed: could not decode productos JSON for pedido $id: $e',
+            );
+          }
+          final backfilled = productosList.map((p) {
+            final map = Map<String, dynamic>.from(p as Map);
+            map.putIfAbsent('recibido', () => 0);
+            return map;
+          }).toList();
+          final encoded = jsonEncode(backfilled);
+          await customStatement(
+            'UPDATE pedidos_proveedor SET productos = ? WHERE id = ?',
+            [encoded, id],
+          );
+        }
       }
     },
     beforeOpen: (details) async {

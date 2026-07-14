@@ -19,6 +19,8 @@ class Producto implements HasId {
 
   final String? proveedorNombre;
   final bool isActivo;
+  final String unidad;
+  final DateTime? updatedAt;
 
   double get ganancia => precioVenta - (precioCompra ?? 0.0);
 
@@ -42,6 +44,8 @@ class Producto implements HasId {
     this.codigoPersonalizado,
     this.proveedorNombre,
     this.isActivo = true,
+    this.unidad = 'unidad',
+    this.updatedAt,
   });
 
   Producto copyWith({
@@ -60,6 +64,8 @@ class Producto implements HasId {
     String? codigoPersonalizado,
     String? proveedorNombre,
     bool? isActivo,
+    String? unidad,
+    DateTime? updatedAt,
   }) {
     return Producto(
       id: id ?? this.id,
@@ -77,6 +83,8 @@ class Producto implements HasId {
       codigoPersonalizado: codigoPersonalizado ?? this.codigoPersonalizado,
       proveedorNombre: proveedorNombre ?? this.proveedorNombre,
       isActivo: isActivo ?? this.isActivo,
+      unidad: unidad ?? this.unidad,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

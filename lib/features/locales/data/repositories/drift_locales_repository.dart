@@ -35,6 +35,7 @@ class DriftLocalesRepository implements LocalesRepository {
             userId: Value(local.userId),
             isActivo: Value(local.isActivo),
             syncStatus: const Value('pending_upload'),
+            updatedAt: Value(DateTime.now()),
           ),
         );
   }
@@ -50,6 +51,7 @@ class DriftLocalesRepository implements LocalesRepository {
         userId: Value(local.userId),
         isActivo: Value(local.isActivo),
         syncStatus: const Value('pending_upload'),
+        updatedAt: Value(DateTime.now()),
       ),
     );
   }
@@ -161,6 +163,9 @@ class DriftLocalesRepository implements LocalesRepository {
       tipo: data.tipo,
       userId: data.userId,
       isActivo: data.isActivo,
+      updatedAt: data.updatedAt,
+      syncStatus: data.syncStatus,
     );
   }
 }
+

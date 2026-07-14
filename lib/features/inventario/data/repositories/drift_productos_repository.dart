@@ -45,9 +45,9 @@ class DriftProductosRepository implements ProductosRepository {
             nombre: item.nombre,
             cantidad: item.cantidad.toInt(),
             precio: item.precioVenta,
-            // precioCompra: Value(item.precioCompra),
-            // unidadesPorPaquete: Value(item.unidadesPorPaquete),
-            // esPaquete: Value(item.esPaquete),
+            precioCompra: Value(item.precioCompra),
+            unidadesPorPaquete: Value(item.unidadesPorPaquete),
+            esPaquete: Value(item.esPaquete),
             categoria: item.categoria,
             proveedorId: item.proveedorId,
             stockMinimo: Value(item.stockMinimo.toInt()),
@@ -59,6 +59,8 @@ class DriftProductosRepository implements ProductosRepository {
             proveedorNombre: Value(item.proveedorNombre),
             isActivo: Value(item.isActivo),
             syncStatus: const Value('pending_upload'),
+            updatedAt: Value(DateTime.now()),
+            unidad: Value(item.unidad),
           ),
         );
   }
@@ -70,9 +72,9 @@ class DriftProductosRepository implements ProductosRepository {
         nombre: Value(item.nombre),
         cantidad: Value(item.cantidad.toInt()),
         precio: Value(item.precioVenta),
-        // precioCompra: Value(item.precioCompra),
-        // unidadesPorPaquete: Value(item.unidadesPorPaquete),
-        // esPaquete: Value(item.esPaquete),
+        precioCompra: Value(item.precioCompra),
+        unidadesPorPaquete: Value(item.unidadesPorPaquete),
+        esPaquete: Value(item.esPaquete),
         categoria: Value(item.categoria),
         proveedorId: Value(item.proveedorId),
         stockMinimo: Value(item.stockMinimo.toInt()),
@@ -84,6 +86,8 @@ class DriftProductosRepository implements ProductosRepository {
         proveedorNombre: Value(item.proveedorNombre),
         isActivo: Value(item.isActivo),
         syncStatus: const Value('pending_upload'),
+        updatedAt: Value(DateTime.now()),
+        unidad: Value(item.unidad),
       ),
     );
   }
@@ -149,9 +153,9 @@ class DriftProductosRepository implements ProductosRepository {
       nombre: data.nombre,
       cantidad: data.cantidad,
       precioVenta: data.precio,
-      // precioCompra: data.precioCompra,
-      // unidadesPorPaquete: data.unidadesPorPaquete,
-      // esPaquete: data.esPaquete,
+      precioCompra: data.precioCompra,
+      unidadesPorPaquete: data.unidadesPorPaquete,
+      esPaquete: data.esPaquete,
       categoria: data.categoria,
       proveedorId: data.proveedorId,
       stockMinimo: data.stockMinimo,
@@ -160,6 +164,8 @@ class DriftProductosRepository implements ProductosRepository {
       codigoPersonalizado: data.codigoPersonalizado,
       proveedorNombre: data.proveedorNombre,
       isActivo: data.isActivo,
+      unidad: data.unidad,
+      updatedAt: data.updatedAt,
     );
   }
 }

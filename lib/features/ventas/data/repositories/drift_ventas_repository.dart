@@ -37,7 +37,9 @@ class DriftVentasRepository implements VentasRepository {
                 : const Value.absent(),
             concepto: Value(item.concepto),
             productosJson: Value(item.productosJson),
+            esFiado: Value(item.esFiado),
             syncStatus: const Value('pending_upload'),
+            updatedAt: Value(DateTime.now()),
           ),
         );
   }
@@ -55,7 +57,9 @@ class DriftVentasRepository implements VentasRepository {
             : const Value.absent(),
         concepto: Value(item.concepto),
         productosJson: Value(item.productosJson),
+        esFiado: Value(item.esFiado),
         syncStatus: const Value('pending_upload'),
+        updatedAt: Value(DateTime.now()),
       ),
     );
   }
@@ -75,6 +79,11 @@ class DriftVentasRepository implements VentasRepository {
       localId: data.localId,
       concepto: data.concepto,
       productosJson: data.productosJson,
+      esFiado: data.esFiado,
+      updatedAt: data.updatedAt,
+      syncStatus: data.syncStatus,
     );
   }
 }
+
+

@@ -18,9 +18,9 @@ import 'package:InkTrack/core/utils/number_formatter.dart';
 import 'package:InkTrack/core/widgets/app_card.dart';
 import 'package:InkTrack/core/services/pdf_export_service.dart';
 import 'package:InkTrack/core/services/excel_export_service.dart';
-import 'package:InkTrack/core/data/local/database.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:InkTrack/l10n/app_localizations.dart';
+import 'package:InkTrack/features/home/presentation/widgets/filter_chooser_dialog.dart';
+import 'package:InkTrack/core/services/reports/report_filters.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -58,24 +58,58 @@ class HomePage extends StatelessWidget {
   }
 
   Future<void> _exportPdf(BuildContext context) async {
+    final initialFilters = ReportFilters(
+      startDate: context.read<MovimientosViewModel>().startDateFilter,
+      endDate: context.read<MovimientosViewModel>().endDateFilter,
+    );
+    final filters = await showDialog<ReportFilters>(
+      context: context,
+      builder: (_) => FilterChooserDialog(initialFilters: initialFilters),
+    );
+    if (filters == null) return;
+
     try {
       final movVM = context.read<MovimientosViewModel>();
-      final l10n = AppLocalizations.of(context)!;
 
       final pdfData = await PdfExportService.generateMovementsReport(
         movVM.items,
-        startDate: movVM.startDateFilter,
-        endDate: movVM.endDateFilter,
+        filters: filters,
       );
 
       final filename =
           'reporte_movimientos_${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf';
-      await Printing.sharePdf(bytes: pdfData, filename: filename);
 
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.pdfExportado(filename))));
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (ctx) {
+              final l10nCtx = AppLocalizations.of(ctx)!;
+              return Scaffold(
+                appBar: AppBar(
+                  title: Text(l10nCtx.pdfPreviewAction),
+                  leading: IconButton(
+                    icon: const Icon(Icons.close),
+                    tooltip: l10nCtx.closeAction,
+                    onPressed: () => Navigator.of(ctx).pop(),
+                  ),
+                  actions: [
+                    TextButton.icon(
+                      icon: const Icon(Icons.share, color: Colors.white),
+                      label: Text(l10nCtx.shareAction, style: const TextStyle(color: Colors.white)),
+                      onPressed: () {
+                        Printing.sharePdf(bytes: pdfData, filename: filename);
+                      },
+                    ),
+                  ],
+                ),
+                body: PdfPreview(
+                  build: (format) => pdfData,
+                  useActions: false,
+                ),
+              );
+            },
+          ),
+        );
       }
     } catch (e) {
       if (context.mounted) {
@@ -88,14 +122,23 @@ class HomePage extends StatelessWidget {
   }
 
   Future<void> _exportExcel(BuildContext context) async {
+    final initialFilters = ReportFilters(
+      startDate: context.read<MovimientosViewModel>().startDateFilter,
+      endDate: context.read<MovimientosViewModel>().endDateFilter,
+    );
+    final filters = await showDialog<ReportFilters>(
+      context: context,
+      builder: (_) => FilterChooserDialog(initialFilters: initialFilters),
+    );
+    if (filters == null) return;
+
     try {
       final movVM = context.read<MovimientosViewModel>();
       final l10n = AppLocalizations.of(context)!;
 
       final excelData = await ExcelExportService.generateMovementsReport(
         movVM.items,
-        startDate: movVM.startDateFilter,
-        endDate: movVM.endDateFilter,
+        filters: filters,
       );
 
       final filename =
@@ -121,31 +164,6 @@ class HomePage extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.errorAlExportarExcel(e.toString()))),
         );
-      }
-    }
-  }
-
-  // TEMPORAL: exporta la base SQLite para inspección con DBeaver.
-  Future<void> _exportDatabase(BuildContext context) async {
-    try {
-      final tempDir = await getTemporaryDirectory();
-      final exportPath = '${tempDir.path}/inktrack_db.sqlite';
-      final exported = await exportDatabaseTo(exportPath);
-
-      await Share.shareXFiles([
-        XFile(exported.path),
-      ], text: 'InkTrack SQLite DB');
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Base SQLite lista para compartir')),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error exportando DB: $e')));
       }
     }
   }
@@ -345,16 +363,6 @@ class HomePage extends StatelessWidget {
                               label: l10n.excel,
                               color: Colors.green.shade700,
                               onTap: () => _exportExcel(context),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          // TEMPORAL: botón para exportar SQLite a DBeaver
-                          Expanded(
-                            child: _ExportButton(
-                              icon: Icons.storage_rounded,
-                              label: 'SQLite',
-                              color: Colors.blue.shade700,
-                              onTap: () => _exportDatabase(context),
                             ),
                           ),
                         ],

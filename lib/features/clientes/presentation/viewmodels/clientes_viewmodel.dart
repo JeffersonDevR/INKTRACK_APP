@@ -2,16 +2,20 @@ import 'package:InkTrack/core/base_crud_viewmodel.dart';
 import 'package:InkTrack/core/utils/id_utils.dart';
 import 'package:InkTrack/features/clientes/data/models/cliente.dart';
 import 'package:InkTrack/features/clientes/data/repositories/clientes_repository.dart';
+import 'package:InkTrack/features/clientes/data/repositories/abonos_repository.dart';
+import 'package:InkTrack/features/clientes/data/models/abono.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
 
 class ClientesViewModel extends BaseCrudViewModel<Cliente> {
   final ClientesRepository _repository;
+  final AbonosRepository _abonosRepository;
   String? _localId;
 
-  ClientesViewModel(this._repository) {
+  ClientesViewModel(this._repository, this._abonosRepository) {
     _loadClientes();
   }
+
 
   void setLocalId(String? localId) {
     _localId = localId;
@@ -93,6 +97,7 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
     bool esFiado = false,
     MovimientosViewModel? movimientosVM,
     String? localId,
+    DateTime? promesaPago,
   }) async {
     if (checkDuplicado(nombre, telefono)) {
       throw Exception('El cliente ya existe (mismo nombre y teléfono)');
@@ -105,6 +110,8 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
       email: email,
       localId: localId ?? _localId,
       esFiado: esFiado,
+      promesaPago: promesaPago,
+      updatedAt: DateTime.now(),
     );
 
     await _repository.save(nuevoCliente);
@@ -131,6 +138,7 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
     required String telefono,
     required String email,
     required bool esFiado,
+    DateTime? promesaPago,
   }) async {
     final existing = getById(id);
     if (existing != null) {
@@ -139,6 +147,8 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
         telefono: telefono,
         email: email,
         esFiado: esFiado,
+        promesaPago: promesaPago,
+        updatedAt: DateTime.now(),
       );
 
       await _repository.update(id, actualizado);
@@ -200,17 +210,19 @@ class ClientesViewModel extends BaseCrudViewModel<Cliente> {
     final cliente = getById(clienteId);
     if (cliente == null || monto <= 0) return;
 
-    await actualizarSaldo(clienteId, -monto);
-
-    final movimiento = Movimiento(
+    final abono = Abono(
       id: IdUtils.generateId(),
+      clienteId: clienteId,
       monto: monto,
       fecha: DateTime.now(),
-      tipo: MovimientoType.ingreso,
+      saldoRestante: cliente.saldoPendiente - monto,
       concepto: conceptoDetalle ?? 'Pago de deuda: ${cliente.nombre}',
-      categoria: 'Cobros',
-      clienteId: clienteId,
+      updatedAt: DateTime.now(),
     );
-    await movimientosVM.guardar(movimiento);
+
+    await _abonosRepository.save(abono);
+    await _loadClientes();
+    await movimientosVM.refresh();
   }
 }
+

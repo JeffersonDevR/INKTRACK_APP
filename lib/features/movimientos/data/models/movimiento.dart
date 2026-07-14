@@ -18,6 +18,8 @@ class Movimiento implements HasId {
   final int? cantidad;
   final bool esFiado;
   final String? productosJson;
+  final DateTime? updatedAt;
+  final String? syncStatus;
 
   Movimiento({
     required this.id,
@@ -33,6 +35,8 @@ class Movimiento implements HasId {
     this.cantidad,
     this.esFiado = false,
     this.productosJson,
+    this.updatedAt,
+    this.syncStatus,
   });
 
   List<MovimientoProducto> get productos {
@@ -63,6 +67,8 @@ class Movimiento implements HasId {
     int? cantidad,
     bool? esFiado,
     String? productosJson,
+    DateTime? updatedAt,
+    String? syncStatus,
   }) {
     return Movimiento(
       id: id ?? this.id,
@@ -78,9 +84,12 @@ class Movimiento implements HasId {
       cantidad: cantidad ?? this.cantidad,
       esFiado: esFiado ?? this.esFiado,
       productosJson: productosJson ?? this.productosJson,
+      updatedAt: updatedAt ?? this.updatedAt,
+      syncStatus: syncStatus ?? this.syncStatus,
     );
   }
 }
+
 
 class MovimientoProducto {
   final String productoId;

@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:bcrypt/bcrypt.dart';
 import 'package:drift/drift.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -64,12 +67,21 @@ class AuthService {
         return offlineResult;
       }
       return AuthResult(success: false, error: e.message);
-    } catch (e) {
+    } on SocketException catch (_) {
       final offlineResult = await _validateOffline(email, password);
       if (offlineResult.success) {
         _offlineMode = true;
       }
       return offlineResult;
+    } on TimeoutException catch (_) {
+      final offlineResult = await _validateOffline(email, password);
+      if (offlineResult.success) {
+        _offlineMode = true;
+      }
+      return offlineResult;
+    } catch (e, st) {
+      print('AuthService.signIn: unexpected error $e\n$st');
+      rethrow;
     }
   }
 

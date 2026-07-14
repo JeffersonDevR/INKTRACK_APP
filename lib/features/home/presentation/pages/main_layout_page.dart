@@ -1,10 +1,6 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:printing/printing.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
 import 'package:InkTrack/l10n/app_localizations.dart';
 import 'package:InkTrack/features/clientes/presentation/pages/clientes_page.dart';
@@ -21,14 +17,14 @@ import 'package:InkTrack/features/proveedores/presentation/pages/proveedor_form_
 import 'package:InkTrack/features/inventario/presentation/pages/barcode_scanner_page.dart';
 import 'package:InkTrack/features/inventario/presentation/pages/producto_form_page.dart';
 import 'package:InkTrack/features/home/presentation/widgets/speed_dial_fab.dart';
+import 'package:InkTrack/features/sync/presentation/widgets/sync_badge.dart';
+
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/pedidos_viewmodel.dart';
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
 import 'package:InkTrack/features/ventas/presentation/viewmodels/ventas_viewmodel.dart';
-import 'package:InkTrack/core/services/pdf_export_service.dart';
-import 'package:InkTrack/core/services/excel_export_service.dart';
 import 'package:InkTrack/core/services/auth_service.dart';
 import 'package:InkTrack/core/services/notification_service.dart';
 import 'package:InkTrack/core/widgets/offline_banner.dart';
@@ -157,179 +153,6 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
       _currentIndex = 0; // Go to Home where reports are now
     });
   }
-
-  Future<void> _exportPdf(String type) async {
-    try {
-      final movVM = context.read<MovimientosViewModel>();
-      final invVM = context.read<InventarioViewModel>();
-      final cliVM = context.read<ClientesViewModel>();
-
-      Uint8List pdfData;
-      String filename;
-
-      switch (type) {
-        case 'movimientos':
-          pdfData = await PdfExportService.generateMovementsReport(movVM.items);
-          filename =
-              'reporte_movimientos_${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf';
-          break;
-        case 'inventario':
-          pdfData = await PdfExportService.generateInventoryReport(
-            invVM.productos,
-          );
-          filename =
-              'reporte_inventario_${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf';
-          break;
-        case 'clientes':
-          pdfData = await PdfExportService.generateClientDebtReport(
-            cliVM.clientes,
-          );
-          filename =
-              'reporte_clientes_${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf';
-          break;
-        default:
-          return;
-      }
-
-      await Printing.sharePdf(bytes: pdfData, filename: filename);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.pdfExportado(filename)),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)!.errorAlExportarPdf(e.toString()),
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _exportExcel(String type) async {
-    try {
-      final movVM = context.read<MovimientosViewModel>();
-      final invVM = context.read<InventarioViewModel>();
-      final cliVM = context.read<ClientesViewModel>();
-
-      Uint8List excelData;
-      String filename;
-
-      switch (type) {
-        case 'movimientos':
-          excelData = await ExcelExportService.generateMovementsReport(
-            movVM.items,
-          );
-          filename =
-              'reporte_movimientos_${DateFormat('yyyyMMdd').format(DateTime.now())}.xlsx';
-          break;
-        case 'inventario':
-          excelData = await ExcelExportService.generateInventoryReport(
-            invVM.productos,
-          );
-          filename =
-              'reporte_inventario_${DateFormat('yyyyMMdd').format(DateTime.now())}.xlsx';
-          break;
-        case 'clientes':
-          excelData = await ExcelExportService.generateClientDebtReport(
-            cliVM.clientes,
-          );
-          filename =
-              'reporte_clientes_${DateFormat('yyyyMMdd').format(DateTime.now())}.xlsx';
-          break;
-        default:
-          return;
-      }
-
-      await Share.shareXFiles([
-        XFile.fromData(
-          excelData,
-          name: filename,
-          mimeType:
-              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        ),
-      ], text: 'InkTrack Report');
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)!.excelExportado(filename),
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)!.errorAlExportarExcel(e.toString()),
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  // ignore: unused_element
-  void _showExportOptions(String format) {
-    final l10n = AppLocalizations.of(context)!;
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.receipt_long),
-              title: Text(l10n.movimientos),
-              onTap: () {
-                Navigator.pop(ctx);
-                if (format == 'pdf') {
-                  _exportPdf('movimientos');
-                } else {
-                  _exportExcel('movimientos');
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.inventory_2),
-              title: Text(l10n.inventario),
-              onTap: () {
-                Navigator.pop(ctx);
-                if (format == 'pdf') {
-                  _exportPdf('inventario');
-                } else {
-                  _exportExcel('inventario');
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.people),
-              title: Text(l10n.clientes),
-              onTap: () {
-                Navigator.pop(ctx);
-                if (format == 'pdf') {
-                  _exportPdf('clientes');
-                } else {
-                  _exportExcel('clientes');
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildAlertasBanner(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Column(
@@ -455,8 +278,8 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
         return Scaffold(
           body: Column(
             children: [
-              if (widget.authService?.offlineMode == true)
-                const OfflineBanner(),
+              const OfflineBanner(),
+
               Container(
                 padding: EdgeInsets.only(
                   top: MediaQuery.of(context).padding.top + 8,
@@ -538,6 +361,7 @@ class _MainLayoutPageState extends State<MainLayoutPage> {
                       ],
                     ),
                     const Spacer(),
+                    const SyncBadge(),
                     // Administrator Info (Compact & Modern)
                     InkWell(
                       onTap: () => Navigator.push(

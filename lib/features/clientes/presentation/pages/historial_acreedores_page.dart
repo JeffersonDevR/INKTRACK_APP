@@ -10,6 +10,9 @@ import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_view
 import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
 import 'package:InkTrack/features/movimientos/presentation/viewmodels/movimientos_viewmodel.dart';
 import 'package:InkTrack/features/clientes/presentation/widgets/pago_dialog.dart';
+import 'package:InkTrack/features/clientes/domain/deudor_status.dart';
+import 'package:InkTrack/l10n/app_localizations.dart';
+
 
 class HistorialAcreedoresPage extends StatelessWidget {
   const HistorialAcreedoresPage({super.key});
@@ -96,9 +99,49 @@ class _ClienteAcreedorCard extends StatelessWidget {
     required this.movimientosVM,
   });
 
+  Widget _buildTrafficLightBadge(BuildContext context) {
+    final status = computeStatus(cliente);
+    final l10n = AppLocalizations.of(context)!;
+    
+    Color badgeColor;
+    String label;
+    switch (status) {
+      case DeudorStatus.alDia:
+        badgeColor = AppTheme.successColor;
+        label = l10n.debtorStatusUpToDate;
+        break;
+      case DeudorStatus.porVencer:
+        badgeColor = Colors.orange;
+        label = l10n.debtorStatusDueSoon;
+        break;
+      case DeudorStatus.vencido:
+        badgeColor = AppTheme.errorColor;
+        label = l10n.debtorStatusOverdue;
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: badgeColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: badgeColor),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: badgeColor,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('dd/MM/yyyy');
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: ExpansionTile(
@@ -111,6 +154,8 @@ class _ClienteAcreedorCard extends StatelessWidget {
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
+            _buildTrafficLightBadge(context),
+            const SizedBox(width: 8),
             Text(
               NumberFormatter.formatCurrency(cliente.saldoPendiente),
               style: const TextStyle(
@@ -120,7 +165,19 @@ class _ClienteAcreedorCard extends StatelessWidget {
             ),
           ],
         ),
-        subtitle: Text('Pendiente de pago: ${NumberFormatter.formatCurrency(cliente.saldoPendiente)}'),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Pendiente de pago: ${NumberFormatter.formatCurrency(cliente.saldoPendiente)}'),
+            if (cliente.promesaPago != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                '${l10n.paymentPromiseDateLabel}: ${dateFormat.format(cliente.promesaPago!)}',
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+            ],
+          ],
+        ),
         children: [
           if (creditos.isEmpty)
             Padding(

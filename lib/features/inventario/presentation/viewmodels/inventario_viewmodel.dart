@@ -141,6 +141,11 @@ class InventarioViewModel extends BaseCrudViewModel<Producto> {
     }
   }
 
+  Future<void> updateProducto(Producto producto) async {
+    await _repository.update(producto.id, producto);
+    update(producto.id, producto);
+  }
+
   Future<void> restockWithReactivation(String codigo, num cantidad) async {
     Producto? producto = findProductoByCodigoIncludingInactive(codigo);
 

@@ -139,6 +139,6 @@ class SecurityUtils {
     }
     
     final masked = '*' * (input.length - visibleChars);
-    return input.substring(input.length - visibleChars) + masked;
+    return masked + input.substring(input.length - visibleChars);
   }
 }

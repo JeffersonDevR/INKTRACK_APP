@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-abstract class BaseCrudViewModel<T> extends ChangeNotifier {
+abstract class BaseCrudViewModel<T extends HasId> extends ChangeNotifier {
   final List<T> _items = [];
   List<T>? _cachedItems;
 
@@ -47,12 +47,7 @@ abstract class BaseCrudViewModel<T> extends ChangeNotifier {
     }
   }
 
-  String _getId(T item) {
-    if (item is HasId) {
-      return (item as HasId).id;
-    }
-    throw UnimplementedError('Item must implement HasId or override _getId');
-  }
+  String _getId(T item) => item.id;
 
   Future<void> refresh() async {
     await loadItems();

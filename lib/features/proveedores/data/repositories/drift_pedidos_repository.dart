@@ -41,6 +41,7 @@ class DriftPedidosProveedorRepository implements PedidosProveedorRepository {
             isEntregado: Value(item.isEntregado),
             notas: Value(item.notas),
             syncStatus: const Value('pending_upload'),
+            updatedAt: Value(DateTime.now()),
           ),
         );
   }
@@ -63,6 +64,7 @@ class DriftPedidosProveedorRepository implements PedidosProveedorRepository {
         isEntregado: Value(item.isEntregado),
         notas: Value(item.notas),
         syncStatus: const Value('pending_upload'),
+        updatedAt: Value(DateTime.now()),
       ),
     );
   }
@@ -122,6 +124,9 @@ class DriftPedidosProveedorRepository implements PedidosProveedorRepository {
       montoTotal: data.montoTotal,
       isEntregado: data.isEntregado,
       notas: data.notas,
+      updatedAt: data.updatedAt,
+      syncStatus: data.syncStatus,
     );
   }
 }
+

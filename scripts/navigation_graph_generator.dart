@@ -81,8 +81,8 @@ void main() {
       stderr.writeln('ERROR: overrides file not found at $overridesPath');
       exit(1);
     }
-    overrides = jsonDecode(overrideFile.readAsStringSync())
-        as Map<String, dynamic>;
+    overrides =
+        jsonDecode(overrideFile.readAsStringSync()) as Map<String, dynamic>;
   } catch (e) {
     stderr.writeln('ERROR: malformed overrides file: $e');
     exit(1);
@@ -99,26 +99,26 @@ void main() {
   for (final edge in edges) {
     if (!nodes.containsKey(edge.source)) {
       stderr.writeln(
-          'WARNING: edge references unknown source "${edge.source}" — '
-          'adding placeholder node');
+        'WARNING: edge references unknown source "${edge.source}" — '
+        'adding placeholder node',
+      );
       nodes[edge.source] = _NavNode(
         id: edge.source,
         className: edge.source,
         file: '',
         group: 'unknown',
-        notes: 'synthetic',
       );
     }
     if (!nodes.containsKey(edge.target)) {
       stderr.writeln(
-          'WARNING: edge references unknown target "${edge.target}" — '
-          'adding placeholder node');
+        'WARNING: edge references unknown target "${edge.target}" — '
+        'adding placeholder node',
+      );
       nodes[edge.target] = _NavNode(
         id: edge.target,
         className: edge.target,
         file: '',
         group: 'unknown',
-        notes: 'synthetic',
       );
     }
   }
@@ -127,10 +127,7 @@ void main() {
   final nodeList = nodes.values.map((n) => n.toJson()).toList();
   final edgeList = edges.map((e) => e.toJson()).toList();
 
-  final navData = {
-    'nodes': nodeList,
-    'edges': edgeList,
-  };
+  final navData = {'nodes': nodeList, 'edges': edgeList};
 
   final jsonStr = const JsonEncoder.withIndent('  ').convert(navData);
 
@@ -194,14 +191,11 @@ List<_NavEdge> _extractPushTargets(String source, String sourceClass) {
     final matchStart = match.start;
     final contextStart = max(0, matchStart - 300);
     final contextBefore = source.substring(contextStart, matchStart);
-    final kind =
-        contextBefore.contains('pushAndRemoveUntil') ? 'replace' : 'push';
+    final kind = contextBefore.contains('pushAndRemoveUntil')
+        ? 'replace'
+        : 'push';
 
-    edges.add(_NavEdge(
-      source: sourceClass,
-      target: targetClass,
-      kind: kind,
-    ));
+    edges.add(_NavEdge(source: sourceClass, target: targetClass, kind: kind));
   }
 
   return edges;
@@ -210,11 +204,13 @@ List<_NavEdge> _extractPushTargets(String source, String sourceClass) {
 List<_NavEdge> _extractHelperCalls(String source, String sourceClass) {
   final edges = <_NavEdge>[];
   if (source.contains('runImportFlow(') || source.contains('runImportFlow (')) {
-    edges.add(_NavEdge(
-      source: sourceClass,
-      target: 'ImportPreviewPage',
-      kind: 'helper',
-    ));
+    edges.add(
+      _NavEdge(
+        source: sourceClass,
+        target: 'ImportPreviewPage',
+        kind: 'helper',
+      ),
+    );
   }
   return edges;
 }
@@ -233,13 +229,7 @@ String _inferGroup(String path) {
 
 void _ensureNode(Map<String, _NavNode> nodes, String id) {
   if (!nodes.containsKey(id)) {
-    nodes[id] = _NavNode(
-      id: id,
-      className: id,
-      file: '',
-      group: 'unknown',
-      notes: 'inferred from edge',
-    );
+    nodes[id] = _NavNode(id: id, className: id, file: '', group: 'unknown');
   }
 }
 
@@ -272,7 +262,6 @@ void _applyOverrides(
           className: nodeMap['class'] as String? ?? id,
           file: nodeMap['file'] as String? ?? '',
           group: nodeMap['group'] as String? ?? 'unknown',
-          notes: nodeMap['notes'] as String?,
         );
       }
     }
@@ -301,12 +290,9 @@ void _applyOverrides(
         }
       } else {
         edgesSet.add(key);
-        edges.add(_NavEdge(
-          source: source,
-          target: target,
-          kind: kind,
-          label: label,
-        ));
+        edges.add(
+          _NavEdge(source: source, target: target, kind: kind, label: label),
+        );
       }
     }
   }
@@ -824,25 +810,23 @@ class _NavNode {
   final String file;
   String group;
   String? notes;
-  int inDegree;
+  int inDegree = 0;
 
   _NavNode({
     required this.id,
     required this.className,
     required this.file,
     required this.group,
-    this.notes,
-    this.inDegree = 0,
   });
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'class': className,
-        'file': file,
-        'group': group,
-        if (notes != null) 'notes': notes,
-        'inDegree': inDegree,
-      };
+    'id': id,
+    'class': className,
+    'file': file,
+    'group': group,
+    if (notes != null) 'notes': notes,
+    'inDegree': inDegree,
+  };
 }
 
 class _NavEdge {
@@ -859,9 +843,9 @@ class _NavEdge {
   });
 
   Map<String, dynamic> toJson() => {
-        'source': source,
-        'target': target,
-        'kind': kind,
-        if (label != null) 'label': label,
-      };
+    'source': source,
+    'target': target,
+    'kind': kind,
+    if (label != null) 'label': label,
+  };
 }

@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
 import 'package:InkTrack/features/inventario/data/models/producto.dart';
 import 'package:InkTrack/features/clientes/data/models/cliente.dart';
+import 'package:InkTrack/core/services/reports/report_filters.dart';
+import 'package:InkTrack/core/services/reports/report_predicates.dart';
 
 class PdfExportService {
   static final _dateFormat = DateFormat('dd/MM/yyyy HH:mm');
@@ -15,14 +17,14 @@ class PdfExportService {
 
   static Future<Uint8List> generateMovementsReport(
     List<Movimiento> movements, {
-    DateTime? startDate,
-    DateTime? endDate,
+    ReportFilters? filters,
   }) async {
+    final activeFilters = filters ?? const ReportFilters();
     final pdf = pw.Document();
 
     final filteredMovements = movements.where((m) {
-      if (startDate != null && m.fecha.isBefore(startDate)) return false;
-      if (endDate != null && m.fecha.isAfter(endDate)) return false;
+      if (!ReportPredicates.dateRange(m.fecha, activeFilters)) return false;
+      if (!ReportPredicates.abonosDelMes(m, activeFilters)) return false;
       return true;
     }).toList();
 
@@ -40,8 +42,8 @@ class PdfExportService {
         margin: const pw.EdgeInsets.all(32),
         header: (context) => _buildHeader(
           'Reporte de Movimientos',
-          startDate: startDate,
-          endDate: endDate,
+          startDate: activeFilters.startDate,
+          endDate: activeFilters.endDate,
         ),
         footer: (context) => _buildFooter(context),
         build: (context) => [
@@ -56,15 +58,23 @@ class PdfExportService {
   }
 
   static Future<Uint8List> generateInventoryReport(
-    List<Producto> productos,
-  ) async {
+    List<Producto> productos, {
+    ReportFilters? filters,
+  }) async {
+    final activeFilters = filters ?? const ReportFilters();
     final pdf = pw.Document();
-    final totalValor = productos.fold(
+
+    final filteredProductos = productos.where((p) {
+      if (!ReportPredicates.inventarioCriticoValorizado(p, activeFilters)) return false;
+      return true;
+    }).toList();
+
+    final totalValor = filteredProductos.fold(
       0.0,
-      (sum, p) => sum + (p.precioVenta * p.cantidad),
+      (sum, p) => sum + ((activeFilters.inventarioCriticoValorizado ? (p.precioCompra ?? 0) : p.precioVenta) * p.cantidad),
     );
-    final totalStock = productos.fold(0.0, (sum, p) => sum + p.cantidad).toInt();
-    final bajoStock = productos.where((p) => p.stockBajo).length;
+    final totalStock = filteredProductos.fold(0.0, (sum, p) => sum + p.cantidad).toInt();
+    final bajoStock = filteredProductos.where((p) => p.stockBajo).length;
 
     pdf.addPage(
       pw.MultiPage(
@@ -74,13 +84,13 @@ class PdfExportService {
         footer: (context) => _buildFooter(context),
         build: (context) => [
           _buildInventoryKpiSection(
-            productos.length,
+            filteredProductos.length,
             totalStock,
             totalValor,
             bajoStock,
           ),
           pw.SizedBox(height: 20),
-          _buildInventoryTable(productos),
+          _buildInventoryTable(filteredProductos, includeCost: activeFilters.inventarioCriticoValorizado),
         ],
       ),
     );
@@ -89,11 +99,19 @@ class PdfExportService {
   }
 
   static Future<Uint8List> generateClientDebtReport(
-    List<Cliente> clientes,
-  ) async {
+    List<Cliente> clientes, {
+    ReportFilters? filters,
+  }) async {
+    final activeFilters = filters ?? const ReportFilters();
     final pdf = pw.Document();
-    final totalDeuda = clientes.fold(0.0, (sum, c) => sum + c.saldoPendiente);
-    final conDeuda = clientes.where((c) => c.saldoPendiente > 0).length;
+
+    final filteredClientes = clientes.where((c) {
+      if (!ReportPredicates.soloDeudores(c, activeFilters)) return false;
+      return true;
+    }).toList();
+
+    final totalDeuda = filteredClientes.fold(0.0, (sum, c) => sum + c.saldoPendiente);
+    final conDeuda = filteredClientes.where((c) => c.saldoPendiente > 0).length;
 
     pdf.addPage(
       pw.MultiPage(
@@ -102,9 +120,9 @@ class PdfExportService {
         header: (context) => _buildHeader('Reporte de Clientes'),
         footer: (context) => _buildFooter(context),
         build: (context) => [
-          _buildClientKpiSection(clientes.length, conDeuda, totalDeuda),
+          _buildClientKpiSection(filteredClientes.length, conDeuda, totalDeuda),
           pw.SizedBox(height: 20),
-          _buildClientTable(clientes),
+          _buildClientTable(filteredClientes),
         ],
       ),
     );
@@ -326,7 +344,7 @@ class PdfExportService {
     );
   }
 
-  static pw.Widget _buildInventoryTable(List<Producto> productos) {
+  static pw.Widget _buildInventoryTable(List<Producto> productos, {bool includeCost = false}) {
     return pw.TableHelper.fromTextArray(
       headerStyle: pw.TextStyle(
         fontWeight: pw.FontWeight.bold,
@@ -334,15 +352,15 @@ class PdfExportService {
       ),
       headerDecoration: const pw.BoxDecoration(color: PdfColors.indigo),
       cellPadding: const pw.EdgeInsets.all(8),
-      headers: ['Nombre', 'Categoría', 'Stock', 'Precio', 'Valor Total'],
+      headers: ['Nombre', 'Categoría', 'Stock', includeCost ? 'Costo' : 'Precio', 'Valor Total'],
       data: productos
           .map(
             (p) => [
               p.nombre,
               p.categoria,
               p.cantidad.toString(),
-              _currencyFormat.format(p.precioVenta),
-              _currencyFormat.format(p.precioVenta * p.cantidad),
+              _currencyFormat.format(includeCost ? (p.precioCompra ?? 0) : p.precioVenta),
+              _currencyFormat.format((includeCost ? (p.precioCompra ?? 0) : p.precioVenta) * p.cantidad),
             ],
           )
           .toList(),

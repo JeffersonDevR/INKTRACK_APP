@@ -7,6 +7,9 @@ import 'package:InkTrack/features/movimientos/presentation/pages/movimiento_form
 import 'package:InkTrack/features/movimientos/data/repositories/movimientos_repository.dart';
 import 'package:InkTrack/features/clientes/presentation/viewmodels/clientes_viewmodel.dart';
 import 'package:InkTrack/features/clientes/data/repositories/clientes_repository.dart';
+import 'package:InkTrack/features/clientes/data/repositories/abonos_repository.dart';
+import 'package:InkTrack/features/clientes/data/models/abono.dart';
+
 import 'package:InkTrack/features/proveedores/presentation/viewmodels/proveedores_viewmodel.dart';
 import 'package:InkTrack/features/proveedores/data/repositories/proveedores_repository.dart';
 import 'package:InkTrack/features/inventario/presentation/viewmodels/inventario_viewmodel.dart';
@@ -56,6 +59,18 @@ class _FakeClientesRepository implements ClientesRepository {
   @override
   Future<Cliente?> getByIdIncludingInactive(String id) async => null;
 }
+
+class _FakeAbonosRepository implements AbonosRepository {
+  @override
+  Future<List<Abono>> getByCliente(String clienteId) async => [];
+  @override
+  Future<void> save(Abono item) async {}
+  @override
+  Future<void> delete(String id) async {}
+  @override
+  Future<double> getSaldoPendiente(String clienteId) async => 0.0;
+}
+
 
 class _FakeProveedoresRepository implements ProveedoresRepository {
   @override
@@ -111,7 +126,7 @@ Widget buildTestApp(MovimientosViewModel? movimientosVM) {
           create: (_) => InventarioViewModel(_FakeProductosRepository()),
         ),
         ChangeNotifierProvider<ClientesViewModel>(
-          create: (_) => ClientesViewModel(_FakeClientesRepository()),
+          create: (_) => ClientesViewModel(_FakeClientesRepository(), _FakeAbonosRepository()),
         ),
         ChangeNotifierProvider<ProveedoresViewModel>(
           create: (_) => ProveedoresViewModel(_FakeProveedoresRepository()),

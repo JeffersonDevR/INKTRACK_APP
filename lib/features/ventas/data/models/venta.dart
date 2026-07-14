@@ -19,6 +19,9 @@ class Venta implements HasId {
   /// Multiple products support (JSON string)
   final String? productosJson;
 
+  final DateTime? updatedAt;
+  final String? syncStatus;
+
   Venta({
     required this.id,
     required this.monto,
@@ -31,6 +34,8 @@ class Venta implements HasId {
     this.clienteNombre,
     this.concepto,
     this.productosJson,
+    this.updatedAt,
+    this.syncStatus,
   });
 
   List<VentaItem> get productos {
@@ -59,6 +64,8 @@ class Venta implements HasId {
     String? clienteNombre,
     String? concepto,
     String? productosJson,
+    DateTime? updatedAt,
+    String? syncStatus,
   }) {
     return Venta(
       id: id ?? this.id,
@@ -72,9 +79,12 @@ class Venta implements HasId {
       clienteNombre: clienteNombre ?? this.clienteNombre,
       concepto: concepto ?? this.concepto,
       productosJson: productosJson ?? this.productosJson,
+      updatedAt: updatedAt ?? this.updatedAt,
+      syncStatus: syncStatus ?? this.syncStatus,
     );
   }
 }
+
 
 class VentaItem {
   final String productoId;

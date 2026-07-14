@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:InkTrack/features/movimientos/data/models/movimiento.dart';
 import 'package:InkTrack/features/inventario/data/models/producto.dart';
 import 'package:InkTrack/features/clientes/data/models/cliente.dart';
+import 'package:InkTrack/core/services/reports/report_filters.dart';
+import 'package:InkTrack/core/services/reports/report_predicates.dart';
 
 class ExcelExportService {
   static final _dateFormat = DateFormat('dd/MM/yyyy HH:mm');
@@ -14,15 +16,15 @@ class ExcelExportService {
 
   static Future<Uint8List> generateMovementsReport(
     List<Movimiento> movements, {
-    DateTime? startDate,
-    DateTime? endDate,
+    ReportFilters? filters,
   }) async {
+    final activeFilters = filters ?? const ReportFilters();
     final excel = Excel.createExcel();
     final sheet = excel['Movimientos'];
 
     final filteredMovements = movements.where((m) {
-      if (startDate != null && m.fecha.isBefore(startDate)) return false;
-      if (endDate != null && m.fecha.isAfter(endDate)) return false;
+      if (!ReportPredicates.dateRange(m.fecha, activeFilters)) return false;
+      if (!ReportPredicates.abonosDelMes(m, activeFilters)) return false;
       return true;
     }).toList();
 
@@ -37,10 +39,10 @@ class ExcelExportService {
     sheet.appendRow([TextCellValue('INKTRACK - REPORTE DE MOVIMIENTOS')]);
     sheet.appendRow([]);
 
-    if (startDate != null || endDate != null) {
+    if (activeFilters.startDate != null || activeFilters.endDate != null) {
       sheet.appendRow([
         TextCellValue(
-          'Período: ${startDate != null ? _dateFormat.format(startDate) : 'Inicio'} - ${endDate != null ? _dateFormat.format(endDate) : 'Fin'}',
+          'Período: ${activeFilters.startDate != null ? _dateFormat.format(activeFilters.startDate!) : 'Inicio'} - ${activeFilters.endDate != null ? _dateFormat.format(activeFilters.endDate!) : 'Fin'}',
         ),
       ]);
       sheet.appendRow([]);
@@ -83,24 +85,31 @@ class ExcelExportService {
   }
 
   static Future<Uint8List> generateInventoryReport(
-    List<Producto> productos,
-  ) async {
+    List<Producto> productos, {
+    ReportFilters? filters,
+  }) async {
+    final activeFilters = filters ?? const ReportFilters();
     final excel = Excel.createExcel();
     final sheet = excel['Inventario'];
 
-    final totalValor = productos.fold(
+    final filteredProductos = productos.where((p) {
+      if (!ReportPredicates.inventarioCriticoValorizado(p, activeFilters)) return false;
+      return true;
+    }).toList();
+
+    final totalValor = filteredProductos.fold(
       0.0,
-      (sum, p) => sum + (p.precioVenta * p.cantidad),
+      (sum, p) => sum + ((activeFilters.inventarioCriticoValorizado ? (p.precioCompra ?? 0) : p.precioVenta) * p.cantidad),
     );
-    final totalStock = productos.fold(0.0, (sum, p) => sum + p.cantidad);
-    final bajoStock = productos.where((p) => p.stockBajo).length;
+    final totalStock = filteredProductos.fold(0.0, (sum, p) => sum + p.cantidad);
+    final bajoStock = filteredProductos.where((p) => p.stockBajo).length;
 
     sheet.appendRow([TextCellValue('INKTRACK - REPORTE DE INVENTARIO')]);
     sheet.appendRow([]);
     sheet.appendRow([TextCellValue('RESUMEN')]);
     sheet.appendRow([
       TextCellValue('Total Productos'),
-      TextCellValue(productos.length.toString()),
+      TextCellValue(filteredProductos.length.toString()),
     ]);
     sheet.appendRow([
       TextCellValue('Stock Total'),
@@ -120,19 +129,19 @@ class ExcelExportService {
       TextCellValue('Nombre'),
       TextCellValue('Categoría'),
       TextCellValue('Stock'),
-      TextCellValue('Precio'),
+      TextCellValue(activeFilters.inventarioCriticoValorizado ? 'Costo' : 'Precio'),
       TextCellValue('Valor Total'),
       TextCellValue('Stock Mínimo'),
       TextCellValue('Estado'),
     ]);
 
-    for (final prod in productos) {
+    for (final prod in filteredProductos) {
       sheet.appendRow([
         TextCellValue(prod.nombre),
         TextCellValue(prod.categoria),
         TextCellValue(prod.cantidad.toString()),
-        TextCellValue(_currencyFormat.format(prod.precioVenta)),
-        TextCellValue(_currencyFormat.format(prod.precioVenta * prod.cantidad)),
+        TextCellValue(_currencyFormat.format(activeFilters.inventarioCriticoValorizado ? (prod.precioCompra ?? 0) : prod.precioVenta)),
+        TextCellValue(_currencyFormat.format((activeFilters.inventarioCriticoValorizado ? (prod.precioCompra ?? 0) : prod.precioVenta) * prod.cantidad)),
         TextCellValue(prod.stockMinimo.toString()),
         TextCellValue(prod.stockBajo ? 'BAJO STOCK' : 'OK'),
       ]);
@@ -142,20 +151,27 @@ class ExcelExportService {
   }
 
   static Future<Uint8List> generateClientDebtReport(
-    List<Cliente> clientes,
-  ) async {
+    List<Cliente> clientes, {
+    ReportFilters? filters,
+  }) async {
+    final activeFilters = filters ?? const ReportFilters();
     final excel = Excel.createExcel();
     final sheet = excel['Clientes'];
 
-    final totalDeuda = clientes.fold(0.0, (sum, c) => sum + c.saldoPendiente);
-    final conDeuda = clientes.where((c) => c.saldoPendiente > 0).length;
+    final filteredClientes = clientes.where((c) {
+      if (!ReportPredicates.soloDeudores(c, activeFilters)) return false;
+      return true;
+    }).toList();
+
+    final totalDeuda = filteredClientes.fold(0.0, (sum, c) => sum + c.saldoPendiente);
+    final conDeuda = filteredClientes.where((c) => c.saldoPendiente > 0).length;
 
     sheet.appendRow([TextCellValue('INKTRACK - REPORTE DE CLIENTES')]);
     sheet.appendRow([]);
     sheet.appendRow([TextCellValue('RESUMEN')]);
     sheet.appendRow([
       TextCellValue('Total Clientes'),
-      TextCellValue(clientes.length.toString()),
+      TextCellValue(filteredClientes.length.toString()),
     ]);
     sheet.appendRow([
       TextCellValue('Clientes con Deuda'),
@@ -175,7 +191,7 @@ class ExcelExportService {
       TextCellValue('Saldo Pendiente'),
     ]);
 
-    for (final cliente in clientes) {
+    for (final cliente in filteredClientes) {
       sheet.appendRow([
         TextCellValue(cliente.nombre),
         TextCellValue(cliente.telefono),

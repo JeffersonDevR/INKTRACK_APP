@@ -11,8 +11,28 @@ class DriftMovimientosRepository implements MovimientosRepository {
   @override
   Future<List<Movimiento>> getAll() async {
     final rows = await _db.select(_db.movimientos).get();
-    return rows.map((row) => _toModel(row)).toList();
+    final abonoRows = await _db.select(_db.abonos).get();
+
+    final list = rows.map((row) => _toModel(row)).toList();
+    for (final abono in abonoRows) {
+      list.add(
+        Movimiento(
+          id: abono.id,
+          monto: abono.monto,
+          fecha: abono.fecha,
+          tipo: MovimientoType.ingreso,
+          concepto: abono.concepto ?? 'Abono de cliente',
+          categoria: 'Cobros',
+          clienteId: abono.clienteId,
+          esFiado: false,
+          updatedAt: abono.updatedAt,
+          syncStatus: abono.syncStatus,
+        ),
+      );
+    }
+    return list;
   }
+
 
   @override
   Future<Movimiento?> getById(String id) async {
@@ -43,6 +63,7 @@ class DriftMovimientosRepository implements MovimientosRepository {
             esFiado: Value(item.esFiado),
             productosJson: Value(item.productosJson),
             syncStatus: const Value('pending_upload'),
+            updatedAt: Value(DateTime.now()),
           ),
         );
   }
@@ -66,6 +87,7 @@ class DriftMovimientosRepository implements MovimientosRepository {
         esFiado: Value(item.esFiado),
         productosJson: Value(item.productosJson),
         syncStatus: const Value('pending_upload'),
+        updatedAt: Value(DateTime.now()),
       ),
     );
   }
@@ -90,6 +112,9 @@ class DriftMovimientosRepository implements MovimientosRepository {
       cantidad: data.cantidad,
       esFiado: data.esFiado,
       productosJson: data.productosJson,
+      updatedAt: data.updatedAt,
+      syncStatus: data.syncStatus,
     );
   }
 }
+
