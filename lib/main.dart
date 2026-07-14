@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:InkTrack/core/theme/app_theme.dart';
@@ -46,10 +47,9 @@ Future<void> main() async {
   await initializeDateFormatting('es', null);
   debugRepaintRainbowEnabled = false;
   try {
-    // Load .env tolerantly. `.env` is NOT bundled as an asset (see pubspec),
-    // so on a clean checkout this throws and we fall back to compile-time
-    // (--dart-define) and runtime (Platform.environment) credentials below.
-    // When a local .env exists, dotenv.env is populated as before.
+    // Load .env from the bundled asset. `.env` is declared in pubspec.yaml
+    // under `assets:`. Falls back to --dart-define and Platform.environment
+    // below when the file is missing on a clean checkout.
     try {
       await dotenv.load(fileName: ".env", isOptional: true);
     } catch (_) {
@@ -81,28 +81,55 @@ Future<void> main() async {
         supabaseUrl.isNotEmpty &&
         supabaseKey != null &&
         supabaseKey.isNotEmpty) {
-      // REMOTE mode: credentials present (unchanged behavior).
-      await Supabase.initialize(
-        url: supabaseUrl,
-        anonKey: supabaseKey,
-      );
-      supabaseClient = Supabase.instance.client;
-      authService = AuthService(supabaseClient, database: database);
-      currentUser = authService.currentUser;
-    } else {
-      // LOCAL-ONLY mode: Supabase credentials absent. Cloud sync disabled.
+      // REMOTE mode: credentials present.
+      try {
+        await Supabase.initialize(
+          url: supabaseUrl,
+          anonKey: supabaseKey,
+        );
+        supabaseClient = Supabase.instance.client;
+      } catch (e) {
+        // Stale persisted session (e.g. "Invalid Refresh Token: Already Used").
+        // Clear the session data and retry once.
+        debugPrint(
+          '[InkTrack] Supabase init failed ($e). Cleaning stale session…',
+        );
+        try {
+          // Remove known gotrue/supabase persisted session keys.
+          final prefs = await SharedPreferences.getInstance();
+          final supabaseKeys = prefs.getKeys()
+              .where((k) => k.startsWith('supabase.') || k.startsWith('sb-'))
+              .toList();
+          for (final key in supabaseKeys) {
+            await prefs.remove(key);
+          }
+          await Supabase.initialize(
+            url: supabaseUrl,
+            anonKey: supabaseKey,
+          );
+          supabaseClient = Supabase.instance.client;
+        } catch (e2) {
+          debugPrint(
+            '[InkTrack] Supabase init failed again ($e2). Falling back to '
+            'local-only mode.',
+          );
+        }
+      }
+    }
+
+    if (supabaseClient == null) {
+      // LOCAL-ONLY mode: Supabase unreachable or no credentials.
       // Construct a no-network SupabaseClient adapter so AuthService (whose
       // supabase field is non-nullable) compiles; all its supabase calls are
       // already wrapped in try/catch, so local-only auth degrades to the
       // existing offline bcrypt cache path.
       debugPrint(
-        '[InkTrack] Local-only mode: Supabase credentials not provided. '
-        'Cloud sync disabled.',
+        '[InkTrack] Local-only mode: Cloud sync disabled.',
       );
-      final localClient = SupabaseClient('', '');
-      authService = AuthService(localClient, database: database);
-      currentUser = authService.currentUser;
+      supabaseClient = SupabaseClient('', '');
     }
+    authService = AuthService(supabaseClient!, database: database);
+    currentUser = authService.currentUser;
 
     await NotificationService().initialize();
 
@@ -229,8 +256,12 @@ class _InkTrackAppState extends State<InkTrackApp> {
       return;
     }
 
-    Navigator.of(context).push(
-      MaterialPageRoute(
+    // Defer navigation to after the current frame — the Navigator may not
+    // exist yet if the auth subscription fires during initState.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.of(context).push(
+        MaterialPageRoute(
         builder: (_) => MultiProvider(
           providers: [
             Provider.value(value: widget.database),
@@ -277,6 +308,7 @@ class _InkTrackAppState extends State<InkTrackApp> {
         ),
       ),
     );
+    });
   }
 
   @override

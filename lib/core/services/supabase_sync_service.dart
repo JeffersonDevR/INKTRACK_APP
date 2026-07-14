@@ -73,6 +73,28 @@ class SupabaseSyncService {
     }
   }
 
+  /// Performs a `GET` against [url] and returns the decoded body on 200.
+  /// Returns `null` on 404 (table doesn't exist — not an error) and an empty
+  /// list on other non-200 status codes (errors counted by the caller).
+  Future<List<dynamic>?> _downloadGet(String url) async {
+    try {
+      final response = await http.get(Uri.parse(url), headers: _headers);
+      if (response.statusCode == 200) return jsonDecode(response.body) as List<dynamic>;
+      if (response.statusCode == 404) return null; // table not created yet
+      return []; // other error — caller counts it
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Returns a zeroed [SyncResult] for [tableName].
+  SyncResult _zeroResult(String tableName) => SyncResult(
+    tableName: tableName,
+    uploaded: 0,
+    downloaded: 0,
+    errors: 0,
+  );
+
   Future<SyncResult> syncTable(String tableName) async {
     if (!isEnabled) {
       return SyncResult(
@@ -364,49 +386,37 @@ class SupabaseSyncService {
     int downloaded = 0;
     int errors = 0;
 
-    try {
-      final response = await http.get(
-        Uri.parse('$_supabaseUrl/rest/v1/locales?select=*'),
-        headers: _headers,
-      );
+    final data = await _downloadGet('$_supabaseUrl/rest/v1/locales?select=*');
+    if (data == null) return _zeroResult('locales'); // 404 → table not created yet
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
+    for (final item in data) {
+      try {
+        final id = item['id'] as String;
+        final existing = await (_db.select(
+          _db.locales,
+        )..where((t) => t.id.equals(id))).getSingleOrNull();
 
-        for (final item in data) {
-          try {
-            final id = item['id'] as String;
-            final existing = await (_db.select(
-              _db.locales,
-            )..where((t) => t.id.equals(id))).getSingleOrNull();
-
-            if (existing != null && existing.syncStatus == 'pending_upload') {
-              continue;
-            }
-
-            await (_db.into(_db.locales)).insertOnConflictUpdate(
-              LocalesCompanion(
-                id: Value(id),
-                nombre: Value(item['nombre'] as String? ?? ''),
-                direccion: Value(item['direccion'] as String?),
-                telefono: Value(item['telefono'] as String?),
-                tipo: Value(item['tipo'] as String? ?? 'tienda'),
-                userId: Value(item['user_id'] as String?),
-                isActivo: Value(item['is_activo'] as bool? ?? true),
-                syncStatus: const Value('synced'),
-                lastSyncedAt: Value(DateTime.now()),
-              ),
-            );
-            downloaded++;
-          } catch (e) {
-            errors++;
-          }
+        if (existing != null && existing.syncStatus == 'pending_upload') {
+          continue;
         }
-      } else {
+
+        await (_db.into(_db.locales)).insertOnConflictUpdate(
+          LocalesCompanion(
+            id: Value(id),
+            nombre: Value(item['nombre'] as String? ?? ''),
+            direccion: Value(item['direccion'] as String?),
+            telefono: Value(item['telefono'] as String?),
+            tipo: Value(item['tipo'] as String? ?? 'tienda'),
+            userId: Value(item['user_id'] as String?),
+            isActivo: Value(item['is_activo'] as bool? ?? true),
+            syncStatus: const Value('synced'),
+            lastSyncedAt: Value(DateTime.now()),
+          ),
+        );
+        downloaded++;
+      } catch (_) {
         errors++;
       }
-    } catch (e) {
-      errors++;
     }
 
     return SyncResult(
@@ -695,56 +705,44 @@ class SupabaseSyncService {
     int downloaded = 0;
     int errors = 0;
 
-    try {
-      final response = await http.get(
-        Uri.parse('$_supabaseUrl/rest/v1/productos?select=*'),
-        headers: _headers,
-      );
+    final data = await _downloadGet('$_supabaseUrl/rest/v1/productos?select=*');
+    if (data == null) return _zeroResult('productos');
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
+    for (final item in data) {
+      try {
+        final id = item['id'] as String;
+        final existing = await (_db.select(
+          _db.productos,
+        )..where((t) => t.id.equals(id))).getSingleOrNull();
 
-        for (final item in data) {
-          try {
-            final id = item['id'] as String;
-            final existing = await (_db.select(
-              _db.productos,
-            )..where((t) => t.id.equals(id))).getSingleOrNull();
-
-            if (existing != null && existing.syncStatus == 'pending_upload') {
-              continue;
-            }
-
-            await (_db.into(_db.productos)).insertOnConflictUpdate(
-              ProductosCompanion(
-                id: Value(id),
-                localId: Value(item['local_id'] as String?),
-                nombre: Value(item['nombre'] as String? ?? ''),
-                cantidad: Value(item['cantidad'] as int? ?? 0),
-                precio: Value((item['precio'] as num?)?.toDouble() ?? 0.0),
-                categoria: Value(item['categoria'] as String? ?? ''),
-                proveedorId: Value(item['proveedor_id'] as String? ?? ''),
-                stockMinimo: Value(item['stock_minimo'] as int? ?? 0),
-                codigoBarras: Value(item['codigo_barras'] as String?),
-                codigoPersonalizado: Value(
-                  item['codigo_personalizado'] as String?,
-                ),
-                proveedorNombre: Value(item['proveedor_nombre'] as String?),
-                isActivo: Value(item['is_activo'] as bool? ?? true),
-                syncStatus: const Value('synced'),
-                lastSyncedAt: Value(DateTime.now()),
-              ),
-            );
-            downloaded++;
-          } catch (e) {
-            errors++;
-          }
+        if (existing != null && existing.syncStatus == 'pending_upload') {
+          continue;
         }
-      } else {
+
+        await (_db.into(_db.productos)).insertOnConflictUpdate(
+          ProductosCompanion(
+            id: Value(id),
+            localId: Value(item['local_id'] as String?),
+            nombre: Value(item['nombre'] as String? ?? ''),
+            cantidad: Value(item['cantidad'] as int? ?? 0),
+            precio: Value((item['precio'] as num?)?.toDouble() ?? 0.0),
+            categoria: Value(item['categoria'] as String? ?? ''),
+            proveedorId: Value(item['proveedor_id'] as String? ?? ''),
+            stockMinimo: Value(item['stock_minimo'] as int? ?? 0),
+            codigoBarras: Value(item['codigo_barras'] as String?),
+            codigoPersonalizado: Value(
+              item['codigo_personalizado'] as String?,
+            ),
+            proveedorNombre: Value(item['proveedor_nombre'] as String?),
+            isActivo: Value(item['is_activo'] as bool? ?? true),
+            syncStatus: const Value('synced'),
+            lastSyncedAt: Value(DateTime.now()),
+          ),
+        );
+        downloaded++;
+      } catch (_) {
         errors++;
       }
-    } catch (e) {
-      errors++;
     }
 
     return SyncResult(
@@ -759,74 +757,58 @@ class SupabaseSyncService {
     int downloaded = 0;
     int errors = 0;
 
-    try {
-      final response = await http.get(
-        Uri.parse('$_supabaseUrl/rest/v1/clientes?select=*'),
-        headers: _headers,
-      );
+    final data = await _downloadGet('$_supabaseUrl/rest/v1/clientes?select=*');
+    if (data == null) return _zeroResult('clientes');
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
+    for (final item in data) {
+      try {
+        final id = item['id'] as String;
+        final existing = await (_db.select(
+          _db.clientes,
+        )..where((t) => t.id.equals(id))).getSingleOrNull();
 
-        for (final item in data) {
-          try {
-            final id = item['id'] as String;
-            final existing = await (_db.select(
-              _db.clientes,
-            )..where((t) => t.id.equals(id))).getSingleOrNull();
-
-            if (existing != null && existing.syncStatus == 'pending_upload') {
-              continue;
-            }
-
-            final emailValue = item['email'] as String?;
-
-            if (_abonosSyncEnabled) {
-              // When abonos sync is active, do NOT blindly overwrite saldoPendiente
-              // from server. The saldo is recomputed by resolveCuentasPorCobrar
-              // after abonos are pulled (ADR-03 / task 4.4).
-              await (_db.into(_db.clientes)).insertOnConflictUpdate(
-                ClientesCompanion(
-                  id: Value(id),
-                  localId: Value(item['local_id'] as String?),
-                  nombre: Value(item['nombre'] as String? ?? ''),
-                  telefono: Value(item['telefono'] as String? ?? ''),
-                  email: Value(emailValue),
-                  esFiado: Value(item['es_fiado'] as bool? ?? false),
-                  // saldoPendiente intentionally omitted — resolver sets it
-                  isActivo: Value(item['is_activo'] as bool? ?? true),
-                  syncStatus: const Value('synced'),
-                  lastSyncedAt: Value(DateTime.now()),
-                ),
-              );
-            } else {
-              await (_db.into(_db.clientes)).insertOnConflictUpdate(
-                ClientesCompanion(
-                  id: Value(id),
-                  localId: Value(item['local_id'] as String?),
-                  nombre: Value(item['nombre'] as String? ?? ''),
-                  telefono: Value(item['telefono'] as String? ?? ''),
-                  email: Value(emailValue),
-                  esFiado: Value(item['es_fiado'] as bool? ?? false),
-                  saldoPendiente: Value(
-                    (item['saldo_pendiente'] as num?)?.toDouble() ?? 0.0,
-                  ),
-                  isActivo: Value(item['is_activo'] as bool? ?? true),
-                  syncStatus: const Value('synced'),
-                  lastSyncedAt: Value(DateTime.now()),
-                ),
-              );
-            }
-            downloaded++;
-          } catch (e) {
-            errors++;
-          }
+        if (existing != null && existing.syncStatus == 'pending_upload') {
+          continue;
         }
-      } else {
+
+        final emailValue = item['email'] as String?;
+
+        if (_abonosSyncEnabled) {
+          await (_db.into(_db.clientes)).insertOnConflictUpdate(
+            ClientesCompanion(
+              id: Value(id),
+              localId: Value(item['local_id'] as String?),
+              nombre: Value(item['nombre'] as String? ?? ''),
+              telefono: Value(item['telefono'] as String? ?? ''),
+              email: Value(emailValue),
+              esFiado: Value(item['es_fiado'] as bool? ?? false),
+              isActivo: Value(item['is_activo'] as bool? ?? true),
+              syncStatus: const Value('synced'),
+              lastSyncedAt: Value(DateTime.now()),
+            ),
+          );
+        } else {
+          await (_db.into(_db.clientes)).insertOnConflictUpdate(
+            ClientesCompanion(
+              id: Value(id),
+              localId: Value(item['local_id'] as String?),
+              nombre: Value(item['nombre'] as String? ?? ''),
+              telefono: Value(item['telefono'] as String? ?? ''),
+              email: Value(emailValue),
+              esFiado: Value(item['es_fiado'] as bool? ?? false),
+              saldoPendiente: Value(
+                (item['saldo_pendiente'] as num?)?.toDouble() ?? 0.0,
+              ),
+              isActivo: Value(item['is_activo'] as bool? ?? true),
+              syncStatus: const Value('synced'),
+              lastSyncedAt: Value(DateTime.now()),
+            ),
+          );
+        }
+        downloaded++;
+      } catch (_) {
         errors++;
       }
-    } catch (e) {
-      errors++;
     }
 
     return SyncResult(
@@ -841,53 +823,41 @@ class SupabaseSyncService {
     int downloaded = 0;
     int errors = 0;
 
-    try {
-      final response = await http.get(
-        Uri.parse('$_supabaseUrl/rest/v1/proveedores?select=*'),
-        headers: _headers,
-      );
+    final data = await _downloadGet('$_supabaseUrl/rest/v1/proveedores?select=*');
+    if (data == null) return _zeroResult('proveedores');
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
+    for (final item in data) {
+      try {
+        final id = item['id'] as String;
+        final existing = await (_db.select(
+          _db.proveedores,
+        )..where((t) => t.id.equals(id))).getSingleOrNull();
 
-        for (final item in data) {
-          try {
-            final id = item['id'] as String;
-            final existing = await (_db.select(
-              _db.proveedores,
-            )..where((t) => t.id.equals(id))).getSingleOrNull();
-
-            if (existing != null && existing.syncStatus == 'pending_upload') {
-              continue;
-            }
-
-            final diasVisitaStr = item['dias_visita'] as String? ?? '';
-            final diasVisita = diasVisitaStr.isEmpty
-                ? <String>[]
-                : diasVisitaStr.split(',');
-
-            await (_db.into(_db.proveedores)).insertOnConflictUpdate(
-              ProveedoresCompanion(
-                id: Value(id),
-                localId: Value(item['local_id'] as String?),
-                nombre: Value(item['nombre'] as String? ?? ''),
-                telefono: Value(item['telefono'] as String? ?? ''),
-                diasVisita: Value(diasVisita),
-                isActivo: Value(item['is_activo'] as bool? ?? true),
-                syncStatus: const Value('synced'),
-                lastSyncedAt: Value(DateTime.now()),
-              ),
-            );
-            downloaded++;
-          } catch (e) {
-            errors++;
-          }
+        if (existing != null && existing.syncStatus == 'pending_upload') {
+          continue;
         }
-      } else {
+
+        final diasVisitaStr = item['dias_visita'] as String? ?? '';
+        final diasVisita = diasVisitaStr.isEmpty
+            ? <String>[]
+            : diasVisitaStr.split(',');
+
+        await (_db.into(_db.proveedores)).insertOnConflictUpdate(
+          ProveedoresCompanion(
+            id: Value(id),
+            localId: Value(item['local_id'] as String?),
+            nombre: Value(item['nombre'] as String? ?? ''),
+            telefono: Value(item['telefono'] as String? ?? ''),
+            diasVisita: Value(diasVisita),
+            isActivo: Value(item['is_activo'] as bool? ?? true),
+            syncStatus: const Value('synced'),
+            lastSyncedAt: Value(DateTime.now()),
+          ),
+        );
+        downloaded++;
+      } catch (_) {
         errors++;
       }
-    } catch (e) {
-      errors++;
     }
 
     return SyncResult(
@@ -902,54 +872,42 @@ class SupabaseSyncService {
     int downloaded = 0;
     int errors = 0;
 
-    try {
-      final response = await http.get(
-        Uri.parse('$_supabaseUrl/rest/v1/movimientos?select=*'),
-        headers: _headers,
-      );
+    final data = await _downloadGet('$_supabaseUrl/rest/v1/movimientos?select=*');
+    if (data == null) return _zeroResult('movimientos');
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
+    for (final item in data) {
+      try {
+        final id = item['id'] as String;
+        final existing = await (_db.select(
+          _db.movimientos,
+        )..where((t) => t.id.equals(id))).getSingleOrNull();
 
-        for (final item in data) {
-          try {
-            final id = item['id'] as String;
-            final existing = await (_db.select(
-              _db.movimientos,
-            )..where((t) => t.id.equals(id))).getSingleOrNull();
-
-            if (existing != null && existing.syncStatus == 'pending_upload') {
-              continue;
-            }
-
-            await (_db.into(_db.movimientos)).insertOnConflictUpdate(
-              MovimientosCompanion(
-                id: Value(id),
-                localId: Value(item['local_id'] as String?),
-                monto: Value((item['monto'] as num?)?.toDouble() ?? 0.0),
-                fecha: Value(DateTime.parse(item['fecha'] as String)),
-                tipo: Value(MovimientoType.values[item['tipo'] as int? ?? 0]),
-                concepto: Value(item['concepto'] as String? ?? ''),
-                categoria: Value(item['categoria'] as String?),
-                productoId: Value(item['producto_id'] as String?),
-                clienteId: Value(item['cliente_id'] as String?),
-                proveedorId: Value(item['proveedor_id'] as String?),
-                cantidad: Value(item['cantidad'] as int? ?? 0),
-                esFiado: Value(item['es_fiado'] as bool? ?? false),
-                syncStatus: const Value('synced'),
-                lastSyncedAt: Value(DateTime.now()),
-              ),
-            );
-            downloaded++;
-          } catch (e) {
-            errors++;
-          }
+        if (existing != null && existing.syncStatus == 'pending_upload') {
+          continue;
         }
-      } else {
+
+        await (_db.into(_db.movimientos)).insertOnConflictUpdate(
+          MovimientosCompanion(
+            id: Value(id),
+            localId: Value(item['local_id'] as String?),
+            monto: Value((item['monto'] as num?)?.toDouble() ?? 0.0),
+            fecha: Value(DateTime.parse(item['fecha'] as String)),
+            tipo: Value(MovimientoType.values[item['tipo'] as int? ?? 0]),
+            concepto: Value(item['concepto'] as String? ?? ''),
+            categoria: Value(item['categoria'] as String?),
+            productoId: Value(item['producto_id'] as String?),
+            clienteId: Value(item['cliente_id'] as String?),
+            proveedorId: Value(item['proveedor_id'] as String?),
+            cantidad: Value(item['cantidad'] as int? ?? 0),
+            esFiado: Value(item['es_fiado'] as bool? ?? false),
+            syncStatus: const Value('synced'),
+            lastSyncedAt: Value(DateTime.now()),
+          ),
+        );
+        downloaded++;
+      } catch (_) {
         errors++;
       }
-    } catch (e) {
-      errors++;
     }
 
     return SyncResult(
@@ -964,49 +922,37 @@ class SupabaseSyncService {
     int downloaded = 0;
     int errors = 0;
 
-    try {
-      final response = await http.get(
-        Uri.parse('$_supabaseUrl/rest/v1/ventas?select=*'),
-        headers: _headers,
-      );
+    final data = await _downloadGet('$_supabaseUrl/rest/v1/ventas?select=*');
+    if (data == null) return _zeroResult('ventas');
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
+    for (final item in data) {
+      try {
+        final id = item['id'] as String;
+        final existing = await (_db.select(
+          _db.ventas,
+        )..where((t) => t.id.equals(id))).getSingleOrNull();
 
-        for (final item in data) {
-          try {
-            final id = item['id'] as String;
-            final existing = await (_db.select(
-              _db.ventas,
-            )..where((t) => t.id.equals(id))).getSingleOrNull();
-
-            if (existing != null && existing.syncStatus == 'pending_upload') {
-              continue;
-            }
-
-            await (_db.into(_db.ventas)).insertOnConflictUpdate(
-              VentasCompanion(
-                id: Value(id),
-                localId: Value(item['local_id'] as String?),
-                monto: Value((item['monto'] as num?)?.toDouble() ?? 0.0),
-                fecha: Value(DateTime.parse(item['fecha'] as String)),
-                clienteId: Value(item['cliente_id'] as String?),
-                clienteNombre: Value(item['cliente_nombre'] as String?),
-                concepto: Value(item['concepto'] as String?),
-                syncStatus: const Value('synced'),
-                lastSyncedAt: Value(DateTime.now()),
-              ),
-            );
-            downloaded++;
-          } catch (e) {
-            errors++;
-          }
+        if (existing != null && existing.syncStatus == 'pending_upload') {
+          continue;
         }
-      } else {
+
+        await (_db.into(_db.ventas)).insertOnConflictUpdate(
+          VentasCompanion(
+            id: Value(id),
+            localId: Value(item['local_id'] as String?),
+            monto: Value((item['monto'] as num?)?.toDouble() ?? 0.0),
+            fecha: Value(DateTime.parse(item['fecha'] as String)),
+            clienteId: Value(item['cliente_id'] as String?),
+            clienteNombre: Value(item['cliente_nombre'] as String?),
+            concepto: Value(item['concepto'] as String?),
+            syncStatus: const Value('synced'),
+            lastSyncedAt: Value(DateTime.now()),
+          ),
+        );
+        downloaded++;
+      } catch (_) {
         errors++;
       }
-    } catch (e) {
-      errors++;
     }
 
     return SyncResult(
@@ -1084,56 +1030,44 @@ class SupabaseSyncService {
     int errors = 0;
     final affectedClientIds = <String>{};
 
-    try {
-      final response = await http.get(
-        Uri.parse('$_supabaseUrl/rest/v1/abonos?select=*'),
-        headers: _headers,
-      );
+    final data = await _downloadGet('$_supabaseUrl/rest/v1/abonos?select=*');
+    if (data == null) return _zeroResult('abonos');
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
+    for (final item in data) {
+      try {
+        final id = item['id'] as String;
+        final clienteId = item['cliente_id'] as String;
+        final updatedAtStr = item['updated_at'] as String?;
+        final updatedAt = updatedAtStr != null
+            ? DateTime.parse(updatedAtStr)
+            : DateTime.now();
 
-        for (final item in data) {
-          try {
-            final id = item['id'] as String;
-            final clienteId = item['cliente_id'] as String;
-            final updatedAtStr = item['updated_at'] as String?;
-            final updatedAt = updatedAtStr != null
-                ? DateTime.parse(updatedAtStr)
-                : DateTime.now();
-
-            await (_db.into(_db.abonos)).insertOnConflictUpdate(
-              AbonosCompanion(
-                id: Value(id),
-                clienteId: Value(clienteId),
-                ventaId: Value(item['venta_id'] as String?),
-                monto: Value((item['monto'] as num?)?.toDouble() ?? 0.0),
-                fecha: Value(DateTime.parse(item['fecha'] as String)),
-                saldoRestante:
-                    Value((item['saldo_restante'] as num?)?.toDouble() ?? 0.0),
-                concepto: Value(item['concepto'] as String?),
-                syncStatus: const Value('synced'),
-                lastSyncedAt: Value(DateTime.now()),
-                updatedAt: Value(updatedAt),
-              ),
-            );
-            affectedClientIds.add(clienteId);
-            downloaded++;
-          } catch (_) {
-            errors++;
-          }
-        }
-
-        // After pulling, recompute saldoPendiente for every affected client
-        // using the full abono ledger (ADR-03 / task 4.4).
-        for (final clienteId in affectedClientIds) {
-          await _recomputeClienteSaldo(clienteId);
-        }
-      } else {
+        await (_db.into(_db.abonos)).insertOnConflictUpdate(
+          AbonosCompanion(
+            id: Value(id),
+            clienteId: Value(clienteId),
+            ventaId: Value(item['venta_id'] as String?),
+            monto: Value((item['monto'] as num?)?.toDouble() ?? 0.0),
+            fecha: Value(DateTime.parse(item['fecha'] as String)),
+            saldoRestante:
+                Value((item['saldo_restante'] as num?)?.toDouble() ?? 0.0),
+            concepto: Value(item['concepto'] as String?),
+            syncStatus: const Value('synced'),
+            lastSyncedAt: Value(DateTime.now()),
+            updatedAt: Value(updatedAt),
+          ),
+        );
+        affectedClientIds.add(clienteId);
+        downloaded++;
+      } catch (_) {
         errors++;
       }
-    } catch (_) {
-      errors++;
+    }
+
+    // After pulling, recompute saldoPendiente for every affected client
+    // using the full abono ledger (ADR-03 / task 4.4).
+    for (final clienteId in affectedClientIds) {
+      await _recomputeClienteSaldo(clienteId);
     }
 
     return SyncResult(
@@ -1271,114 +1205,102 @@ extension _PedidosSyncExt on SupabaseSyncService {
     int downloaded = 0;
     int errors = 0;
 
-    try {
-      final response = await http.get(
-        Uri.parse('$_supabaseUrl/rest/v1/pedidos_proveedor?select=*'),
-        headers: _headers,
-      );
+    final data = await _downloadGet('$_supabaseUrl/rest/v1/pedidos_proveedor?select=*');
+    if (data == null) return _zeroResult('pedidos');
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
+    for (final item in data) {
+      try {
+        final id = item['id'] as String;
 
-        for (final item in data) {
-          try {
-            final id = item['id'] as String;
+        // Check if local has a newer or pending version
+        final existing = await (_db.select(_db.pedidosProveedor)
+              ..where((t) => t.id.equals(id)))
+            .getSingleOrNull();
 
-            // Check if local has a newer or pending version
-            final existing = await (_db.select(_db.pedidosProveedor)
-                  ..where((t) => t.id.equals(id)))
-                .getSingleOrNull();
+        if (existing != null &&
+            existing.syncStatus == 'pending_upload') {
+          // Local has un-pushed changes; run resolver
+          final productosStr = existing.productos;
+          final localLineas = PedidoProveedor.productosFromJson(productosStr);
+          final serverProductosRaw = item['productos'];
+          final serverProductosStr = serverProductosRaw is String
+              ? serverProductosRaw
+              : jsonEncode(serverProductosRaw);
+          final serverLineas = PedidoProveedor.productosFromJson(serverProductosStr);
 
-            if (existing != null &&
-                existing.syncStatus == 'pending_upload') {
-              // Local has un-pushed changes; run resolver
-              final productosStr = existing.productos;
-              final localLineas = PedidoProveedor.productosFromJson(productosStr);
-              final serverProductosRaw = item['productos'];
-              final serverProductosStr = serverProductosRaw is String
-                  ? serverProductosRaw
-                  : jsonEncode(serverProductosRaw);
-              final serverLineas = PedidoProveedor.productosFromJson(serverProductosStr);
+          final localPedido = PedidoProveedor(
+            id: id,
+            proveedorId: existing.proveedorId,
+            localId: existing.localId,
+            fechaPedido: existing.fechaPedido,
+            fechaEntrega: existing.fechaEntrega,
+            productos: localLineas,
+            montoTotal: existing.montoTotal,
+            isEntregado: existing.isEntregado,
+            notas: existing.notas,
+            updatedAt: existing.updatedAt,
+          );
+          final updatedAtStr = item['updated_at'] as String?;
+          final serverPedido = PedidoProveedor(
+            id: id,
+            proveedorId: item['proveedor_id'] as String,
+            localId: item['local_id'] as String?,
+            fechaPedido: DateTime.parse(item['fecha_pedido'] as String),
+            fechaEntrega: DateTime.parse(item['fecha_entrega'] as String),
+            productos: serverLineas,
+            montoTotal: (item['monto_total'] as num).toDouble(),
+            isEntregado: item['is_entregado'] as bool? ?? false,
+            notas: item['notas'] as String?,
+            updatedAt: updatedAtStr != null ? DateTime.parse(updatedAtStr) : null,
+          );
 
-              final localPedido = PedidoProveedor(
-                id: id,
-                proveedorId: existing.proveedorId,
-                localId: existing.localId,
-                fechaPedido: existing.fechaPedido,
-                fechaEntrega: existing.fechaEntrega,
-                productos: localLineas,
-                montoTotal: existing.montoTotal,
-                isEntregado: existing.isEntregado,
-                notas: existing.notas,
-                updatedAt: existing.updatedAt,
-              );
-              final updatedAtStr = item['updated_at'] as String?;
-              final serverPedido = PedidoProveedor(
-                id: id,
-                proveedorId: item['proveedor_id'] as String,
-                localId: item['local_id'] as String?,
-                fechaPedido: DateTime.parse(item['fecha_pedido'] as String),
-                fechaEntrega: DateTime.parse(item['fecha_entrega'] as String),
-                productos: serverLineas,
-                montoTotal: (item['monto_total'] as num).toDouble(),
-                isEntregado: item['is_entregado'] as bool? ?? false,
-                notas: item['notas'] as String?,
-                updatedAt: updatedAtStr != null ? DateTime.parse(updatedAtStr) : null,
-              );
-
-              final resolved = ConflictResolver.resolvePedidos(localPedido, serverPedido);
-              await (_db.into(_db.pedidosProveedor)).insertOnConflictUpdate(
-                PedidosProveedorCompanion(
-                  id: Value(id),
-                  proveedorId: Value(resolved.proveedorId),
-                  localId: Value(resolved.localId),
-                  fechaPedido: Value(resolved.fechaPedido),
-                  fechaEntrega: Value(resolved.fechaEntrega),
-                  productos: Value(resolved.productosJson),
-                  montoTotal: Value(resolved.montoTotal),
-                  isEntregado: Value(resolved.isEntregado),
-                  notas: Value(resolved.notas),
-                  syncStatus: const Value('synced'),
-                  lastSyncedAt: Value(DateTime.now()),
-                  updatedAt: Value(resolved.updatedAt),
-                ),
-              );
-            } else {
-              // No local conflict — upsert directly
-              final serverProductosRaw = item['productos'];
-              final serverProductosStr = serverProductosRaw is String
-                  ? serverProductosRaw
-                  : jsonEncode(serverProductosRaw);
-              final updatedAtStr = item['updated_at'] as String?;
-              await (_db.into(_db.pedidosProveedor)).insertOnConflictUpdate(
-                PedidosProveedorCompanion(
-                  id: Value(id),
-                  proveedorId: Value(item['proveedor_id'] as String),
-                  localId: Value(item['local_id'] as String?),
-                  fechaPedido: Value(DateTime.parse(item['fecha_pedido'] as String)),
-                  fechaEntrega: Value(DateTime.parse(item['fecha_entrega'] as String)),
-                  productos: Value(serverProductosStr),
-                  montoTotal: Value((item['monto_total'] as num).toDouble()),
-                  isEntregado: Value(item['is_entregado'] as bool? ?? false),
-                  notas: Value(item['notas'] as String?),
-                  syncStatus: const Value('synced'),
-                  lastSyncedAt: Value(DateTime.now()),
-                  updatedAt: Value(
-                    updatedAtStr != null ? DateTime.parse(updatedAtStr) : null,
-                  ),
-                ),
-              );
-            }
-            downloaded++;
-          } catch (_) {
-            errors++;
-          }
+          final resolved = ConflictResolver.resolvePedidos(localPedido, serverPedido);
+          await (_db.into(_db.pedidosProveedor)).insertOnConflictUpdate(
+            PedidosProveedorCompanion(
+              id: Value(id),
+              proveedorId: Value(resolved.proveedorId),
+              localId: Value(resolved.localId),
+              fechaPedido: Value(resolved.fechaPedido),
+              fechaEntrega: Value(resolved.fechaEntrega),
+              productos: Value(resolved.productosJson),
+              montoTotal: Value(resolved.montoTotal),
+              isEntregado: Value(resolved.isEntregado),
+              notas: Value(resolved.notas),
+              syncStatus: const Value('synced'),
+              lastSyncedAt: Value(DateTime.now()),
+              updatedAt: Value(resolved.updatedAt),
+            ),
+          );
+        } else {
+          // No local conflict — upsert directly
+          final serverProductosRaw = item['productos'];
+          final serverProductosStr = serverProductosRaw is String
+              ? serverProductosRaw
+              : jsonEncode(serverProductosRaw);
+          final updatedAtStr = item['updated_at'] as String?;
+          await (_db.into(_db.pedidosProveedor)).insertOnConflictUpdate(
+            PedidosProveedorCompanion(
+              id: Value(id),
+              proveedorId: Value(item['proveedor_id'] as String),
+              localId: Value(item['local_id'] as String?),
+              fechaPedido: Value(DateTime.parse(item['fecha_pedido'] as String)),
+              fechaEntrega: Value(DateTime.parse(item['fecha_entrega'] as String)),
+              productos: Value(serverProductosStr),
+              montoTotal: Value((item['monto_total'] as num).toDouble()),
+              isEntregado: Value(item['is_entregado'] as bool? ?? false),
+              notas: Value(item['notas'] as String?),
+              syncStatus: const Value('synced'),
+              lastSyncedAt: Value(DateTime.now()),
+              updatedAt: Value(
+                updatedAtStr != null ? DateTime.parse(updatedAtStr) : null,
+              ),
+            ),
+          );
         }
-      } else {
+        downloaded++;
+      } catch (_) {
         errors++;
       }
-    } catch (_) {
-      errors++;
     }
 
     return SyncResult(
